@@ -27,10 +27,10 @@ Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Mura
 - **Real-time**: Supabase Realtime channel subscriptions via `useRealtimeMatches` hook.
 - **UI**: `WaitingQueue.tsx` (card-based queue) + `MonitorDashboard.tsx` (table with data masking + manual link mode).
 
-### C. Reactive Financial Calculator ✅
+### C. Reactive Financial Calculator ✅ (Phase 6 Updates)
 - **Logic**: Client-side (React state) dynamic updates — all 5 equations from `calculater.md` implemented.
-- **Inputs**: Car Price, Bank Ceiling, Net Salary, Murabaha Margin (16% or 24%), Notary Pledge toggle.
-- **Features**: Real-time results, deduction rate badge, localStorage draft saving, keyboard-accessible.
+- **Inputs**: Car Purchase Cost (Optional), Car Sale Price (Bank Price), Bank Ceiling, Net Salary, Murabaha Margin (16% or 24%), Notary Pledge toggle.
+- **Features**: Real-time results, deduction rate badge, localStorage draft saving, keyboard-accessible, **expected profit calculation**.
 
 ### D. Post-Delivery Settlements ✅
 - **Logic**: 3 settlement types (Personal Use, Cash-out, External Sale) with financial breakdowns.
@@ -64,7 +64,7 @@ Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Mura
 - **Accessibility**: Keyboard navigation optimized (Tab flow) for data entry efficiency. ✅
 - **Resilience**: `localStorage` drafts on Calculator, CustomerForm, and Settlements. ✅
 - **Navigation (Portals Architecture)**:
-  - **Office Portal (`/office`)**: For Tenant Offices (Calculator, Beneficiaries, Guarantors, Documents, Waiting Queue, Settlements).
+  - **Office Portal (`/office`)**: For Tenant Offices (Calculator, Beneficiaries, Guarantors, Documents, Waiting Queue, Settlements, **Reports**).
   - **Monitor Portal (`/monitor`)**: For Operations Monitor (Manual Linking & Waiting Queue Oversight).
   - **Admin Portal (`/admin`)**: For Super Admins (Tenant & Workplace Management).
   - Landing Page (`/`): A role-selection entry point.
