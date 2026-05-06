@@ -44,13 +44,24 @@
   - Verified RTL layouts across all 8 tabs.
   - Premium hover effects (lift, shadow, glow) on cards, buttons, containers.
   - Cubic-bezier tab transitions.
+- [x] Architectural Refactor (Portals Separation):
+  - Transitioned from state-based tabs to `react-router-dom`.
+  - Created 3 independent portals: Office Portal (`/office`), Monitor Portal (`/monitor`), Admin Portal (`/admin`).
+  - Added a Landing Page (`/`) for role selection.
 - [x] Comprehensive Testing:
   - Extracted financial engine to `src/lib/financialEngine.ts`.
   - 23 unit tests covering all 5 equations, margin rates, notary pledge, and edge cases.
   - Vitest framework + `npm test` / `npm test:watch` scripts.
   - TypeScript: 0 errors.
 
-## Phase 6: Production Deployment & Launch
+## Phase 6: Core Features Completion (Audio Analysis Requirements)
+- [ ] Update Database Schema: Add `purchase_cost` to `transactions` table. Add `max_users`, `max_customers`, and `trial_ends_at` to `offices` table.
+- [ ] Implement Settlement Finalization: Enforce uploading a photo of the check/guarantee (`check_image_url`) before closing a transaction.
+- [ ] Develop Financial Reporting Module: Build an Office Manager dashboard showing monthly profit reports (Sale Price - Purchase Cost + Commission).
+- [ ] Subscription Management: Implement billing logic for customer quotas and 6-month free trial period.
+
+## Phase 7: Production Deployment & External Integrations
+- [ ] External Notifications: Integrate SMS/WhatsApp API to notify customers and guarantors when a match is successfully found.
 - [ ] Production Deployment (Vercel + Supabase).
 - [ ] MVP Launch & Onboarding of initial offices.
 

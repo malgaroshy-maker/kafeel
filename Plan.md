@@ -37,6 +37,7 @@ Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Mura
 - **Timer**: 3-day external sale countdown with color-coded urgency (green → red).
 - **Dashboard**: Live timer cards with progress bars.
 - **Database**: `settlements` table with all types and deadline tracking.
+- **Closing Requirement**: Must upload a photo of the check/guarantee (`check_image_url`) to fully close and finalize the transaction.
 
 ### E. Document Management ✅
 - **Storage**: Supabase Storage ready (client-side compression implemented).
@@ -48,12 +49,25 @@ Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Mura
 - **Workplace Management**: View and add workplaces with chip-based UI.
 - **Stats**: 4 KPI cards (active offices, workplaces, quota usage, utilization %).
 
+### G. Financial Reporting & Analytics (Phase 5/6)
+- **Logic**: Calculate net office profit based on `(Car Sale Price - Car Purchase Cost) + Processing Commissions`.
+- **UI**: Office Manager dashboard to view monthly profit reports and customer acquisition metrics.
+- **Privacy**: Hidden from standard Staff and Operations Monitor roles.
+
+### H. External Notifications (Phase 6)
+- **Logic**: Send automated alerts to customers and guarantors when a match is found to proceed with paperwork.
+- **Integration**: General SMS/WhatsApp API (Provider to be determined in Phase 6).
+
 ## 4. UI/UX Design Approach
 - **RTL Support**: Built inherently for Arabic (dir="rtl", Cairo font). ✅
 - **Aesthetics**: Premium feel with HSL color system, dark mode auto-detection, glassmorphism header, smooth transitions. ✅
 - **Accessibility**: Keyboard navigation optimized (Tab flow) for data entry efficiency. ✅
 - **Resilience**: `localStorage` drafts on Calculator, CustomerForm, and Settlements. ✅
-- **Navigation**: 8-tab interface (الحاسبة، المستفيد، الضامن، المستندات، الانتظار، المراقب، التسويات، الإدارة). ✅
+- **Navigation (Portals Architecture)**:
+  - **Office Portal (`/office`)**: For Tenant Offices (Calculator, Beneficiaries, Guarantors, Documents, Waiting Queue, Settlements).
+  - **Monitor Portal (`/monitor`)**: For Operations Monitor (Manual Linking & Waiting Queue Oversight).
+  - **Admin Portal (`/admin`)**: For Super Admins (Tenant & Workplace Management).
+  - Landing Page (`/`): A role-selection entry point.
 
 ## 5. Security & Privacy
 - **Data Masking**: Monitor Dashboard hides salaries, car prices, and debts by default. ✅
@@ -64,11 +78,11 @@ Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Mura
 | Table | Purpose | RLS | Status |
 |-------|---------|-----|--------|
 | `workplaces` | Workplace registry + `required_guarantors` | ✅ | ✅ |
-| `offices` | Subscriptions, quotas, active status | ✅ | ✅ |
+| `offices` | Subscriptions, quotas, active status, **max_customers, max_users, trial_ends_at** | ✅ | ✅ |
 | `customers` | National ID (unique), salary, workplace_id | ✅ | ✅ |
-| `transactions` | Lifecycle + `office_loan`, `car_model`, `is_files_complete` | ✅ | ✅ |
+| `transactions` | Lifecycle + `office_loan`, `car_model`, `is_files_complete`, **purchase_cost** | ✅ | ✅ |
 | `transaction_guarantors` | Match linking (Auto/Manual/Override) | ✅ | ✅ |
-| `settlements` | 3 settlement types + deadline tracking | ✅ | ✅ |
+| `settlements` | 3 settlement types + deadline tracking, **check_image_url** | ✅ | ✅ |
 
 ## 7. Current Progress
 - **Phases 1-4**: Complete ✅
