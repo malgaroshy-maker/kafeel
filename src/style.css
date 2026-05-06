@@ -1,25 +1,25 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@300;400;500;700&display=swap');
 
 /* ===== Design Tokens ===== */
 :root {
-  --primary-h: 215;
-  --primary-s: 85%;
-  --primary-l: 45%;
+  --primary-h: 201;
+  --primary-s: 96%;
+  --primary-l: 32%;
   --primary: hsl(var(--primary-h), var(--primary-s), var(--primary-l));
-  --primary-light: hsl(var(--primary-h), var(--primary-s), 55%);
-  --primary-dark: hsl(var(--primary-h), var(--primary-s), 32%);
+  --primary-light: hsl(var(--primary-h), var(--primary-s), 42%);
+  --primary-dark: hsl(var(--primary-h), var(--primary-s), 22%);
   --primary-ghost: hsla(var(--primary-h), var(--primary-s), var(--primary-l), 0.08);
 
-  --bg: hsl(220, 20%, 97%);
+  --bg: hsl(210, 40%, 98%);
   --surface: hsl(0, 0%, 100%);
-  --surface-hover: hsl(220, 14%, 95%);
+  --surface-hover: hsl(210, 20%, 96%);
 
-  --text: hsl(220, 25%, 12%);
-  --text-secondary: hsl(220, 12%, 42%);
-  --text-tertiary: hsl(220, 8%, 62%);
+  --text: hsl(228, 84%, 5%);
+  --text-secondary: hsl(215, 25%, 27%);
+  --text-tertiary: hsl(215, 15%, 50%);
 
-  --border: hsl(220, 14%, 89%);
-  --border-light: hsl(220, 14%, 93%);
+  --border: hsl(215, 20%, 90%);
+  --border-light: hsl(215, 20%, 94%);
 
   --success: hsl(152, 60%, 38%);
   --success-bg: hsl(152, 60%, 95%);
@@ -33,13 +33,13 @@
   --radius-lg: 16px;
   --radius-xl: 20px;
 
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-  --shadow-lg: 0 8px 30px rgba(0,0,0,0.1);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 8px 30px rgba(15, 23, 42, 0.1);
 
   --transition: 0.2s ease;
 
-  font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+  font-family: 'Noto Sans Arabic', system-ui, -apple-system, sans-serif;
   line-height: 1.6;
   color: var(--text);
   background: var(--bg);
@@ -51,14 +51,14 @@
 /* ===== Dark Mode ===== */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: hsl(220, 20%, 7%);
-    --surface: hsl(220, 18%, 11%);
-    --surface-hover: hsl(220, 18%, 15%);
-    --text: hsl(0, 0%, 96%);
-    --text-secondary: hsl(220, 8%, 65%);
-    --text-tertiary: hsl(220, 6%, 48%);
-    --border: hsl(220, 15%, 18%);
-    --border-light: hsl(220, 15%, 14%);
+    --bg: hsl(222, 47%, 7%);
+    --surface: hsl(222, 47%, 11%);
+    --surface-hover: hsl(222, 47%, 15%);
+    --text: hsl(210, 40%, 98%);
+    --text-secondary: hsl(215, 20%, 65%);
+    --text-tertiary: hsl(215, 15%, 48%);
+    --border: hsl(222, 30%, 18%);
+    --border-light: hsl(222, 30%, 14%);
     --primary-ghost: hsla(var(--primary-h), var(--primary-s), var(--primary-l), 0.12);
     --success-bg: hsl(152, 40%, 12%);
     --error-bg: hsl(0, 40%, 12%);
@@ -122,17 +122,23 @@ body {
   direction: rtl;
 }
 
+h1, h2, h3, h4, h5, h6, .brand-text {
+  font-family: 'Noto Naskh Arabic', serif;
+}
+
 /* ===== Glassmorphism ===== */
 .glass {
   background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.05);
 }
 @media (prefers-color-scheme: dark) {
   .glass {
-    background: rgba(18, 22, 28, 0.75);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
   }
 }
 

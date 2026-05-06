@@ -55,10 +55,10 @@
   - TypeScript: 0 errors.
 
 ## Phase 6: Core Features Completion (Audio Analysis Requirements)
-- [ ] Update Database Schema: Add `purchase_cost` to `transactions` table. Add `check_image_url` to `settlements` table.
-- [ ] Update Calculator & CustomerForm: Add `purchase_cost` as an optional input to calculate net profit.
-- [ ] Implement Settlement Finalization: Enforce uploading a photo of the check/guarantee (`check_image_url`) before closing a transaction.
-- [ ] Develop Financial Reporting Module: Build `ReportsDashboard.tsx` in the Office portal showing monthly profit reports.
+- [x] Update Database Schema: Add `purchase_cost` to `transactions` table. Add `check_image_url` to `settlements` table.
+- [x] Update Calculator & CustomerForm: Add `purchase_cost` as an optional input to calculate net profit.
+- [x] Implement Settlement Finalization: Enforce uploading a photo of the check/guarantee (`check_image_url`) before closing a transaction.
+- [x] Develop Financial Reporting Module: Build `ReportsDashboard.tsx` in the Office portal showing monthly profit reports.
 
 ## Phase 7: Production Deployment & External Integrations
 - [ ] Subscription Management: Implement billing logic for customer quotas and 6-month free trial period.

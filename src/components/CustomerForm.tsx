@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { UserPlus, Save, RotateCcw } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
 
 interface CustomerDraft {
   nationalId: string
@@ -10,6 +11,7 @@ interface CustomerDraft {
   salary: string
   workplaceType: 'public' | 'classified'
   isSalaryContinuous: boolean
+  purchaseCost?: string
 }
 
 const emptyDraft: CustomerDraft = {
@@ -20,6 +22,7 @@ const emptyDraft: CustomerDraft = {
   salary: '',
   workplaceType: 'public',
   isSalaryContinuous: false,
+  purchaseCost: '',
 }
 
 interface Props {
@@ -27,6 +30,7 @@ interface Props {
 }
 
 export default function CustomerForm({ role = 'beneficiary' }: Props) {
+  const { role: userRole } = useAuth()
   const storageKey = `kafeel_customer_${role}_draft`
   const [form, setForm] = useLocalStorage<CustomerDraft>(storageKey, emptyDraft)
   const [saved, setSaved] = useState(false)
@@ -164,6 +168,22 @@ export default function CustomerForm({ role = 'beneficiary' }: Props) {
             <span>إيداع مرتب مستمر (3 أشهر على الأقل)</span>
           </label>
         </div>
+
+        {isBeneficiary && userRole === 'manager' && (
+          <div className="input-group" style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(16, 185, 129, 0.05)', borderRadius: '12px', border: '1px dashed var(--success-color)' }}>
+            <label htmlFor="purchaseCost" style={{ color: 'var(--success-color)' }}>سعر شراء السيارة للمكتب (سري - للإدارة فقط)</label>
+            <input
+              id="purchaseCost"
+              type="number"
+              inputMode="decimal"
+              placeholder="يُستخدم لحساب أرباح المعاملة لاحقاً"
+              value={form.purchaseCost || ''}
+              onChange={(e) => update('purchaseCost', e.target.value)}
+              tabIndex={9}
+              style={{ borderColor: 'var(--success-color)' }}
+            />
+          </div>
+        )}
       </div>
 
       <div className="form-actions">

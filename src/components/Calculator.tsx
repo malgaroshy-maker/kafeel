@@ -4,6 +4,7 @@ import { Calculator as CalcIcon, TrendingUp, Banknote, CreditCard, AlertTriangle
 import { calculateMurabaha, TERM_MONTHS } from '../lib/financialEngine'
 
 interface CalcState {
+  purchaseCost: string
   carPrice: string
   bankCeiling: string
   netSalary: string
@@ -13,6 +14,7 @@ interface CalcState {
 }
 
 const defaultState: CalcState = {
+  purchaseCost: '',
   carPrice: '',
   bankCeiling: '',
   netSalary: '',
@@ -68,7 +70,20 @@ export default function FinancialCalculator() {
           <h3 className="panel-title">المدخلات</h3>
 
           <div className="input-group">
-            <label htmlFor="carPrice">سعر السيارة (د.ل)</label>
+            <label htmlFor="purchaseCost">سعر شراء السيارة الأصلي (د.ل) - <span style={{fontSize: '0.8rem', color: 'var(--text-tertiary)'}}>سري</span></label>
+            <input
+              id="purchaseCost"
+              type="number"
+              inputMode="decimal"
+              placeholder="مثال: 90,000 (اختياري لمعرفة الربح)"
+              value={form.purchaseCost}
+              onChange={(e) => update('purchaseCost', e.target.value)}
+              tabIndex={1}
+            />
+          </div>
+
+          <div className="input-group">
+            <label htmlFor="carPrice">سعر البيع للمصرف (د.ل)</label>
             <input
               id="carPrice"
               type="number"
@@ -76,7 +91,7 @@ export default function FinancialCalculator() {
               placeholder="مثال: 95,000"
               value={form.carPrice}
               onChange={(e) => update('carPrice', e.target.value)}
-              tabIndex={1}
+              tabIndex={2}
             />
           </div>
 
@@ -135,7 +150,7 @@ export default function FinancialCalculator() {
                 type="checkbox"
                 checked={form.hasNotaryPledge}
                 onChange={(e) => update('hasNotaryPledge', e.target.checked)}
-                tabIndex={6}
+                tabIndex={7}
               />
               <span>تعهد محرر عقود (مصرف الجمهورية — خصم 50%)</span>
             </label>
@@ -214,10 +229,19 @@ export default function FinancialCalculator() {
 
               <div className="result-card">
                 <div className="result-info full">
-                  <span className="result-label">أرباح المرابحة</span>
+                  <span className="result-label">أرباح المرابحة (للمصرف)</span>
                   <span className="result-value">{fmt(results.profitAmount)} د.ل</span>
                 </div>
               </div>
+
+              {n(form.purchaseCost) > 0 && n(form.carPrice) >= n(form.purchaseCost) && (
+                <div className="result-card" style={{ border: '1px solid var(--success-color)', background: 'rgba(16, 185, 129, 0.05)' }}>
+                  <div className="result-info full">
+                    <span className="result-label" style={{ color: 'var(--success-color)' }}>الربح المبدئي للمكتب (الفرق)</span>
+                    <span className="result-value" style={{ color: 'var(--success-color)' }}>{fmt(n(form.carPrice) - n(form.purchaseCost))} د.ل</span>
+                  </div>
+                </div>
+              )}
 
               <div className="term-info">
                 <span>مدة التقسيط: <strong>{TERM_MONTHS} شهر (8 سنوات)</strong></span>

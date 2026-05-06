@@ -11,6 +11,7 @@ interface SettlementData {
   debtAmount: number
   salePrice: number
   officeCommission: number
+  checkImageUrl: string
 }
 
 interface ExternalSaleTimer {
@@ -56,6 +57,7 @@ export default function Settlements() {
       debtAmount: 0,
       salePrice: 0,
       officeCommission: 0,
+      checkImageUrl: '',
     }
   })
   const [timers, setTimers] = useState<ExternalSaleTimer[]>(DEMO_TIMERS)
@@ -311,10 +313,35 @@ export default function Settlements() {
           </div>
         )}
 
-        <div className="form-actions">
-          <button className="btn btn-primary" onClick={handleSubmit} disabled={!data.customerName || !data.carPrice}>
+        {/* Check Image Upload */}
+        <div className="input-group" style={{ marginTop: '1.5rem', padding: '1rem', border: '1px dashed var(--primary)', borderRadius: '12px', background: 'rgba(37, 99, 235, 0.05)' }}>
+          <label style={{ color: 'var(--primary)' }}>صورة الصك المالي (إلزامي لإغلاق المعاملة)</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (file) {
+                // Mock upload: set a fake URL for now
+                handleInput('checkImageUrl', URL.createObjectURL(file))
+              }
+            }}
+          />
+          {data.checkImageUrl && (
+            <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--success-color)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <CheckCircle2 size={14} /> تم إرفاق الصورة
+            </div>
+          )}
+        </div>
+
+        <div className="form-actions" style={{ marginTop: '2rem' }}>
+          <button 
+            className="btn btn-primary" 
+            onClick={handleSubmit} 
+            disabled={!data.customerName || !data.carPrice || !data.checkImageUrl}
+          >
             <CheckCircle2 size={16} />
-            تسجيل التسوية
+            تسجيل التسوية وإغلاق المعاملة
           </button>
         </div>
 
