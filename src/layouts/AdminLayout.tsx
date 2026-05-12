@@ -1,26 +1,30 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Car, LayoutDashboard, LogOut } from 'lucide-react';
+import { LayoutDashboard, LogOut } from 'lucide-react';
 import AdminDashboard from '../components/AdminDashboard';
+import { useAuth } from '../contexts/AuthContext';
 
 const AdminLayout: React.FC = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   return (
     <div className="app-shell admin-theme">
       {/* Header */}
-      <header className="app-header glass" style={{ borderBottom: '1px solid var(--success-color)' }}>
+      <header className="app-header glass">
         <div className="header-inner">
-          <div className="brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-            <div className="brand-icon" style={{ background: 'var(--success-color)' }}>
-              <Car size={26} />
-            </div>
+          <div className="brand">
+            <img src="/logo.png" alt="كفيل" className="brand-img" />
             <div className="brand-text">
-              <h1>كفيل</h1>
               <span className="brand-tagline">بوابة الإدارة</span>
             </div>
           </div>
-          <button className="btn-secondary" onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem' }}>
+          <button className="btn btn-secondary" onClick={handleLogout}>
             <LogOut size={16} />
             <span>خروج</span>
           </button>

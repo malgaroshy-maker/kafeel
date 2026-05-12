@@ -3,24 +3,29 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
+import JoinPage from './pages/JoinPage';
 import OfficeLayout from './layouts/OfficeLayout';
 import AdminLayout from './layouts/AdminLayout';
 import MonitorLayout from './layouts/MonitorLayout';
 
+import { ErrorBoundary } from './components/ErrorBoundary';
+
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <ErrorBoundary>
+      <AuthProvider>
+        <Router>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/join" element={<JoinPage />} />
 
           {/* Protected Routes */}
           <Route 
             path="/office/*" 
             element={
-              <ProtectedRoute allowedRoles={['manager', 'staff']}>
+              <ProtectedRoute allowedRoles={['manager', 'staff', 'accountant']}>
                 <OfficeLayout />
               </ProtectedRoute>
             } 
@@ -48,7 +53,8 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

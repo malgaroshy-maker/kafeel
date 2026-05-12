@@ -14,62 +14,74 @@ interface MonitorEntry {
   // Sensitive fields (hidden from monitor)
   _salary?: number
   _carPrice?: number
+  _customerPhone?: string
 }
 
-const DEMO_ENTRIES: MonitorEntry[] = [
-  {
-    id: 'mon-1',
-    customerName: 'أحمد محمد علي',
-    officeName: 'مكتب النجم',
-    workplaceName: 'وزارة الداخلية',
-    submittedDate: '2026-05-01',
-    guarantorsNeeded: 1,
-    currentGuarantors: 0,
-    _salary: 2800,
-    _carPrice: 95000,
-  },
-  {
-    id: 'mon-2',
-    customerName: 'خالد عبدالله السنوسي',
-    officeName: 'مكتب الثقة',
-    workplaceName: 'وزارة التعليم',
-    submittedDate: '2026-04-28',
-    guarantorsNeeded: 2,
-    currentGuarantors: 1,
-    _salary: 3100,
-    _carPrice: 110000,
-  },
-  {
-    id: 'mon-3',
-    customerName: 'محمود صالح بن عيسى',
-    officeName: 'مكتب النجم',
-    workplaceName: 'وزارة الداخلية',
-    submittedDate: '2026-05-03',
-    guarantorsNeeded: 1,
-    currentGuarantors: 0,
-    _salary: 2750,
-    _carPrice: 85000,
-  },
-  {
-    id: 'mon-4',
-    customerName: 'عمر فتحي الزوي',
-    officeName: 'مكتب الأمان',
-    workplaceName: 'وزارة الداخلية',
-    submittedDate: '2026-05-04',
-    guarantorsNeeded: 1,
-    currentGuarantors: 0,
-    _salary: 2820,
-    _carPrice: 90000,
-  },
-]
+// Types stay the same
+
+import { useEffect, useCallback } from 'react'
+import { supabase } from '../lib/supabase'
+import { notificationService } from '../utils/notifications'
 
 export default function MonitorDashboard() {
-  const [entries, setEntries] = useState<MonitorEntry[]>(DEMO_ENTRIES)
+  const [entries, setEntries] = useState<MonitorEntry[]>([])
   const [showSensitive, setShowSensitive] = useState(false)
   const [linkMode, setLinkMode] = useState(false)
   const [selectedForLink, setSelectedForLink] = useState<string[]>([])
   const [linkResult, setLinkResult] = useState<string | null>(null)
   const { events, isConnected } = useRealtimeMatches()
+
+  const loadData = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select(`
+          id,
+          car_model,
+          car_price,
+          created_at,
+          offices (name),
+          customers (
+            id,
+            full_name,
+            salary,
+            phone,
+            workplaces (name, required_guarantors)
+          )
+        `)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      
+      if (data) {
+        const formatted: MonitorEntry[] = (data as any[]).map(item => {
+          const customer = Array.isArray(item.customers) ? item.customers[0] : item.customers;
+          const office = Array.isArray(item.offices) ? item.offices[0] : item.offices;
+          const workplace = customer && Array.isArray(customer.workplaces) ? customer.workplaces[0] : (customer?.workplaces);
+
+          return {
+            id: item.id,
+            customerName: customer?.full_name || 'غير معروف',
+            officeName: office?.name || 'غير معروف',
+            workplaceName: workplace?.name || 'غير معروف',
+            submittedDate: new Date(item.created_at).toLocaleDateString('ar-LY'),
+            guarantorsNeeded: workplace?.required_guarantors || 0,
+            currentGuarantors: 0,
+            _salary: customer?.salary,
+            _carPrice: item.car_price,
+            _customerPhone: customer?.phone
+          };
+        })
+        setEntries(formatted)
+      }
+    } catch (err) {
+      console.error('Error loading monitor data:', err)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   const handleSelect = (id: string) => {
     if (!linkMode) return
@@ -81,33 +93,38 @@ export default function MonitorDashboard() {
     setLinkResult(null)
   }
 
-  const executeManualLink = () => {
+  const executeManualLink = async () => {
     if (selectedForLink.length !== 2) return
     const [beneficiaryId, guarantorId] = selectedForLink
     const beneficiary = entries.find((e) => e.id === beneficiaryId)
     const guarantor = entries.find((e) => e.id === guarantorId)
 
     if (beneficiary && guarantor) {
-      // Check if same workplace
-      const sameWorkplace = beneficiary.workplaceName === guarantor.workplaceName
-      const salaryDiff = Math.abs((beneficiary._salary || 0) - (guarantor._salary || 0))
+      try {
+        const { error } = await supabase
+          .from('transaction_guarantors')
+          .insert({
+            transaction_id: beneficiaryId,
+            guarantor_customer_id: guarantor.id, // Assuming guarantor is another customer
+            match_type: 'MANUAL'
+          })
+        
+        if (error) throw error
 
-      let warning = ''
-      if (!sameWorkplace) warning += '⚠️ جهات عمل مختلفة. '
-      if (salaryDiff > 50) warning += `⚠️ فارق المرتب ${salaryDiff} د.ل (أكثر من 50). `
-
-      setLinkResult(
-        `${warning ? warning + '\n' : ''}✅ تم الربط الاستثنائي: ${beneficiary.customerName} ← ${guarantor.customerName}`
-      )
-
-      // Update demo state
-      setEntries((prev) =>
-        prev.map((e) =>
-          e.id === beneficiaryId
-            ? { ...e, currentGuarantors: e.currentGuarantors + 1 }
-            : e
+        // Notify both parties
+        await notificationService.sendMatchAlert(
+          beneficiary.customerName,
+          (beneficiary as any)._customerPhone || '',
+          guarantor.customerName,
+          (guarantor as any)._customerPhone || ''
         )
-      )
+
+        setLinkResult(`✅ تم الربط اليدوي بنجاح وإرسال الإشعارات لـ ${beneficiary.customerName} و ${guarantor.customerName}`)
+        loadData() // Refresh
+      } catch (err) {
+        console.error('Error linking:', err)
+        setLinkResult('❌ فشل عملية الربط. يرجى المحاولة لاحقاً.')
+      }
     }
 
     setSelectedForLink([])

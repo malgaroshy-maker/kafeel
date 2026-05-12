@@ -1,199 +1,523 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import { UserPlus, Save, RotateCcw } from 'lucide-react'
+import { UserPlus, Save, RotateCcw, Search, ChevronDown, ShieldCheck, User } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '../lib/supabase'
+
+interface Workplace {
+  id: string
+  name: string
+  required_guarantors: number
+}
 
 interface CustomerDraft {
+  id?: string
   nationalId: string
   fullName: string
   phone: string
-  workplace: string
+  workplaceId: string
   salary: string
   workplaceType: 'public' | 'classified'
   isSalaryContinuous: boolean
+  gender: 'male' | 'female' | ''
+  birthYear: string
+  profitPercentage: string
   purchaseCost?: string
+  bankId: string
+  branchId: string
 }
 
 const emptyDraft: CustomerDraft = {
+  id: '',
   nationalId: '',
   fullName: '',
   phone: '',
-  workplace: '',
+  workplaceId: '',
   salary: '',
   workplaceType: 'public',
   isSalaryContinuous: false,
+  gender: '',
+  birthYear: '',
+  profitPercentage: '24',
   purchaseCost: '',
+  bankId: '',
+  branchId: '',
 }
+
+const SPECIAL_ENTITIES_16 = [
+  'محكمة العليا', 'الهيئة العامة للقضاء العسكري', 'الشركة الوطنية العامة للنقل البحري',
+  'جامعة المرقب', 'مكتب المدعي العام العسكري', 'ديوان المحاسبة', 'الهيئة الوطنية لمكافحة الفساد',
+  'المجلس الوطني للحريات حقوق الإنسان', 'جهاز الحرس البلدي', 'إدارة المخابرة', 'الالرقابة على الأغذية',
+  'الجامعة الأسمرية', 'معهد الدراسات بمصرف ليبيا', 'الخطوط الأفريقية', 'النقابة العامة للمعلمين',
+  'جمعية الدعوة الإسلامية العالمية', 'شركة الواحة', 'وزارة التعليم العالي', 'جامعة بني وليد',
+  'وزارة الزراعة', 'مصلحة الآثار', 'الكهرباء', 'وزارة الداخلية', 'حرس المنشآت',
+  'الشركة التمويل النفطية', 'وزارة تعليم التقني', 'المخابرات', 'القضاء العسكري'
+]
 
 interface Props {
   role?: 'beneficiary' | 'guarantor'
+  onSuccess?: (customerId: string, guarantorIds?: string[]) => void
+  initialData?: any
 }
 
-export default function CustomerForm({ role = 'beneficiary' }: Props) {
-  const { role: userRole } = useAuth()
-  const storageKey = `kafeel_customer_${role}_draft`
-  const [form, setForm] = useLocalStorage<CustomerDraft>(storageKey, emptyDraft)
-  const [saved, setSaved] = useState(false)
+// Sub-component for individual customer fields
+const CustomerFields = ({ 
+  data, 
+  onChange, 
+  workplaces, 
+  showValidation, 
+  title, 
+  icon: Icon,
+  isBeneficiary = false
+}: { 
+  data: CustomerDraft, 
+  onChange: (field: keyof CustomerDraft, value: any) => void,
+  workplaces: Workplace[],
+  showValidation: boolean,
+  title: string,
+  icon: any,
+  isBeneficiary?: boolean
+}) => {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [isOpen, setIsOpen] = useState(false)
+  const [bankSearchTerm, setBankSearchTerm] = useState('')
+  const [isBankOpen, setIsBankOpen] = useState(false)
+  const [branchSearchTerm, setBranchSearchTerm] = useState('')
+  const [isBranchOpen, setIsBranchOpen] = useState(false)
+  const [banks, setBanks] = useState<any[]>([])
+  const [branches, setBranches] = useState<any[]>([])
+  const [selectedBankBranches, setSelectedBankBranches] = useState<any[]>([])
 
-  const update = (field: keyof CustomerDraft, value: string | boolean) => {
-    setForm((prev) => ({ ...prev, [field]: value }))
-    setSaved(false)
+  useEffect(() => {
+    fetchBanks()
+  }, [])
+
+  useEffect(() => {
+    if (data.bankId) {
+      fetchBranches(data.bankId)
+    } else {
+      setSelectedBankBranches([])
+    }
+  }, [data.bankId])
+
+  const fetchBanks = async () => {
+    const { data: bankData } = await supabase.from('banks').select('*').order('name')
+    if (bankData) setBanks(bankData)
   }
 
-  const handleSave = () => {
-    // In a real app, this would POST to Supabase.
-    // For now, it just confirms the draft is persisted in localStorage.
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+  const fetchBranches = async (bankId: string) => {
+    const { data: branchData } = await supabase.from('branches').select('*').eq('bank_id', bankId).order('name')
+    if (branchData) setSelectedBankBranches(branchData)
   }
 
-  const handleReset = () => {
-    setForm(emptyDraft)
-    setSaved(false)
-  }
-
-  const isBeneficiary = role === 'beneficiary'
-  const title = isBeneficiary ? 'بيانات المستفيد' : 'بيانات الضامن'
+  useEffect(() => {
+    if (data.nationalId.length >= 5) {
+      const firstDigit = data.nationalId[0]
+      const yearDigits = data.nationalId.substring(1, 5)
+      const newGender = firstDigit === '1' ? 'male' : firstDigit === '2' ? 'female' : ''
+      const newYear = /^\d{4}$/.test(yearDigits) ? yearDigits : ''
+      if (newGender !== data.gender || newYear !== data.birthYear) {
+        onChange('gender', newGender)
+        onChange('birthYear', newYear)
+      }
+    }
+  }, [data.nationalId])
 
   return (
-    <div className="customer-form-container">
-      <div className="form-header">
-        <div className="form-icon-wrap">
-          <UserPlus size={24} />
+    <div className="customer-section mb-8 p-6 bg-navy-900/30 rounded-2xl border border-white/5">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-2 bg-primary/20 rounded-lg text-primary">
+          <Icon size={20} />
         </div>
-        <h3>{title}</h3>
+        <h4 className="text-lg font-bold text-white">{title}</h4>
       </div>
 
-      <div className="form-body">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="input-group">
-          <label htmlFor={`${role}-nid`}>الرقم الوطني</label>
+          <label>الرقم الوطني</label>
           <input
-            id={`${role}-nid`}
             type="text"
             inputMode="numeric"
-            placeholder="أدخل الرقم الوطني"
-            value={form.nationalId}
-            onChange={(e) => update('nationalId', e.target.value)}
+            className={showValidation && data.nationalId.length < 12 ? 'input-error' : ''}
+            placeholder="أدخل الرقم الوطني (12 رقم)"
+            value={data.nationalId}
+            onChange={(e) => onChange('nationalId', e.target.value.replace(/\D/g, '').slice(0, 12))}
             maxLength={12}
-            tabIndex={1}
           />
         </div>
 
         <div className="input-group">
-          <label htmlFor={`${role}-name`}>الاسم الرباعي</label>
+          <label>الاسم الرباعي</label>
           <input
-            id={`${role}-name`}
             type="text"
             placeholder="الاسم الكامل"
-            value={form.fullName}
-            onChange={(e) => update('fullName', e.target.value)}
-            tabIndex={2}
+            value={data.fullName}
+            onChange={(e) => onChange('fullName', e.target.value)}
           />
         </div>
 
+        <div className="grid grid-cols-2 gap-4">
+          <div className="input-group">
+            <label>الجنس</label>
+            <div className="toggle-group">
+              <button
+                type="button"
+                className={`toggle-btn ${data.gender === 'male' ? 'active' : ''}`}
+                onClick={() => onChange('gender', 'male')}
+              >ذكر</button>
+              <button
+                type="button"
+                className={`toggle-btn ${data.gender === 'female' ? 'active' : ''}`}
+                onClick={() => onChange('gender', 'female')}
+              >أنثى</button>
+            </div>
+          </div>
+          <div className="input-group">
+            <label>سنة الميلاد</label>
+            <input type="text" readOnly value={data.birthYear} placeholder="تلقائي" className="bg-navy-950/50" />
+          </div>
+        </div>
+
         <div className="input-group">
-          <label htmlFor={`${role}-phone`}>رقم الهاتف</label>
+          <label>رقم الهاتف</label>
           <input
-            id={`${role}-phone`}
             type="tel"
             inputMode="tel"
+            className={showValidation && (data.phone.length !== 10 || !data.phone.startsWith('0')) ? 'input-error' : ''}
             placeholder="09XXXXXXXX"
-            value={form.phone}
-            onChange={(e) => update('phone', e.target.value)}
-            tabIndex={3}
+            value={data.phone}
+            onChange={(e) => onChange('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
+            maxLength={10}
+            dir="ltr"
           />
         </div>
 
         <div className="input-group">
-          <label htmlFor={`${role}-workplace`}>جهة العمل</label>
-          <input
-            id={`${role}-workplace`}
-            type="text"
-            placeholder="مثال: وزارة الداخلية"
-            value={form.workplace}
-            onChange={(e) => update('workplace', e.target.value)}
-            tabIndex={4}
-          />
-        </div>
-
-        <div className="input-group">
-          <label htmlFor={`${role}-salary`}>المرتب الأساسي (د.ل)</label>
-          <input
-            id={`${role}-salary`}
-            type="number"
-            inputMode="decimal"
-            placeholder="مثال: 2500"
-            value={form.salary}
-            onChange={(e) => update('salary', e.target.value)}
-            tabIndex={5}
-          />
-        </div>
-
-        <div className="input-group">
-          <label>نوع جهة العمل</label>
-          <div className="toggle-group">
-            <button
-              type="button"
-              className={`toggle-btn ${form.workplaceType === 'public' ? 'active' : ''}`}
-              onClick={() => update('workplaceType', 'public')}
-              tabIndex={6}
-            >
-              تعيين عام
-            </button>
-            <button
-              type="button"
-              className={`toggle-btn ${form.workplaceType === 'classified' ? 'active' : ''}`}
-              onClick={() => update('workplaceType', 'classified')}
-              tabIndex={7}
-            >
-              عقود مصنفة
-            </button>
+          <label>المصرف</label>
+          <div className="searchable-select-container">
+            <div className={`searchable-select-trigger ${showValidation && !data.bankId ? 'input-error' : ''}`} onClick={() => setIsBankOpen(!isBankOpen)}>
+              <span>{banks.find(b => b.id === data.bankId)?.name || 'اختر المصرف...'}</span>
+              <ChevronDown size={16} />
+            </div>
+            {isBankOpen && (
+              <div className="searchable-select-dropdown">
+                <div className="searchable-select-search">
+                  <input
+                    type="text"
+                    placeholder="بحث عن مصرف..."
+                    value={bankSearchTerm}
+                    onChange={(e) => setBankSearchTerm(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    autoFocus
+                  />
+                </div>
+                <div className="searchable-options">
+                  {banks.filter(b => b.name.toLowerCase().includes(bankSearchTerm.toLowerCase())).map(b => (
+                    <div key={b.id} className="searchable-option" onClick={() => {
+                      onChange('bankId', b.id)
+                      onChange('branchId', '')
+                      setIsBankOpen(false)
+                      setBankSearchTerm('')
+                    }}>{b.name}</div>
+                  ))}
+                  {banks.filter(b => b.name.toLowerCase().includes(bankSearchTerm.toLowerCase())).length === 0 && (
+                    <div className="searchable-no-results">لا توجد نتائج</div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-          <p className="input-hint">
-            {form.workplaceType === 'public'
-              ? 'يتطلب ضامن واحد (1) من القطاع العام'
-              : 'يتطلب ضامنين (2) — أحدهما على الأقل من القطاع العام'}
-          </p>
         </div>
 
-        <div className="input-group checkbox-group">
-          <label htmlFor={`${role}-continuous`} className="checkbox-label">
-            <input
-              id={`${role}-continuous`}
-              type="checkbox"
-              checked={form.isSalaryContinuous}
-              onChange={(e) => update('isSalaryContinuous', e.target.checked)}
-              tabIndex={8}
-            />
-            <span>إيداع مرتب مستمر (3 أشهر على الأقل)</span>
-          </label>
+        <div className="input-group">
+          <label>الفرع</label>
+          <div className="searchable-select-container">
+            <div 
+              className={`searchable-select-trigger ${!data.bankId ? 'opacity-50 cursor-not-allowed' : ''} ${showValidation && !data.branchId ? 'input-error' : ''}`} 
+              onClick={() => data.bankId && setIsBranchOpen(!isBranchOpen)}
+            >
+              <span>{selectedBankBranches.find(br => br.id === data.branchId)?.name || 'اختر الفرع...'}</span>
+              <ChevronDown size={16} />
+            </div>
+            {isBranchOpen && data.bankId && (
+              <div className="searchable-select-dropdown">
+                <div className="searchable-select-search">
+                  <input
+                    type="text"
+                    placeholder="بحث عن فرع..."
+                    value={branchSearchTerm}
+                    onChange={(e) => setBranchSearchTerm(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    autoFocus
+                  />
+                </div>
+                <div className="searchable-options">
+                  {selectedBankBranches.filter(br => br.name.toLowerCase().includes(branchSearchTerm.toLowerCase())).map(br => (
+                    <div key={br.id} className="searchable-option" onClick={() => {
+                      onChange('branchId', br.id)
+                      setIsBranchOpen(false)
+                      setBranchSearchTerm('')
+                    }}>{br.name} {br.region ? `(${br.region})` : ''}</div>
+                  ))}
+                  {selectedBankBranches.filter(br => br.name.toLowerCase().includes(branchSearchTerm.toLowerCase())).length === 0 && (
+                    <div className="searchable-no-results">لا توجد نتائج</div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        {isBeneficiary && userRole === 'manager' && (
-          <div className="input-group" style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(16, 185, 129, 0.05)', borderRadius: '12px', border: '1px dashed var(--success-color)' }}>
-            <label htmlFor="purchaseCost" style={{ color: 'var(--success-color)' }}>سعر شراء السيارة للمكتب (سري - للإدارة فقط)</label>
+        <div className="input-group">
+          <label>جهة العمل</label>
+          <div className="searchable-select-container">
+            <div className={`searchable-select-trigger ${showValidation && !data.workplaceId ? 'input-error' : ''}`} onClick={() => setIsOpen(!isOpen)}>
+              <span>{workplaces.find(w => w.id === data.workplaceId)?.name || 'اختر جهة العمل...'}</span>
+              <ChevronDown size={16} />
+            </div>
+            {isOpen && (
+              <div className="searchable-select-dropdown">
+                <div className="searchable-select-search">
+                  <input
+                    type="text"
+                    placeholder="بحث..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    autoFocus
+                  />
+                </div>
+                <div className="searchable-options">
+                  {workplaces.filter(w => w.name.includes(searchTerm)).map(w => (
+                    <div key={w.id} className="searchable-option" onClick={() => {
+                      onChange('workplaceId', w.id)
+                      const normalizedName = w.name.replace(/\s+/g, ' ').trim()
+                      const isSpecial = SPECIAL_ENTITIES_16.some(ent => normalizedName.includes(ent))
+                      if (isBeneficiary) onChange('profitPercentage', isSpecial ? '16' : '24')
+                      setIsOpen(false)
+                    }}>{w.name}</div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="input-group">
+            <label>المرتب الأساسي (د.ل)</label>
             <input
-              id="purchaseCost"
               type="number"
-              inputMode="decimal"
-              placeholder="يُستخدم لحساب أرباح المعاملة لاحقاً"
-              value={form.purchaseCost || ''}
-              onChange={(e) => update('purchaseCost', e.target.value)}
-              tabIndex={9}
-              style={{ borderColor: 'var(--success-color)' }}
+              placeholder="2500"
+              value={data.salary}
+              onChange={(e) => onChange('salary', e.target.value)}
             />
           </div>
+          {isBeneficiary && (
+            <div className="input-group">
+              <label>نسبة الربح (%)</label>
+              <div className="toggle-group">
+                <button type="button" className={`toggle-btn ${data.profitPercentage === '16' ? 'active' : ''}`} onClick={() => onChange('profitPercentage', '16')}>16%</button>
+                <button type="button" className={`toggle-btn ${data.profitPercentage === '24' ? 'active' : ''}`} onClick={() => onChange('profitPercentage', '24')}>24%</button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {isBeneficiary && (
+          <>
+            <div className="input-group">
+              <label>نوع جهة العمل</label>
+              <div className="toggle-group">
+                <button type="button" className={`toggle-btn ${data.workplaceType === 'public' ? 'active' : ''}`} onClick={() => onChange('workplaceType', 'public')}>تعيين عام</button>
+                <button type="button" className={`toggle-btn ${data.workplaceType === 'classified' ? 'active' : ''}`} onClick={() => onChange('workplaceType', 'classified')}>عقود مصنفة</button>
+              </div>
+            </div>
+            <div className="input-group flex items-center pt-8">
+              <label className="checkbox-label">
+                <input type="checkbox" checked={data.isSalaryContinuous} onChange={(e) => onChange('isSalaryContinuous', e.target.checked)} />
+                <span>إيداع مرتب مستمر</span>
+              </label>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default function CustomerForm({ role = 'beneficiary', onSuccess, initialData }: Props) {
+  const { role: userRole, officeId } = useAuth()
+  const [beneficiary, setBeneficiary] = useLocalStorage<CustomerDraft>(`kafeel_customer_beneficiary_draft`, emptyDraft)
+  const [guarantor1, setGuarantor1] = useLocalStorage<CustomerDraft>(`kafeel_customer_guarantor1_draft`, emptyDraft)
+  const [guarantor2, setGuarantor2] = useLocalStorage<CustomerDraft>(`kafeel_customer_guarantor2_draft`, emptyDraft)
+  
+  const [hasGuarantor, setHasGuarantor] = useState(false)
+  const [workplaces, setWorkplaces] = useState<Workplace[]>([])
+  const [loading, setLoading] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [showValidation, setShowValidation] = useState(false)
+
+  useEffect(() => {
+    if (initialData) {
+      setBeneficiary({
+        id: initialData.id,
+        nationalId: initialData.national_id || '',
+        fullName: initialData.name || '',
+        phone: initialData.phone || '',
+        workplaceId: initialData.workplace_id || '',
+        salary: initialData.salary?.toString() || '',
+        workplaceType: initialData.workplace_type || 'public',
+        isSalaryContinuous: initialData.is_salary_continuous || false,
+        gender: initialData.gender || '',
+        birthYear: initialData.birth_year?.toString() || '',
+        profitPercentage: initialData.profit_percentage || '24',
+        bankId: initialData.bank_id || '',
+        branchId: initialData.branch_id || '',
+      })
+    }
+  }, [initialData])
+
+  useEffect(() => {
+    const fetchWorkplaces = async () => {
+      const { data } = await supabase.from('workplaces').select('*').order('name')
+      if (data) setWorkplaces(data)
+    }
+    fetchWorkplaces()
+  }, [])
+
+  const saveCustomer = async (formData: CustomerDraft) => {
+    if (!formData.nationalId || formData.nationalId.length < 12 || !formData.fullName || !formData.workplaceId) return null
+    
+    const payload: any = {
+      office_id: officeId,
+      national_id: formData.nationalId,
+      name: formData.fullName,
+      phone: formData.phone,
+      salary: parseFloat(formData.salary) || 0,
+      workplace_id: formData.workplaceId,
+      gender: formData.gender,
+      birth_year: parseInt(formData.birthYear) || null,
+      bank_id: formData.bankId || null,
+      branch_id: formData.branchId || null
+    }
+    
+    if (formData.id) payload.id = formData.id
+
+    const { data, error } = await supabase
+      .from('customers')
+      .upsert(payload, { onConflict: 'national_id' })
+      .select().single()
+
+    if (error) throw error
+    return data
+  }
+
+  const handleSave = async () => {
+    setShowValidation(true)
+    setLoading(true)
+    try {
+      // 1. Save Beneficiary
+      const ben = await saveCustomer(beneficiary)
+      if (!ben) throw new Error('Missing beneficiary data')
+
+      // 2. Save Guarantors if enabled
+      const gIds: string[] = []
+      if (hasGuarantor) {
+        const g1 = await saveCustomer(guarantor1)
+        if (g1) gIds.push(g1.id)
+        
+        if (beneficiary.workplaceType === 'classified') {
+          const g2 = await saveCustomer(guarantor2)
+          if (g2) gIds.push(g2.id)
+        }
+      }
+
+      setSaved(true)
+      setTimeout(() => {
+        setSaved(false)
+        if (onSuccess) onSuccess(ben.id, gIds)
+      }, 1000)
+    } catch (err) {
+      console.error(err)
+      alert('حدث خطأ أثناء الحفظ')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="customer-form-container max-w-4xl mx-auto">
+      <CustomerFields
+        data={beneficiary}
+        onChange={(f, v) => setBeneficiary(prev => ({ ...prev, [f]: v }))}
+        workplaces={workplaces}
+        showValidation={showValidation}
+        title="بيانات المستفيد"
+        icon={User}
+        isBeneficiary
+      />
+
+      <div className="mb-8 p-4 bg-primary/5 border border-primary/20 rounded-xl flex items-center justify-between">
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input 
+            type="checkbox" 
+            className="w-5 h-5 rounded border-primary/30" 
+            checked={hasGuarantor}
+            onChange={(e) => setHasGuarantor(e.target.checked)}
+          />
+          <span className="text-lg font-semibold text-primary">هل يوجد ضامن؟</span>
+        </label>
+        {hasGuarantor && (
+          <span className="text-sm text-primary/70 italic">
+            {beneficiary.workplaceType === 'classified' ? 'يتطلب ضامنين لهذه الجهة' : 'ضامن واحد يكفي'}
+          </span>
         )}
       </div>
 
-      <div className="form-actions">
-        <button className="btn btn-primary" onClick={handleSave} tabIndex={9}>
-          <Save size={18} />
-          {saved ? 'تم الحفظ ✓' : 'حفظ المسودة'}
+      {hasGuarantor && (
+        <>
+          <CustomerFields
+            data={guarantor1}
+            onChange={(f, v) => setGuarantor1(prev => ({ ...prev, [f]: v }))}
+            workplaces={workplaces}
+            showValidation={showValidation}
+            title="بيانات الضامن الأول"
+            icon={ShieldCheck}
+          />
+          
+          {beneficiary.workplaceType === 'classified' && (
+            <CustomerFields
+              data={guarantor2}
+              onChange={(f, v) => setGuarantor2(prev => ({ ...prev, [f]: v }))}
+              workplaces={workplaces}
+              showValidation={showValidation}
+              title="بيانات الضامن الثاني"
+              icon={ShieldCheck}
+            />
+          )}
+        </>
+      )}
+
+      {userRole === 'manager' && (
+        <div className="p-6 mb-8 bg-success/5 border border-success/20 rounded-2xl">
+          <label className="block text-success-color mb-2">سعر شراء السيارة للمكتب (سري)</label>
+          <input
+            type="number"
+            className="w-full bg-navy-950/50 border-success/30 text-success-color"
+            value={beneficiary.purchaseCost || ''}
+            onChange={(e) => setBeneficiary(prev => ({ ...prev, purchaseCost: e.target.value }))}
+          />
+        </div>
+      )}
+
+      <div className="flex gap-4">
+        <button className="btn btn-primary flex-1 py-4 text-lg" onClick={handleSave} disabled={loading}>
+          <Save size={22} />
+          {loading ? 'جاري الحفظ...' : saved ? 'تم الحفظ ✓' : 'حفظ وتسجيل المعاملة'}
         </button>
-        <button className="btn btn-ghost" onClick={handleReset} tabIndex={10}>
-          <RotateCcw size={18} />
-          مسح
+        <button className="btn btn-ghost px-8" onClick={() => { setBeneficiary(emptyDraft); setGuarantor1(emptyDraft); setGuarantor2(emptyDraft); }}>
+          <RotateCcw size={20} />
         </button>
       </div>
     </div>

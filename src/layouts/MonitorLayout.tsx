@@ -1,26 +1,30 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Car, Shield, LogOut } from 'lucide-react';
+import { Shield, LogOut } from 'lucide-react';
 import MonitorDashboard from '../components/MonitorDashboard';
+import { useAuth } from '../contexts/AuthContext';
 
 const MonitorLayout: React.FC = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   return (
     <div className="app-shell monitor-theme">
       {/* Header */}
-      <header className="app-header glass" style={{ borderBottom: '1px solid var(--warning-color)' }}>
+      <header className="app-header glass">
         <div className="header-inner">
-          <div className="brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-            <div className="brand-icon" style={{ background: 'var(--warning-color)' }}>
-              <Car size={26} />
-            </div>
+          <div className="brand">
+            <img src="/logo.png" alt="كفيل" className="brand-img" />
             <div className="brand-text">
-              <h1>كفيل</h1>
               <span className="brand-tagline">بوابة المراقب</span>
             </div>
           </div>
-          <button className="btn-secondary" onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem' }}>
+          <button className="btn btn-secondary" onClick={handleLogout}>
             <LogOut size={16} />
             <span>خروج</span>
           </button>

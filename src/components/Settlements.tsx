@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Receipt, Car, Store, ShoppingBag, Timer, CheckCircle2, AlertTriangle, Clock, DollarSign } from 'lucide-react'
 
 type SettlementType = 'PERSONAL_USE' | 'CASH_OUT' | 'EXTERNAL_SALE'
@@ -24,25 +24,14 @@ interface ExternalSaleTimer {
 
 const DRAFT_KEY = 'kafeel_settlement_draft'
 
-// Demo active timers
-const DEMO_TIMERS: ExternalSaleTimer[] = [
-  {
-    id: 'timer-1',
-    customerName: 'سالم عبدالرحمن',
-    deadline: new Date(Date.now() + 52 * 3600000), // 52 hours from now
-    remainingHours: 52,
-    completed: false,
-  },
-  {
-    id: 'timer-2',
-    customerName: 'يوسف الهادي',
-    deadline: new Date(Date.now() + 8 * 3600000), // 8 hours — urgent
-    remainingHours: 8,
-    completed: false,
-  },
-]
+import { supabase } from '../lib/supabase'
+import { compressImage } from '../utils/imageCompression'
+import { useAuth } from '../contexts/AuthContext'
+
+// Types stay the same
 
 export default function Settlements() {
+  const { officeId } = useAuth()
   const [activeType, setActiveType] = useState<SettlementType>('PERSONAL_USE')
   const [data, setData] = useState<SettlementData>(() => {
     const saved = localStorage.getItem(DRAFT_KEY)
@@ -60,8 +49,44 @@ export default function Settlements() {
       checkImageUrl: '',
     }
   })
-  const [timers, setTimers] = useState<ExternalSaleTimer[]>(DEMO_TIMERS)
+  const [timers, setTimers] = useState<ExternalSaleTimer[]>([])
   const [submitted, setSubmitted] = useState(false)
+  const [uploading, setUploading] = useState(false)
+
+  const loadData = useCallback(async () => {
+    if (!officeId) return
+    try {
+      const { data: timerData, error } = await supabase
+        .from('settlements')
+        .select(`
+          id, deadline, completed,
+          transactions!inner(
+            customers(full_name)
+          )
+        `)
+        .eq('type', 'EXTERNAL_SALE')
+        .eq('completed', false)
+      
+      if (error) throw error
+      
+      if (timerData) {
+        const formatted: ExternalSaleTimer[] = timerData.map(t => ({
+          id: t.id,
+          customerName: (t.transactions as any).customers.full_name,
+          deadline: new Date(t.deadline),
+          remainingHours: Math.max(0, (new Date(t.deadline).getTime() - Date.now()) / 3600000),
+          completed: t.completed
+        }))
+        setTimers(formatted)
+      }
+    } catch (err) {
+      console.error('Error loading settlement timers:', err)
+    }
+  }, [officeId])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   // Save draft
   useEffect(() => {
@@ -90,9 +115,60 @@ export default function Settlements() {
   const netCashOut = data.carPrice - data.downPayment - data.debtAmount - data.officeCommission
   const externalSaleNet = data.salePrice - data.carPrice - data.officeCommission
 
-  const handleSubmit = () => {
-    setSubmitted(true)
-    // In production: await supabase.from('settlements').insert({ ... })
+  const handleFileUpload = async (file: File) => {
+    setUploading(true)
+    try {
+      // 1. Compress
+      const compressed = await compressImage(file)
+      
+      // 2. Upload to Supabase Storage
+      const fileName = `${Date.now()}-${file.name}`
+      const { data: uploadData, error } = await supabase.storage
+        .from('settlement-checks')
+        .upload(fileName, compressed)
+      
+      if (error) throw error
+
+      // 3. Get Public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('settlement-checks')
+        .getPublicUrl(fileName)
+      
+      setData(prev => ({ ...prev, checkImageUrl: publicUrl }))
+    } catch (err) {
+      console.error('Upload failed:', err)
+      alert('فشل رفع الصورة. يرجى المحاولة مرة أخرى.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleSubmit = async () => {
+    try {
+      const { error } = await supabase
+        .from('settlements')
+        .insert({
+          type: activeType,
+          customer_name: data.customerName,
+          car_price: data.carPrice,
+          down_payment: data.downPayment,
+          debt_amount: data.debtAmount,
+          sale_price: data.salePrice,
+          office_commission: data.officeCommission,
+          check_image_url: data.checkImageUrl,
+          office_id: officeId,
+          completed: true
+        })
+      
+      if (error) throw error
+
+      setSubmitted(true)
+      localStorage.removeItem(DRAFT_KEY)
+      loadData() // Refresh timers
+    } catch (err) {
+      console.error('Submission failed:', err)
+      alert('حدث خطأ أثناء حفظ التسوية.')
+    }
   }
 
   const typeOptions: { id: SettlementType; label: string; icon: typeof Car; color: string }[] = [
@@ -321,12 +397,10 @@ export default function Settlements() {
             accept="image/*"
             onChange={(e) => {
               const file = e.target.files?.[0]
-              if (file) {
-                // Mock upload: set a fake URL for now
-                handleInput('checkImageUrl', URL.createObjectURL(file))
-              }
+              if (file) handleFileUpload(file)
             }}
           />
+          {uploading && <div className="spinner-sm" style={{ marginTop: '0.5rem' }}>جاري الرفع...</div>}
           {data.checkImageUrl && (
             <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--success-color)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <CheckCircle2 size={14} /> تم إرفاق الصورة

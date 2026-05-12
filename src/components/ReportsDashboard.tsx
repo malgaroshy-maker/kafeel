@@ -10,17 +10,83 @@ interface MonthlyReport {
   netProfit: number;
 }
 
-const mockData: MonthlyReport[] = [
-  { month: 'يناير', transactionsCount: 12, totalSales: 450000, totalCosts: 410000, commissions: 6000, netProfit: 46000 },
-  { month: 'فبراير', transactionsCount: 15, totalSales: 620000, totalCosts: 560000, commissions: 7500, netProfit: 67500 },
-  { month: 'مارس', transactionsCount: 8, totalSales: 310000, totalCosts: 285000, commissions: 4000, netProfit: 29000 },
-  { month: 'أبريل', transactionsCount: 20, totalSales: 850000, totalCosts: 780000, commissions: 10000, netProfit: 80000 },
+import { useEffect, useCallback } from 'react';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
+
+// Months in Arabic
+const ARABIC_MONTHS = [
+  'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
 ];
 
 export default function ReportsDashboard() {
-  const [selectedMonth, setSelectedMonth] = useState<string>('أبريل');
+  const { officeId } = useAuth();
+  const [reports, setReports] = useState<MonthlyReport[]>([]);
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
+  const [loading, setLoading] = useState(true);
 
-  const currentReport = mockData.find(d => d.month === selectedMonth) || mockData[3];
+  const loadData = useCallback(async () => {
+    if (!officeId) return;
+    setLoading(true);
+    try {
+      // Fetch all transactions for this office
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('car_price, purchase_cost, created_at')
+        .eq('office_id', officeId);
+      
+      if (error) throw error;
+
+      // Group by month and aggregate
+      const monthlyStats: Record<number, MonthlyReport> = {};
+      
+      data?.forEach(t => {
+        const date = new Date(t.created_at);
+        const month = date.getMonth();
+        
+        if (!monthlyStats[month]) {
+          monthlyStats[month] = {
+            month: ARABIC_MONTHS[month],
+            transactionsCount: 0,
+            totalSales: 0,
+            totalCosts: 0,
+            commissions: 0,
+            netProfit: 0
+          };
+        }
+        
+        const salePrice = t.car_price || 0;
+        const costPrice = t.purchase_cost || 0;
+        const commission = 500; // Default commission per transaction
+
+        monthlyStats[month].transactionsCount += 1;
+        monthlyStats[month].totalSales += salePrice;
+        monthlyStats[month].totalCosts += costPrice;
+        monthlyStats[month].commissions += commission;
+        monthlyStats[month].netProfit += (salePrice - costPrice) + commission;
+      });
+
+      setReports(Object.values(monthlyStats));
+    } catch (err) {
+      console.error('Error loading reports:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [officeId]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const currentReport = reports.find(r => ARABIC_MONTHS.indexOf(r.month) === selectedMonth) || {
+    month: ARABIC_MONTHS[selectedMonth],
+    transactionsCount: 0,
+    totalSales: 0,
+    totalCosts: 0,
+    commissions: 0,
+    netProfit: 0
+  };
 
   const formatCurrency = (val: number) => val.toLocaleString('ar-LY') + ' د.ل';
 
@@ -43,11 +109,11 @@ export default function ReportsDashboard() {
         </label>
         <select 
           value={selectedMonth} 
-          onChange={(e) => setSelectedMonth(e.target.value)}
-          style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)' }}
+          onChange={(e) => setSelectedMonth(Number(e.target.value))}
+          style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
         >
-          {mockData.map(d => (
-            <option key={d.month} value={d.month}>{d.month} 2026</option>
+          {ARABIC_MONTHS.map((name, index) => (
+            <option key={name} value={index}>{name} 2026</option>
           ))}
         </select>
       </div>

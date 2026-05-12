@@ -60,9 +60,35 @@
 - [x] Implement Settlement Finalization: Enforce uploading a photo of the check/guarantee (`check_image_url`) before closing a transaction.
 - [x] Develop Financial Reporting Module: Build `ReportsDashboard.tsx` in the Office portal showing monthly profit reports.
 
-## Phase 7: Production Deployment & External Integrations
-- [ ] Subscription Management: Implement billing logic for customer quotas and 6-month free trial period.
-- [ ] External Notifications: Integrate SMS/WhatsApp API to notify customers and guarantors when a match is successfully found.
+## Phase 7: Join Code System & User Management
+- [x] Database Migration: Remove billing columns (`subscription_plan`, `monthly_quota`, `used_quota`, `subscription_expires_at`).
+- [x] Database Migration: Add `max_users`, `join_code`, `join_code_active` to `offices`.
+- [x] Database Migration: Create `user_profiles` table with RLS policies.
+- [x] Edge Function: `join-with-code` — public self-registration with code validation and max_users enforcement.
+- [x] Edge Function: `admin-manage-users` — create offices, manage users, promote/demote roles, reset passwords, deactivate.
+- [x] New Role: Added `accountant` (محاسب) to the role system.
+- [x] AuthContext: Updated to read from `user_profiles` table with `app_metadata` fallback.
+- [x] JoinPage (`/join`): Self-registration page with prominent join code input.
+- [x] AdminDashboard: Complete overhaul with 4 tabs (Offices, Users, Workplaces, Join Codes).
+- [x] LandingPage: Added "Join with Code" and "Login" buttons.
+- [x] Documentation: Updated `Plan.md` and `roadmap.md`.
+
+## Phase 9: Unified Registration & Customer Management ✅
+- [x] Consolidate Beneficiary & Guarantor forms into a single unified workflow.
+- [x] Implement dynamic conditional rendering for 1 or 2 guarantors based on workplace type.
+- [x] Implement programmatic "Active Linking" between registered entities and the Financial Calculator.
+- [x] Enhance `CustomerList.tsx` with Edit, Delete, and Document Management actions.
+- [x] Link `DocumentUploader.tsx` contextually to specific customers.
+- [x] Update `CustomerForm.tsx` to support "Edit Mode" with ID-based persistence.
+
+## Phase 10: Banking Infrastructure & Regional Management ✅
+- [x] Create `banks` and `branches` database tables with hierarchical relationships.
+- [x] Seed initial data for Jumhouria Bank and its regional branches.
+- [x] Implement "المصارف والفروع" (Banks & Branches) management tab in the Admin Dashboard.
+- [x] Integrate dynamic bank/branch selection in `CustomerForm.tsx` with automatic filtering.
+- [x] Add car price presets for Toyota models based on official bank rates.
+
+## Phase 11: Production Deployment & External Integrations
+- [ ] External Notifications: Integrate SMS/WhatsApp API to notify customers and guarantors when a match is found.
 - [ ] Production Deployment (Vercel + Supabase).
 - [ ] MVP Launch & Onboarding of initial offices.
-

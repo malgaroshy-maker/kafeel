@@ -1,73 +1,98 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Car, Building2, Shield, LayoutDashboard } from 'lucide-react';
+import { Building2, Shield, LayoutDashboard, ArrowRight, UserPlus, LogIn } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user, role } = useAuth();
+
+  // Auto-redirect administrative roles if they are already logged in
+  React.useEffect(() => {
+    if (user && role === 'admin') {
+      navigate('/admin', { replace: true });
+    } else if (user && role === 'monitor') {
+      navigate('/monitor', { replace: true });
+    }
+  }, [user, role, navigate]);
 
   return (
-    <div className="landing-page" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)', padding: '2rem' }}>
-      
-      <div style={{ textAlign: 'center', marginBottom: '4rem', animation: 'fadeInUp 0.6s ease-out' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '80px', height: '80px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent-color), var(--accent-glow))', color: 'white', marginBottom: '1rem', boxShadow: '0 8px 32px var(--accent-glow)' }}>
-          <Car size={40} />
-        </div>
-        <h1 style={{ fontSize: '3rem', margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>كفيل</h1>
-        <p style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', margin: 0 }}>منصة المرابحة الذكية لقطاع السيارات</p>
+    <div className="landing-page">
+      <div className="hero-bg">
+        <img src="/hero-bg.png" alt="" className="hero-img" />
+        <div className="hero-overlay"></div>
       </div>
 
-      <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '1000px', width: '100%' }}>
-        
-        {/* Office Portal */}
-        <div 
-          onClick={() => navigate('/office')}
-          className="glass hover-lift"
-          style={{ flex: '1 1 300px', padding: '3rem 2rem', borderRadius: '24px', cursor: 'pointer', textAlign: 'center', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', border: '1px solid var(--glass-border)' }}
-        >
-          <div style={{ color: 'var(--accent-color)', marginBottom: '1.5rem' }}>
-            <Building2 size={48} style={{ margin: '0 auto' }} />
+      <header className="landing-header">
+        <div className="header-inner container">
+          <img src="/logo.png" alt="كفيل" className="logo-small" />
+          <div className="header-actions">
+            <button onClick={() => navigate('/login')} className="btn-link">
+              <LogIn size={18} />
+              <span>دخول</span>
+            </button>
+            <button onClick={() => navigate('/join')} className="btn btn-primary btn-sm">
+              <UserPlus size={18} />
+              <span>انضم الآن</span>
+            </button>
           </div>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>بوابة المكاتب</h2>
-          <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-            إدارة الزبائن، المعاملات، الحسابات المالية، وتسويات مبيعات السيارات.
-          </p>
         </div>
+      </header>
 
-        {/* Monitor Portal */}
-        <div 
-          onClick={() => navigate('/monitor')}
-          className="glass hover-lift"
-          style={{ flex: '1 1 300px', padding: '3rem 2rem', borderRadius: '24px', cursor: 'pointer', textAlign: 'center', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', border: '1px solid var(--glass-border)' }}
-        >
-          <div style={{ color: 'var(--warning-color)', marginBottom: '1.5rem' }}>
-            <Shield size={48} style={{ margin: '0 auto' }} />
+      <main className="landing-main container">
+        <section className="hero-section">
+          <div className="hero-content">
+            <img src="/logo.png" alt="كفيل" className="logo-large" />
+            <h1 className="hero-title">منصة المرابحة الذكية لقطاع السيارات</h1>
+            <p className="hero-subtitle">
+              الحل التقني المتكامل لإدارة عمليات التمويل، مراقبة الطوابير، وتنظيم مكاتب البيع في مكان واحد.
+            </p>
+            <div className="hero-btns">
+              <button onClick={() => navigate('/join')} className="btn btn-primary btn-lg">
+                <span>ابدأ الآن - انضم بمفتاح</span>
+                <ArrowRight size={20} />
+              </button>
+              <button onClick={() => navigate('/login')} className="btn btn-ghost btn-lg">
+                <span>تسجيل الدخول</span>
+              </button>
+            </div>
           </div>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>بوابة المراقب</h2>
-          <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-            مراقبة طابور الانتظار، فك الاختناقات، وإجراء عمليات الربط الاستثنائية للضمان.
-          </p>
-        </div>
+        </section>
 
-        {/* Admin Portal */}
-        <div 
-          onClick={() => navigate('/admin')}
-          className="glass hover-lift"
-          style={{ flex: '1 1 300px', padding: '3rem 2rem', borderRadius: '24px', cursor: 'pointer', textAlign: 'center', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', border: '1px solid var(--glass-border)' }}
-        >
-          <div style={{ color: 'var(--success-color)', marginBottom: '1.5rem' }}>
-            <LayoutDashboard size={48} style={{ margin: '0 auto' }} />
+        <section className="portals-section">
+          <div className="section-header">
+            <h2>استكشف البوابات</h2>
+            <p>حلول مخصصة لكل دور في المنظومة</p>
           </div>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>بوابة الإدارة</h2>
-          <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-            إدارة اشتراكات المكاتب، إضافة جهات العمل، والإشراف العام على المنظومة.
-          </p>
-        </div>
 
-      </div>
-      
-      <div style={{ marginTop: '4rem', color: 'var(--text-tertiary)', fontSize: '0.9rem' }}>
-        ملاحظة: هذه الصفحة مؤقتة لاختيار المسار أثناء مرحلة التطوير.
-      </div>
+          <div className="portals-grid">
+            {/* Office Portal */}
+            <div className="portal-card glass" onClick={() => navigate('/office')}>
+              <div className="portal-icon office-icon">
+                <Building2 size={32} />
+              </div>
+              <h3>بوابة المكاتب</h3>
+              <p>إدارة الزبائن، المعاملات، الحسابات المالية، وتسويات مبيعات السيارات.</p>
+              <span className="portal-link">دخول <ArrowRight size={16} /></span>
+            </div>
+
+            {/* Monitor Portal */}
+            <div className="portal-card glass" onClick={() => navigate('/monitor')}>
+              <div className="portal-icon monitor-icon">
+                <Shield size={32} />
+              </div>
+              <h3>بوابة المراقب</h3>
+              <p>مراقبة طابور الانتظار، فك الاختناقات، وإجراء عمليات الربط الاستثنائية.</p>
+              <span className="portal-link">دخول <ArrowRight size={16} /></span>
+            </div>
+
+          </div>
+        </section>
+      </main>
+
+      <footer className="landing-footer container">
+        <p>© {new Date().getFullYear()} كفيل. جميع الحقوق محفوظة.</p>
+      </footer>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 # Kafeel (كفيل) - Project Plan
 
 ## 1. Executive Summary
-Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Murabaha system. It aims to automate financial calculations, manage customers, and prevent guarantor duplication across competing offices.
+Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Murabaha system. It automates financial calculations, manages customers, and prevents guarantor duplication across competing offices.
 
 ## 2. Technical Stack
 - **Frontend Framework**: React (Vite) + TypeScript ✅
@@ -11,15 +11,22 @@ Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Mura
   - Row Level Security (RLS) for tenant isolation
   - Database Functions for matchmaking (`find_potential_guarantors`, `attempt_auto_match`) ✅
   - Real-time Subscriptions for match notifications (`useRealtimeMatches` hook) ✅
-- **Deployment**: Vercel (Frontend) & Supabase (Backend) — Phase 6
-- **Authentication**: Supabase Auth (Email/Password, Roles) — Phase 6
+  - Edge Functions for user management (`join-with-code`, `admin-manage-users`) ✅
+- **Deployment**: Vercel (Frontend) & Supabase (Backend)
+- **Authentication**: Supabase Auth (Email/Password) + Join Code onboarding ✅
 
 ## 3. Architecture & Core Modules
 
-### A. Authentication & Authorization (Tenant Isolation)
-- **Roles**: Super Admin, Operations Monitor, Tenant Office, Staff.
-- **Implementation**: Supabase Auth + RLS. Every office only sees its `customers` and `transactions`. Operations Monitor sees limited fields across tenants.
-- **Status**: Schema ready, RLS policies to be enforced in Phase 6.
+### A. Authentication & Authorization (Join Code System) ✅
+- **Roles**: Master Admin (`admin`), Operations Monitor (`monitor`), Office Manager (`manager`), Accountant (`accountant`), Data Entry (`staff`).
+- **Onboarding Flow**:
+  1. Master Admin creates an office → system generates a unique 6-char alphanumeric join code.
+  2. Admin shares the join code with the office.
+  3. New users self-register at `/join` with email + password + join code.
+  4. Users land as `staff` by default → Admin can promote to `manager` or `accountant`.
+- **User Limits**: Each office has a `max_users` limit (default: 4 — 1 manager, 1 accountant, 2 data entry).
+- **Admin Powers**: Create offices, create/revoke join codes, promote/demote roles, reset passwords, deactivate users.
+- **Implementation**: Supabase Auth + `user_profiles` table + Edge Functions for secure admin operations.
 
 ### B. Matchmaking Engine & Waiting Queue ✅
 - **Logic**: Matches based on `National ID`, `Workplace`, and `Salary Difference <= 50 LYD`.
@@ -27,36 +34,40 @@ Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Mura
 - **Real-time**: Supabase Realtime channel subscriptions via `useRealtimeMatches` hook.
 - **UI**: `WaitingQueue.tsx` (card-based queue) + `MonitorDashboard.tsx` (table with data masking + manual link mode).
 
-### C. Reactive Financial Calculator ✅ (Phase 6 Updates)
-- **Logic**: Client-side (React state) dynamic updates — all 5 equations from `calculater.md` implemented.
+### C. Reactive Financial Calculator ✅
+- **Logic**: Client-side (React state) dynamic updates — all 5 equations implemented.
 - **Inputs**: Car Purchase Cost (Optional), Car Sale Price (Bank Price), Bank Ceiling, Net Salary, Murabaha Margin (16% or 24%), Notary Pledge toggle.
-- **Features**: Real-time results, deduction rate badge, localStorage draft saving, keyboard-accessible, **expected profit calculation**.
+- **Features**: Real-time results, deduction rate badge, localStorage draft saving, keyboard-accessible, expected profit calculation.
 
 ### D. Post-Delivery Settlements ✅
 - **Logic**: 3 settlement types (Personal Use, Cash-out, External Sale) with financial breakdowns.
 - **Timer**: 3-day external sale countdown with color-coded urgency (green → red).
-- **Dashboard**: Live timer cards with progress bars.
 - **Database**: `settlements` table with all types and deadline tracking.
 - **Closing Requirement**: Must upload a photo of the check/guarantee (`check_image_url`) to fully close and finalize the transaction.
 
 ### E. Document Management ✅
-- **Storage**: Supabase Storage ready (client-side compression implemented).
+- **Storage**: Supabase Storage (client-side compression implemented).
 - **Processing**: Canvas API image compression (`imageCompression.ts`) before upload.
 - **UI**: Checklist with progress bar, file size display after compression.
+- **Context-Aware**: Can be launched for a specific customer from the Customer List or as part of a new registration.
+- **Transaction Submission**: "إرسال المعاملة للمراجعة" button aggregates Calculator + Customer + Guarantor + Documents into a single transaction.
 
-### F. Admin Dashboard ✅
-- **Tenant Management**: Office subscription plans (Basic/Pro/Enterprise), monthly quotas with progress bars, active/inactive toggle.
-- **Workplace Management**: View and add workplaces with chip-based UI.
-- **Stats**: 4 KPI cards (active offices, workplaces, quota usage, utilization %).
+- **5 Tabs**:
+  - **المكاتب (Offices)**: Create offices, set max users, toggle active/inactive.
+  - **المستخدمين (Users)**: List all users, promote/demote roles, reset passwords, deactivate accounts.
+  - **جهات العمل (Workplaces)**: Add/view workplaces with chip-based UI.
+  - **المصارف والفروع (Banks & Branches)**: Manage hierarchical bank and branch registry with regional tagging.
+  - **أكواد الانضمام (Join Codes)**: Card view of all codes with copy-to-clipboard, active/revoked status.
+- **Stats**: 5 KPI cards (active offices, active users, active codes, workplaces, banks).
 
-### G. Financial Reporting & Analytics (Phase 5/6)
+### G. Financial Reporting & Analytics ✅
 - **Logic**: Calculate net office profit based on `(Car Sale Price - Car Purchase Cost) + Processing Commissions`.
 - **UI**: Office Manager dashboard to view monthly profit reports and customer acquisition metrics.
 - **Privacy**: Hidden from standard Staff and Operations Monitor roles.
 
-### H. External Notifications (Phase 6)
-- **Logic**: Send automated alerts to customers and guarantors when a match is found to proceed with paperwork.
-- **Integration**: General SMS/WhatsApp API (Provider to be determined in Phase 6).
+### H. External Notifications (Phase 7)
+- **Logic**: Send automated alerts to customers and guarantors when a match is found.
+- **Integration**: General SMS/WhatsApp API (Provider to be determined).
 
 ## 4. UI/UX Design Approach
 - **RTL Support**: Built inherently for Arabic (dir="rtl", Cairo font). ✅
@@ -64,27 +75,39 @@ Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Mura
 - **Accessibility**: Keyboard navigation optimized (Tab flow) for data entry efficiency. ✅
 - **Resilience**: `localStorage` drafts on Calculator, CustomerForm, and Settlements. ✅
 - **Navigation (Portals Architecture)**:
-  - **Office Portal (`/office`)**: For Tenant Offices (Calculator, Beneficiaries, Guarantors, Documents, Waiting Queue, Settlements, **Reports**).
+  - **Office Portal (`/office`)**: For Manager, Accountant, and Staff (Calculator, Beneficiaries, Guarantors, Documents, Waiting Queue, Settlements, **Reports**).
   - **Monitor Portal (`/monitor`)**: For Operations Monitor (Manual Linking & Waiting Queue Oversight).
-  - **Admin Portal (`/admin`)**: For Super Admins (Tenant & Workplace Management).
-  - Landing Page (`/`): A role-selection entry point.
+  - **Admin Portal (`/admin`)**: For Master Admin (Offices, Users, Workplaces, Join Codes).
+  - **Join Page (`/join`)**: Self-registration using a join code.
+  - Landing Page (`/`): Entry point with join/login buttons.
 
 ## 5. Security & Privacy
 - **Data Masking**: Monitor Dashboard hides salaries, car prices, and debts by default. ✅
-- **RLS Policies**: Enabled on all 6 tables. ✅ Detailed policies to be refined in Phase 6.
+- **RLS Policies**: Enabled on all tables. ✅
+- **Edge Functions**: Admin operations use service_role key server-side (never exposed to frontend). ✅
 - **Environment Variables**: Supabase credentials stored in `.env` (not in source code). ✅
 
 ## 6. Database Schema (Current)
 | Table | Purpose | RLS | Status |
 |-------|---------|-----|--------|
 | `workplaces` | Workplace registry + `required_guarantors` | ✅ | ✅ |
-| `offices` | Subscriptions, quotas, active status, **max_customers, max_users, trial_ends_at** | ✅ | ✅ |
+| `offices` | Office management: `max_users`, `join_code`, `join_code_active`, `is_active` | ✅ | ✅ |
+| `user_profiles` | User-to-office mapping: `role`, `display_name`, `is_active` | ✅ | ✅ |
 | `customers` | National ID (unique), salary, workplace_id | ✅ | ✅ |
-| `transactions` | Lifecycle + `office_loan`, `car_model`, `is_files_complete`, **purchase_cost** | ✅ | ✅ |
+| `transactions` | Lifecycle + `office_loan`, `car_model`, `is_files_complete`, `purchase_cost` | ✅ | ✅ |
 | `transaction_guarantors` | Match linking (Auto/Manual/Override) | ✅ | ✅ |
-| `settlements` | 3 settlement types + deadline tracking, **check_image_url** | ✅ | ✅ |
+| `settlements` | 3 settlement types + deadline tracking, `check_image_url` | ✅ | ✅ |
+| `banks` | Bank registry (name) | ✅ | ✅ |
+| `branches` | Branch registry (name, region, bank_id) | ✅ | ✅ |
 
-## 7. Current Progress
-- **Phases 1-6**: Complete ✅ (Core Features, Refactoring, Database Schema, Financial Reporting, and Settlements).
-- **Critical Fixes**: RLS, env vars, schema cleanup ✅
-- **Phase 7**: Production Deployment + External Integrations (SMS/WhatsApp) — Final
+## 7. Edge Functions
+| Function | Purpose | Auth |
+|----------|---------|------|
+| `join-with-code` | Self-registration: validates join code, creates user, links to office | Public (no JWT) |
+| `admin-manage-users` | Create offices, manage users, promote/demote, reset passwords | Admin JWT required |
+
+## 8. Current Progress
+- **Phases 1-7**: Complete ✅ (Foundation, Financial Engine, Matchmaking, Settlements, Reporting, Join Code System).
+- **Phase 9 (Unified Registration)**: Complete ✅ — Consolidated forms, dynamic guarantors, and enhanced customer management (Edit/Delete/Docs).
+- **Phase 10 (Banking Infrastructure)**: Complete ✅ — Hierarchical bank/branch registry, dynamic registration selection, and Admin management interface.
+- **Next**: Production Deployment + External Integrations (SMS/WhatsApp).

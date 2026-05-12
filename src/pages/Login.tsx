@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Car, Lock, Mail, AlertCircle } from 'lucide-react';
+import { Lock, Mail, AlertCircle, Home } from 'lucide-react';
 import { UserRole } from '../contexts/AuthContext';
 
 export default function Login() {
@@ -11,6 +11,9 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const portalType = searchParams.get('type');
+  const hideJoin = portalType === 'admin' || portalType === 'monitor';
 
   const from = location.state?.from?.pathname;
 
@@ -57,65 +60,77 @@ export default function Login() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)', padding: '2rem' }}>
-      <div className="glass" style={{ maxWidth: '400px', width: '100%', padding: '3rem 2rem', borderRadius: '24px', border: '1px solid var(--glass-border)' }}>
-        
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent-color), var(--accent-glow))', color: 'white', marginBottom: '1rem', boxShadow: '0 8px 32px var(--accent-glow)' }}>
-            <Car size={32} />
-          </div>
-          <h1 style={{ fontSize: '2rem', margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>كفيل</h1>
-          <p style={{ color: 'var(--text-secondary)', margin: 0 }}>تسجيل الدخول للنظام</p>
-        </div>
-
-        {error && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--error)', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-            <AlertCircle size={18} />
-            <span style={{ fontSize: '0.9rem' }}>{error}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          
-          <div className="input-group">
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)' }}>
-              <Mail size={16} /> البريد الإلكتروني
-            </label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@kafeel.ly"
-              style={{ padding: '0.8rem 1rem', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', width: '100%' }}
-              dir="ltr"
-            />
-          </div>
-
-          <div className="input-group">
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)' }}>
-              <Lock size={16} /> كلمة المرور
-            </label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              style={{ padding: '0.8rem 1rem', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', width: '100%' }}
-              dir="ltr"
-            />
-          </div>
-
-          <button 
-            type="submit" 
-            className="btn btn-primary" 
-            disabled={loading}
-            style={{ marginTop: '1rem', padding: '1rem', justifyContent: 'center', fontSize: '1rem' }}
-          >
-            {loading ? 'جاري تسجيل الدخول...' : 'دخول'}
+    <div className="join-page">
+      <div className="glass-container">
+        <div className="glass login-card">
+          <button onClick={() => navigate('/')} className="home-back-btn" title="الرئيسية">
+            <Home size={20} />
           </button>
-        </form>
+          <div className="login-header">
+            <img src="/logo.png" alt="كفيل" className="login-logo" />
+            <div className="login-title">
+              <Lock size={24} className="accent-icon" />
+              <h2>تسجيل الدخول</h2>
+            </div>
+            <p className="login-subtitle">أدخل بياناتك للوصول إلى لوحة التحكم</p>
+          </div>
+
+          {error && (
+            <div className="alert alert-error">
+              <AlertCircle size={18} />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} className="login-form">
+            <div className="input-group">
+              <label>
+                <Mail size={16} /> البريد الإلكتروني
+              </label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@kafeel.ly"
+                dir="ltr"
+              />
+            </div>
+
+            <div className="input-group">
+              <label>
+                <Lock size={16} /> كلمة المرور
+              </label>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                dir="ltr"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="btn btn-primary btn-lg"
+              disabled={loading}
+            >
+              {loading ? 'جاري تسجيل الدخول...' : 'دخول'}
+            </button>
+          </form>
+
+          {!hideJoin && (
+            <div className="login-footer">
+              <p>
+                ليس لديك حساب؟{' '}
+                <button onClick={() => navigate('/join')} className="btn-link">
+                  انضم الآن
+                </button>
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

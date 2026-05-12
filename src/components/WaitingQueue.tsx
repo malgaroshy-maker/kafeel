@@ -15,70 +15,49 @@ interface WaitingTransaction {
   created_at: string
 }
 
-// Demo data for display (since we don't have live auth yet)
-const DEMO_QUEUE: WaitingTransaction[] = [
-  {
-    id: 'demo-1',
-    customer_name: 'أحمد محمد علي',
-    customer_national_id: '119xxxxxxx01',
-    office_name: 'مكتب النجم',
-    workplace_name: 'وزارة الداخلية',
-    salary: 2800,
-    car_price: 95000,
-    guarantors_needed: 1,
-    current_guarantors: 0,
-    created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
-  },
-  {
-    id: 'demo-2',
-    customer_name: 'خالد عبدالله السنوسي',
-    customer_national_id: '119xxxxxxx02',
-    office_name: 'مكتب الثقة',
-    workplace_name: 'وزارة التعليم',
-    salary: 3100,
-    car_price: 110000,
-    guarantors_needed: 2,
-    current_guarantors: 1,
-    created_at: new Date(Date.now() - 5 * 86400000).toISOString(),
-  },
-  {
-    id: 'demo-3',
-    customer_name: 'محمود صالح بن عيسى',
-    customer_national_id: '119xxxxxxx03',
-    office_name: 'مكتب النجم',
-    workplace_name: 'وزارة الداخلية',
-    salary: 2750,
-    car_price: 85000,
-    guarantors_needed: 1,
-    current_guarantors: 0,
-    created_at: new Date(Date.now() - 1 * 86400000).toISOString(),
-  },
-]
+// Types stay the same
 
 export default function WaitingQueue() {
-  const [queue, _setQueue] = useState<WaitingTransaction[]>(DEMO_QUEUE)
+  const [queue, setQueue] = useState<WaitingTransaction[]>([])
   const [searching, setSearching] = useState<string | null>(null)
   const [matchResults, setMatchResults] = useState<Record<string, string>>({})
+  const [loading, setLoading] = useState(true)
 
   // Load from Supabase (when auth is wired up)
   const loadQueue = useCallback(async () => {
+    setLoading(true)
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('transactions')
         .select(`
-          id, car_price, guarantors_needed, created_at, status,
-          customers!inner(name, national_id, salary, workplaces(name)),
+          id, car_price, created_at, status,
+          customers!inner(full_name, national_id, salary, workplaces(name, required_guarantors)),
           offices!inner(name)
         `)
         .eq('status', 'WAITING_MATCH')
         .order('created_at', { ascending: true })
 
-      if (data && data.length > 0) {
-        // If we have real data, use it; otherwise keep demo
-        // This would be mapped properly once auth is live
+      if (error) throw error
+      
+      if (data) {
+        const formatted: WaitingTransaction[] = data.map(item => ({
+          id: item.id,
+          customer_name: item.customers.full_name,
+          customer_national_id: item.customers.national_id,
+          office_name: item.offices.name,
+          workplace_name: item.customers.workplaces.name,
+          salary: item.customers.salary,
+          car_price: item.car_price,
+          guarantors_needed: item.customers.workplaces.required_guarantors,
+          current_guarantors: 0,
+          created_at: item.created_at
+        }))
+        setQueue(formatted)
       }
-    } catch {
-      // Silently fall back to demo data
+    } catch (err) {
+      console.error('Error loading queue:', err)
+    } finally {
+      setLoading(false)
     }
   }, [])
 
@@ -88,31 +67,31 @@ export default function WaitingQueue() {
 
   const attemptMatch = async (transactionId: string) => {
     setSearching(transactionId)
-    // Simulate matching delay for demo
-    await new Promise((r) => setTimeout(r, 1500))
+    try {
+      const { data, error } = await supabase.rpc('attempt_auto_match', { 
+        p_transaction_id: transactionId 
+      })
 
-    // In production: const { data } = await supabase.rpc('attempt_auto_match', { p_transaction_id: transactionId })
-    const item = queue.find((q) => q.id === transactionId)
-    if (item) {
-      // Demo: check if there's another customer from same workplace with salary diff <= 50
-      const potentialMatch = queue.find(
-        (q) =>
-          q.id !== transactionId &&
-          q.workplace_name === item.workplace_name &&
-          Math.abs(q.salary - item.salary) <= 50
-      )
+      if (error) throw error
 
-      if (potentialMatch) {
-        setMatchResults((prev) => ({
+      if (data && data.match_found) {
+        setMatchResults(prev => ({
           ...prev,
-          [transactionId]: `تم العثور على تطابق! الضامن المحتمل: ${potentialMatch.customer_name} (فارق المرتب: ${Math.abs(potentialMatch.salary - item.salary)} د.ل)`,
+          [transactionId]: `✅ تم العثور على تطابق تلقائي بنجاح! الضامن: ${data.guarantor_name}`
         }))
+        loadQueue() // Refresh to reflect change
       } else {
-        setMatchResults((prev) => ({
+        setMatchResults(prev => ({
           ...prev,
-          [transactionId]: 'لم يتم العثور على ضامن مطابق. يبقى في قائمة الانتظار.',
+          [transactionId]: 'ℹ️ لم يتم العثور على ضامن مطابق تلقائياً. تبقى المعاملة في قائمة الانتظار للمراجعة اليدوية.'
         }))
       }
+    } catch (err) {
+      console.error('Error attempting auto match:', err)
+      setMatchResults(prev => ({
+        ...prev,
+        [transactionId]: '❌ حدث خطأ أثناء البحث عن تطابق. يرجى المحاولة لاحقاً.'
+      }))
     }
     setSearching(null)
   }

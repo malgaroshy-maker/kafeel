@@ -2,43 +2,90 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { User, Session } from '@supabase/supabase-js';
 
-export type UserRole = 'manager' | 'staff' | 'monitor' | 'admin' | 'none';
+export type UserRole = 'manager' | 'staff' | 'accountant' | 'monitor' | 'admin' | 'none';
 
 interface AuthState {
   user: User | null;
   session: Session | null;
   role: UserRole;
   officeId: string | null;
+  officeName: string | null;
   isLoading: boolean;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
+// Resolve role from user_profiles table (more reliable than app_metadata)
+async function resolveUserProfile(userId: string): Promise<{ role: UserRole; officeId: string | null; officeName: string | null }> {
+  const { data } = await supabase
+    .from('user_profiles')
+    .select('role, office_id, offices(name)')
+    .eq('id', userId)
+    .single();
+
+  if (data) {
+    return {
+      role: (data.role as UserRole) || 'none',
+      officeId: data.office_id,
+      officeName: (data.offices as any)?.name || null,
+    };
+  }
+  return { role: 'none', officeId: null, officeName: null };
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<UserRole>('none');
   const [officeId, setOfficeId] = useState<string | null>(null);
+  const [officeName, setOfficeName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const loadProfile = async (currentUser: User | null) => {
+    if (!currentUser) {
+      setRole('none');
+      setOfficeId(null);
+      setOfficeName(null);
+      setIsLoading(false);
+      return;
+    }
+
+    // Try app_metadata first (fast), then verify with user_profiles
+    const metaRole = (currentUser.app_metadata?.role as UserRole) ?? 'none';
+    const metaOffice = currentUser.app_metadata?.office_id ?? null;
+
+    // Set immediately from metadata for fast render
+    setRole(metaRole);
+    setOfficeId(metaOffice);
+
+    // Then verify/update from database
+    try {
+      const profile = await resolveUserProfile(currentUser.id);
+      if (profile.role !== 'none') {
+        setRole(profile.role);
+        setOfficeId(profile.officeId);
+        setOfficeName(profile.officeName);
+      }
+    } catch {
+      // Fallback to metadata if profile query fails
+    }
+    setIsLoading(false);
+  };
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setRole((session?.user?.app_metadata?.role as UserRole) ?? 'none');
-      setOfficeId(session?.user?.app_metadata?.office_id ?? null);
-      setIsLoading(false);
+      loadProfile(session?.user ?? null);
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setRole((session?.user?.app_metadata?.role as UserRole) ?? 'none');
-      setOfficeId(session?.user?.app_metadata?.office_id ?? null);
-      setIsLoading(false);
+      loadProfile(session?.user ?? null);
     });
 
     return () => {
@@ -51,7 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, role, officeId, isLoading, signOut }}>
+    <AuthContext.Provider value={{ user, session, role, officeId, officeName, isLoading, signOut }}>
       {children}
     </AuthContext.Provider>
   );
