@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import { UserPlus, Save, RotateCcw, Search, ChevronDown, ShieldCheck, User } from 'lucide-react'
+import { UserPlus, Save, RotateCcw, Search, ChevronDown, ShieldCheck, User, Clock } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 
@@ -356,6 +356,7 @@ export default function CustomerForm({ role = 'beneficiary', onSuccess, initialD
   const [workplaces, setWorkplaces] = useState<Workplace[]>([])
   const [loading, setLoading] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [savedToQueue, setSavedToQueue] = useState(false)
   const [showValidation, setShowValidation] = useState(false)
 
   useEffect(() => {
@@ -402,8 +403,6 @@ export default function CustomerForm({ role = 'beneficiary', onSuccess, initialD
       branch_id: formData.branchId || null
     }
     
-    if (formData.id) payload.id = formData.id
-
     const { data, error } = await supabase
       .from('customers')
       .upsert(payload, { onConflict: 'national_id' })
@@ -441,6 +440,98 @@ export default function CustomerForm({ role = 'beneficiary', onSuccess, initialD
     } catch (err) {
       console.error(err)
       alert('حدث خطأ أثناء الحفظ')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSaveAndQueue = async () => {
+    setShowValidation(true)
+    setLoading(true)
+    try {
+      // 1. Save Beneficiary
+      const ben = await saveCustomer(beneficiary)
+      if (!ben) throw new Error('Missing beneficiary data')
+
+      // 2. Save Guarantors if enabled
+      const gIds: string[] = []
+      if (hasGuarantor) {
+        const g1 = await saveCustomer(guarantor1)
+        if (g1) gIds.push(g1.id)
+        
+        if (beneficiary.workplaceType === 'classified') {
+          const g2 = await saveCustomer(guarantor2)
+          if (g2) gIds.push(g2.id)
+        }
+      }
+
+      // 3. Check if customer already has a WAITING_MATCH transaction
+      const { data: existingTx } = await supabase
+        .from('transactions')
+        .select('id')
+        .eq('customer_id', ben.id)
+        .in('status', ['WAITING_MATCH', 'MATCHED', 'ACTIVE'])
+        .limit(1)
+
+      if (existingTx && existingTx.length > 0) {
+        alert('هذا الزبون لديه معاملة قائمة بالفعل')
+        setLoading(false)
+        return
+      }
+
+      // 4. Create WAITING_MATCH transaction
+      const guarantorsNeeded = beneficiary.workplaceType === 'classified' ? 2 : 1
+      const { error: txError } = await supabase
+        .from('transactions')
+        .insert({
+          office_id: officeId,
+          customer_id: ben.id,
+          workplace_id: ben.workplace_id || null,
+          guarantors_needed: guarantorsNeeded,
+          status: 'WAITING_MATCH'
+        })
+
+      if (txError) throw txError
+
+      // 5. If guarantors were saved, link them to the transaction
+      if (gIds.length > 0) {
+        const { data: newTx } = await supabase
+          .from('transactions')
+          .select('id')
+          .eq('customer_id', ben.id)
+          .eq('status', 'WAITING_MATCH')
+          .single()
+
+        if (newTx) {
+          for (const gId of gIds) {
+            const { data: gData } = await supabase
+              .from('customers')
+              .select('name, national_id, workplace_id')
+              .eq('id', gId)
+              .single()
+
+            if (gData) {
+              await supabase.from('transaction_guarantors').insert({
+                transaction_id: newTx.id,
+                guarantor_name: gData.name,
+                guarantor_national_id: gData.national_id,
+                workplace_id: gData.workplace_id,
+                match_type: 'MANUAL',
+                match_status: 'PENDING'
+              })
+            }
+          }
+        }
+      }
+
+      setSavedToQueue(true)
+      setTimeout(() => {
+        setSavedToQueue(false)
+        if (onSuccess) onSuccess(ben.id, gIds)
+      }, 1500)
+    } catch (err) {
+      console.error(err)
+      alert('حدث خطأ أثناء الحفظ والإرسال للانتظار')
     } finally {
       setLoading(false)
     }
@@ -511,12 +602,27 @@ export default function CustomerForm({ role = 'beneficiary', onSuccess, initialD
         </div>
       )}
 
-      <div className="flex gap-4">
-        <button className="btn btn-primary flex-1 py-4 text-lg" onClick={handleSave} disabled={loading}>
-          <Save size={22} />
-          {loading ? 'جاري الحفظ...' : saved ? 'تم الحفظ ✓' : 'حفظ وتسجيل المعاملة'}
+      {savedToQueue && (
+        <div className="queue-match-result success mb-4" style={{ padding: '1rem', borderRadius: '12px' }}>
+          <span>✅ تم حفظ الزبون وإرساله لقائمة الانتظار بنجاح</span>
+        </div>
+      )}
+
+      <div className="flex gap-3 flex-wrap">
+        <button className="btn btn-primary flex-1 py-4 text-base" onClick={handleSave} disabled={loading}>
+          <Save size={20} />
+          {loading && !savedToQueue ? 'جاري الحفظ...' : saved ? 'تم الحفظ ✓' : 'حفظ وتسجيل المعاملة'}
         </button>
-        <button className="btn btn-ghost px-8" onClick={() => { setBeneficiary(emptyDraft); setGuarantor1(emptyDraft); setGuarantor2(emptyDraft); }}>
+        <button 
+          className="btn flex-1 py-4 text-base" 
+          style={{ background: 'rgba(245, 158, 11, 0.15)', color: 'var(--warning)', border: '1px solid rgba(245, 158, 11, 0.3)' }}
+          onClick={handleSaveAndQueue} 
+          disabled={loading}
+        >
+          <Clock size={20} />
+          {loading && savedToQueue ? 'جاري الإرسال...' : 'حفظ وإرسال للانتظار'}
+        </button>
+        <button className="btn btn-ghost px-6" onClick={() => { setBeneficiary(emptyDraft); setGuarantor1(emptyDraft); setGuarantor2(emptyDraft); }}>
           <RotateCcw size={20} />
         </button>
       </div>

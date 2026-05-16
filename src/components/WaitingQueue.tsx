@@ -31,7 +31,7 @@ export default function WaitingQueue() {
         .from('transactions')
         .select(`
           id, car_price, created_at, status,
-          customers!inner(full_name, national_id, salary, workplaces(name, required_guarantors)),
+          customers!inner(name, national_id, salary, workplaces(name, required_guarantors)),
           offices!inner(name)
         `)
         .eq('status', 'WAITING_MATCH')
@@ -40,15 +40,15 @@ export default function WaitingQueue() {
       if (error) throw error
       
       if (data) {
-        const formatted: WaitingTransaction[] = data.map(item => ({
+        const formatted: WaitingTransaction[] = data.map((item: any) => ({
           id: item.id,
-          customer_name: item.customers.full_name,
+          customer_name: item.customers.name,
           customer_national_id: item.customers.national_id,
           office_name: item.offices.name,
-          workplace_name: item.customers.workplaces.name,
+          workplace_name: item.customers.workplaces?.name || '',
           salary: item.customers.salary,
           car_price: item.car_price,
-          guarantors_needed: item.customers.workplaces.required_guarantors,
+          guarantors_needed: item.customers.workplaces?.required_guarantors || 1,
           current_guarantors: 0,
           created_at: item.created_at
         }))
@@ -135,10 +135,6 @@ export default function WaitingQueue() {
               <div className="queue-detail">
                 <span className="queue-detail-label">المرتب</span>
                 <span className="queue-detail-value">{item.salary.toLocaleString('ar-LY')} د.ل</span>
-              </div>
-              <div className="queue-detail">
-                <span className="queue-detail-label">سعر السيارة</span>
-                <span className="queue-detail-value">{item.car_price.toLocaleString('ar-LY')} د.ل</span>
               </div>
               <div className="queue-detail">
                 <span className="queue-detail-label">الرقم الوطني</span>

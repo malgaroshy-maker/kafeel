@@ -106,6 +106,10 @@ const OfficeLayout: React.FC = () => {
                 setDocCustomerId(id);
                 setActiveTab('documents');
               }}
+              onSendToQueue={(id) => {
+                setSelectedBeneficiary(id);
+                setActiveTab('calculator');
+              }}
             />
           )}
           {activeTab === 'calculator' && (
