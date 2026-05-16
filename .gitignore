@@ -1,5 +1,17 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+
+# Environment variables (NEVER commit real credentials)
+.env
+.env.*
+!.env.example
+
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -7,20 +19,40 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-.env
-.env.*
-
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.local
+
+# OS files
+Thumbs.db
+Desktop.ini
+
+# Agent/AI tool directories
+.agent/
+.gemini/
+
+# Temporary and scratch files
+*.mp3
+*.pdf
+*.py
+analyze_audio.py
+audio_project_comparison.md
+Photoroom-*.png
+kafeel_logo.png
+/logo.png
+kk/
+
+# Legacy files (moved to docs/)
+Plan.md
+prd.md
+roadmap.md
+calculater.md
+supabase_migration_phase6.sql
