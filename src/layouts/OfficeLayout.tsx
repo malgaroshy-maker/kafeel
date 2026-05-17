@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calculator, UserPlus, Users, FileCheck, Clock, Receipt, LogOut, BarChart3 } from 'lucide-react';
+import { Calculator, UserPlus, Users, FileCheck, Clock, Receipt, LogOut, BarChart3, Settings, LayoutDashboard } from 'lucide-react';
 import FinancialCalculator from '../components/Calculator';
 import CustomerForm from '../components/CustomerForm';
 import CustomerList from '../components/CustomerList';
@@ -8,11 +8,14 @@ import DocumentUploader from '../components/DocumentUploader';
 import WaitingQueue from '../components/WaitingQueue';
 import Settlements from '../components/Settlements';
 import ReportsDashboard from '../components/ReportsDashboard';
+import StaffDashboard from '../components/StaffDashboard';
+import OfficeSettings from '../components/OfficeSettings';
 import { useAuth } from '../contexts/AuthContext';
 
-type Tab = 'calculator' | 'customers' | 'beneficiary' | 'documents' | 'queue' | 'settlements' | 'reports';
+type Tab = 'dashboard' | 'calculator' | 'customers' | 'beneficiary' | 'documents' | 'queue' | 'settlements' | 'reports' | 'settings';
 
 const tabs: { id: Tab; label: string; icon: typeof Calculator }[] = [
+  { id: 'dashboard', label: 'لوحة التحكم', icon: LayoutDashboard },
   { id: 'customers', label: 'الزبائن', icon: Users },
   { id: 'beneficiary', label: 'تسجيل جديد', icon: UserPlus },
   { id: 'calculator', label: 'الحاسبة', icon: Calculator },
@@ -20,16 +23,26 @@ const tabs: { id: Tab; label: string; icon: typeof Calculator }[] = [
   { id: 'queue', label: 'الانتظار', icon: Clock },
   { id: 'settlements', label: 'التسويات', icon: Receipt },
   { id: 'reports', label: 'التقارير', icon: BarChart3 },
+  { id: 'settings', label: 'الإعدادات', icon: Settings },
 ];
 
 const OfficeLayout: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<Tab>('beneficiary');
+  const { role, isManager, isAccountant, isStaff, signOut, officeName } = useAuth();
+  
+  // Set default active tab based on role
+  const [activeTab, setActiveTab] = useState<Tab>(isStaff ? 'dashboard' : 'beneficiary');
+  
   const [selectedBeneficiary, setSelectedBeneficiary] = useState<any>(null);
   const [selectedGuarantor, setSelectedGuarantor] = useState<any>(null);
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
   const [docCustomerId, setDocCustomerId] = useState<any>(null);
   const navigate = useNavigate();
-  const { role, signOut, officeName } = useAuth();
+
+  useEffect(() => {
+    if (isStaff && activeTab === 'beneficiary') {
+       setActiveTab('dashboard');
+    }
+  }, [isStaff]);
 
   const handleLogout = async () => {
     await signOut();
@@ -37,12 +50,10 @@ const OfficeLayout: React.FC = () => {
   };
 
   const visibleTabs = tabs.filter(tab => {
-    if (tab.id === 'reports' && role !== 'manager') {
-      return false;
-    }
-    if (tab.id === 'settlements' && !['manager', 'accountant'].includes(role)) {
-      return false;
-    }
+    if (tab.id === 'dashboard' && !isStaff) return false;
+    if (tab.id === 'settings' && !isManager) return false;
+    if (tab.id === 'reports' && isStaff) return false;
+    if (tab.id === 'settlements' && isStaff) return false;
     return true;
   });
 
@@ -136,6 +147,8 @@ const OfficeLayout: React.FC = () => {
           {activeTab === 'queue' && <WaitingQueue />}
           {activeTab === 'settlements' && <Settlements />}
           {activeTab === 'reports' && <ReportsDashboard />}
+          {activeTab === 'dashboard' && <StaffDashboard />}
+          {activeTab === 'settings' && <OfficeSettings />}
         </div>
       </main>
     </div>

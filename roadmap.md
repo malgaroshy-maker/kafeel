@@ -99,3 +99,12 @@
 - [x] Fixed Hero text clipping and background gradient glitches.
 - [x] Redesigned all primary actions/important buttons globally with the premium blue-grey-gold gradient.
 - [x] Watermark logo centered perfectly (`top: 50%`) with customized clear translucency (`0.4` in light mode, `0.6` in dark mode) for perfect branding.
+
+## Phase 13: Role Optimization & Dashboard Gamification
+- [ ] Strict Role Separation (`manager`, `accountant`, `staff`) with exclusive access controls.
+- [ ] Implement `purchase_cost` and Net Profit masking for `staff`.
+- [ ] RLS Policy Updates: Restrict `DELETE` actions to `manager` only.
+- [ ] Document Verification Flow: Require Manager/Accountant approval for uploaded docs before matchmaking.
+- [ ] Office Settings Tab: Exclusive to Manager for configuring default bank and managing staff limits.
+- [ ] Gamified Staff Dashboard: "My Recent Submissions" view with Quick Actions and Status Tracking.
+- [ ] Smart Notifications: Route match alerts to the Manager and the specific Staff who entered the data.

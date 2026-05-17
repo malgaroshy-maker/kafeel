@@ -24,7 +24,7 @@ interface Props {
 }
 
 export default function CustomerList({ onSelect, onEdit, onDelete, onDocuments, onSendToQueue }: Props) {
-  const { officeId } = useAuth()
+  const { officeId, isManager } = useAuth()
   const [customers, setCustomers] = useState<Customer[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
@@ -195,13 +195,15 @@ export default function CustomerList({ onSelect, onEdit, onDelete, onDocuments, 
                 >
                   <Pencil size={16} />
                 </button>
-                <button 
-                  className="btn btn-ghost btn-sm text-error"
-                  onClick={() => handleDelete(customer.id)}
-                  title="حذف"
-                >
-                  <Trash2 size={16} />
-                </button>
+                {isManager && (
+                  <button 
+                    className="btn btn-ghost btn-sm text-error"
+                    onClick={() => handleDelete(customer.id)}
+                    title="حذف"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
                 <button 
                   className="btn btn-primary btn-sm flex items-center gap-2"
                   onClick={() => onSelect && onSelect(customer.id)}

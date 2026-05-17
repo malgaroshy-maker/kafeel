@@ -8,6 +8,11 @@ interface AuthState {
   user: User | null;
   session: Session | null;
   role: UserRole;
+  isManager: boolean;
+  isAccountant: boolean;
+  isStaff: boolean;
+  isMonitor: boolean;
+  isAdmin: boolean;
   officeId: string | null;
   officeName: string | null;
   isLoading: boolean;
@@ -98,7 +103,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, role, officeId, officeName, isLoading, signOut }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      role, 
+      isManager: role === 'manager',
+      isAccountant: role === 'accountant',
+      isStaff: role === 'staff',
+      isMonitor: role === 'monitor',
+      isAdmin: role === 'admin',
+      officeId, 
+      officeName, 
+      isLoading, 
+      signOut 
+    }}>
       {children}
     </AuthContext.Provider>
   );

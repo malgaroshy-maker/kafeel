@@ -75,7 +75,10 @@ Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Mura
 - **Accessibility**: Keyboard navigation optimized (Tab flow) for data entry efficiency. ✅
 - **Resilience**: `localStorage` drafts on Calculator, CustomerForm, and Settlements. ✅
 - **Navigation (Portals Architecture)**:
-  - **Office Portal (`/office`)**: For Manager, Accountant, and Staff (Calculator, Beneficiaries, Guarantors, Documents, Waiting Queue, Settlements, **Reports**).
+  - **Office Portal (`/office`)**: 
+    - **Manager**: Full access + Reports + Office Settings.
+    - **Accountant**: Settlements, Calculator, Customers, Documents, Waiting Queue, Reports (excluding Settings).
+    - **Staff**: Gamified "My Submissions" Dashboard, Calculator (no purchase_cost), Customers, Documents, Waiting Queue (no delete, no settlements).
   - **Monitor Portal (`/monitor`)**: For Operations Monitor (Manual Linking & Waiting Queue Oversight).
   - **Admin Portal (`/admin`)**: For Master Admin (Offices, Users, Workplaces, Join Codes).
   - **Join Page (`/join`)**: Self-registration using a join code.

@@ -3,6 +3,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage'
 import { Calculator as CalcIcon, TrendingUp, Banknote, CreditCard, AlertTriangle, User, ShieldCheck } from 'lucide-react'
 import { calculateMurabaha, TERM_MONTHS } from '../lib/financialEngine'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../contexts/AuthContext'
 
 interface CalcState {
   purchaseCost: string
@@ -39,6 +40,7 @@ interface Props {
 }
 
 export default function FinancialCalculator({ beneficiaryId, guarantorId }: Props) {
+  const { isStaff } = useAuth()
   const [form, setForm] = useLocalStorage<CalcState>('kafeel_calc_draft', defaultState)
   const [beneficiaryData, setBeneficiaryData] = useState<any>(null)
   const [guarantorData, setGuarantorData] = useState<any>(null)
@@ -227,18 +229,20 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId }: Prop
             />
           </div>
 
-          <div className="input-group">
-            <label htmlFor="purchaseCost">سعر شراء السيارة بالكاش التقريبي وقت المعاملة</label>
-            <input
-              id="purchaseCost"
-              type="number"
-              inputMode="decimal"
-              placeholder="مثال: 90,000 (اختياري)"
-              value={form.purchaseCost}
-              onChange={(e) => update('purchaseCost', e.target.value)}
-              tabIndex={5}
-            />
-          </div>
+          {!isStaff && (
+            <div className="input-group">
+              <label htmlFor="purchaseCost">سعر شراء السيارة بالكاش التقريبي وقت المعاملة</label>
+              <input
+                id="purchaseCost"
+                type="number"
+                inputMode="decimal"
+                placeholder="مثال: 90,000 (اختياري)"
+                value={form.purchaseCost}
+                onChange={(e) => update('purchaseCost', e.target.value)}
+                tabIndex={5}
+              />
+            </div>
+          )}
 
           <div className="input-group checkbox-group">
             <label htmlFor="notaryPledge" className="checkbox-label">
@@ -357,7 +361,7 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId }: Prop
                 </div>
               </div>
 
-              {n(form.purchaseCost) > 0 && n(form.carPrice) >= n(form.purchaseCost) && (
+              {!isStaff && n(form.purchaseCost) > 0 && n(form.carPrice) >= n(form.purchaseCost) && (
                 <div className="result-card" style={{ border: '1px solid var(--success-color)', background: 'rgba(16, 185, 129, 0.05)' }}>
                   <div className="result-info full">
                     <span className="result-label" style={{ color: 'var(--success-color)' }}>الربح المبدئي للمكتب (الفرق)</span>

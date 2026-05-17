@@ -11,8 +11,10 @@ interface WaitingTransaction {
   salary: number
   car_price: number
   guarantors_needed: number
+  guarantors_needed: number
   current_guarantors: number
   created_at: string
+  verification_status?: string
 }
 
 // Types stay the same
@@ -22,6 +24,8 @@ export default function WaitingQueue() {
   const [searching, setSearching] = useState<string | null>(null)
   const [matchResults, setMatchResults] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
+  const [verifying, setVerifying] = useState<string | null>(null)
+  const { isManager, isAccountant } = useAuth()
 
   // Load from Supabase (when auth is wired up)
   const loadQueue = useCallback(async () => {
@@ -30,7 +34,7 @@ export default function WaitingQueue() {
       const { data, error } = await supabase
         .from('transactions')
         .select(`
-          id, car_price, created_at, status,
+          id, car_price, created_at, status, verification_status,
           customers!inner(name, national_id, salary, workplaces(name, required_guarantors)),
           offices!inner(name)
         `)
@@ -50,7 +54,8 @@ export default function WaitingQueue() {
           car_price: item.car_price,
           guarantors_needed: item.customers.workplaces?.required_guarantors || 1,
           current_guarantors: 0,
-          created_at: item.created_at
+          created_at: item.created_at,
+          verification_status: item.verification_status || 'verified' // Fallback to verified for old records
         }))
         setQueue(formatted)
       }
@@ -60,6 +65,24 @@ export default function WaitingQueue() {
       setLoading(false)
     }
   }, [])
+
+  const verifyTransaction = async (transactionId: string) => {
+    setVerifying(transactionId)
+    try {
+      const { error } = await supabase
+        .from('transactions')
+        .update({ verification_status: 'verified' })
+        .eq('id', transactionId)
+        
+      if (error) throw error
+      loadQueue()
+    } catch (err) {
+      console.error('Error verifying transaction:', err)
+      alert('حدث خطأ أثناء اعتماد المعاملة')
+    } finally {
+      setVerifying(null)
+    }
+  }
 
   useEffect(() => {
     loadQueue()
@@ -143,17 +166,39 @@ export default function WaitingQueue() {
             </div>
 
             <div className="queue-card-actions">
-              <button
-                className="btn btn-primary btn-sm"
-                onClick={() => attemptMatch(item.id)}
-                disabled={searching === item.id}
-              >
-                {searching === item.id ? (
-                  <><RefreshCw size={14} className="spin" /> جاري البحث...</>
-                ) : (
-                  <><Search size={14} /> بحث عن ضامن</>
-                )}
-              </button>
+              {item.verification_status === 'pending' ? (
+                <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+                  <button
+                    className="btn btn-success btn-sm"
+                    onClick={() => verifyTransaction(item.id)}
+                    disabled={verifying === item.id || (!isManager && !isAccountant)}
+                    title={(!isManager && !isAccountant) ? "صلاحية اعتماد المستندات محصورة للمدير والمحاسب" : "اعتماد المستندات"}
+                    style={{ flex: 1 }}
+                  >
+                    {verifying === item.id ? 'جاري الاعتماد...' : 'اعتماد المستندات'}
+                  </button>
+                  <button
+                    className="btn btn-primary btn-sm"
+                    disabled={true}
+                    style={{ opacity: 0.5, flex: 1 }}
+                    title="يجب اعتماد المستندات أولاً"
+                  >
+                    بحث عن ضامن
+                  </button>
+                </div>
+              ) : (
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={() => attemptMatch(item.id)}
+                  disabled={searching === item.id}
+                >
+                  {searching === item.id ? (
+                    <><RefreshCw size={14} className="spin" /> جاري البحث...</>
+                  ) : (
+                    <><Search size={14} /> بحث عن ضامن</>
+                  )}
+                </button>
+              )}
             </div>
 
             {matchResults[item.id] && (
