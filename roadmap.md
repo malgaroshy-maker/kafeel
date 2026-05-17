@@ -99,4 +99,3 @@
 - [x] Fixed Hero text clipping and background gradient glitches.
 - [x] Redesigned all primary actions/important buttons globally with the premium blue-grey-gold gradient.
 - [x] Watermark logo centered perfectly (`top: 50%`) with customized clear translucency (`0.4` in light mode, `0.6` in dark mode) for perfect branding.
-v 1.0.0
