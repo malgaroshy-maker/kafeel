@@ -51,8 +51,5 @@ kafeel_logo.png
 kk/
 
 # Legacy files (moved to docs/)
-Plan.md
-prd.md
-roadmap.md
-calculater.md
+
 supabase_migration_phase6.sql
