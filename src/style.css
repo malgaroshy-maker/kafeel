@@ -85,7 +85,7 @@
 }
 
 [data-theme='dark'] .global-watermark {
-  opacity: 0.6; /* Enhanced opacity for perfect watermark contrast on black bg */
+  opacity: 0.13; /* Elegant, light watermark backdrop on black bg */
 }
 
 /* ===== Reset & Base ===== */
@@ -110,15 +110,15 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 75vw;
-  height: 75vw;
-  max-width: 650px;
-  max-height: 650px;
+  width: 90vw;
+  height: 90vw;
+  max-width: 950px;
+  max-height: 950px;
   background-image: url('/logo.png');
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
-  opacity: 0.4; /* Clearly visible, beautiful backdrop in light mode! */
+  opacity: 0.07; /* Soft, light, elegant watermark backdrop in light mode! */
   pointer-events: none;
   z-index: 0;
 }
@@ -1327,7 +1327,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .landing-page.dark-mode .global-watermark {
-  opacity: 0.6 !important;
+  opacity: 0.13 !important;
 }
 
 .landing-page.dark-mode .hero-title {

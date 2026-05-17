@@ -98,4 +98,4 @@
 - [x] Crescent (Moon) and Sun icons next to the logo for smooth theme switching.
 - [x] Fixed Hero text clipping and background gradient glitches.
 - [x] Redesigned all primary actions/important buttons globally with the premium blue-grey-gold gradient.
-- [x] Watermark logo centered perfectly (`top: 50%`) with customized clear translucency (`0.4` in light mode, `0.6` in dark mode) for perfect branding.
+- [x] Watermark logo centered perfectly (`top: 50%`) with scaled dimensions (`90vw`, `950px` max size) and fine-tuned soft translucency (`0.07` in light mode, `0.13` in dark mode) for premium branding.
