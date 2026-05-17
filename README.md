@@ -8,7 +8,7 @@
   <strong>B2B SaaS Platform for Islamic Murabaha Car Sales</strong><br/>
   منصة سحابية لإدارة مكاتب بيع السيارات بنظام المرابحة الإسلامية
 </p>
-GJHGJBJ
+
 <p align="center">
   <img src="https://img.shields.io/badge/React-19-blue?logo=react" alt="React 19" />
   <img src="https://img.shields.io/badge/TypeScript-6-blue?logo=typescript" alt="TypeScript" />
