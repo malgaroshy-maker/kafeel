@@ -92,3 +92,10 @@
 - [ ] External Notifications: Integrate SMS/WhatsApp API to notify customers and guarantors when a match is found.
 - [ ] Production Deployment (Vercel + Supabase).
 - [ ] MVP Launch & Onboarding of initial offices.
+
+## Phase 12: Premium Design System & Global Styling ✅
+- [x] Stateful Dark/Light Mode on the Landing Page.
+- [x] Crescent (Moon) and Sun icons next to the logo for smooth theme switching.
+- [x] Fixed Hero text clipping and background gradient glitches.
+- [x] Redesigned all primary actions/important buttons globally with the premium blue-grey-gold gradient.
+- [x] Watermark logo centered perfectly (`top: 50%`) with customized clear translucency (`0.4` in light mode, `0.6` in dark mode) for perfect branding.
