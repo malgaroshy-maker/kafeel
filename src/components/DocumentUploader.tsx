@@ -68,6 +68,12 @@ export default function DocumentUploader({ customerId }: Props) {
       setCompressing(null)
     }
 
+    // Validate file size (MAX 2MB)
+    if (processedFile.size > 2 * 1024 * 1024) {
+      alert(`حجم الملف "${processedFile.name}" كبير جداً (${(processedFile.size / (1024 * 1024)).toFixed(2)} ميجابايت). الحد الأقصى المسموح به هو 2 ميجابايت.`)
+      return
+    }
+
     setDocs((prev) =>
       prev.map((d) =>
         d.key === key ? { ...d, file: processedFile, checked: true } : d
@@ -187,6 +193,9 @@ export default function DocumentUploader({ customerId }: Props) {
           <p className="calc-subtitle">
             {customerName ? `للزبون: ${customerName}` : `${completedCount}/${docs.length} مستند مكتمل`}
           </p>
+          <p style={{ margin: '0.4rem 0 0 0', fontSize: '0.8rem', color: 'var(--warning)', fontWeight: 500 }}>
+            ⚠️ رفع المستندات اختياري ومتاح لحماية المكتب والتحقق عند الحاجة. الحد الأقصى لحجم الملف هو 2 ميجابايت.
+          </p>
           {customerName && (
              <p className="text-sm text-text-tertiary mt-1 flex items-center gap-1">
                <User size={12} /> {completedCount}/{docs.length} مستند مكتمل
@@ -253,7 +262,7 @@ export default function DocumentUploader({ customerId }: Props) {
         <button 
           className="btn btn-primary btn-lg w-full" 
           onClick={handleSubmitTransaction}
-          disabled={submitting || completedCount === 0}
+          disabled={submitting}
           style={{ justifyContent: 'center', padding: '1rem' }}
         >
           {submitting ? (

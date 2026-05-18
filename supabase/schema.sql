@@ -238,10 +238,29 @@ CREATE POLICY "Enable full access for admins"
     ));
 
 -- ---- CUSTOMERS ----
-CREATE POLICY "Offices can only access their own customers"
-    ON public.customers FOR ALL
+CREATE POLICY "Offices can SELECT own customers"
+    ON public.customers FOR SELECT
     TO public
     USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Offices can INSERT own customers"
+    ON public.customers FOR INSERT
+    TO public
+    WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Offices can UPDATE own customers"
+    ON public.customers FOR UPDATE
+    TO public
+    USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid))
+    WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Only managers can DELETE own customers"
+    ON public.customers FOR DELETE
+    TO public
+    USING (
+        office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid)
+        AND ((auth.jwt() -> 'app_metadata' ->> 'role') = 'manager')
+    );
 
 CREATE POLICY "Admins have full access to customers"
     ON public.customers FOR ALL
@@ -254,10 +273,29 @@ CREATE POLICY "Monitors can read customers"
     USING (((auth.jwt() -> 'app_metadata' ->> 'role') = 'monitor'));
 
 -- ---- TRANSACTIONS ----
-CREATE POLICY "Offices can only access their own transactions"
-    ON public.transactions FOR ALL
+CREATE POLICY "Offices can SELECT own transactions"
+    ON public.transactions FOR SELECT
     TO public
     USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Offices can INSERT own transactions"
+    ON public.transactions FOR INSERT
+    TO public
+    WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Offices can UPDATE own transactions"
+    ON public.transactions FOR UPDATE
+    TO public
+    USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid))
+    WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Only managers can DELETE own transactions"
+    ON public.transactions FOR DELETE
+    TO public
+    USING (
+        office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid)
+        AND ((auth.jwt() -> 'app_metadata' ->> 'role') = 'manager')
+    );
 
 CREATE POLICY "Admins have full access to transactions"
     ON public.transactions FOR ALL
@@ -270,13 +308,44 @@ CREATE POLICY "Monitors can read transactions"
     USING (((auth.jwt() -> 'app_metadata' ->> 'role') = 'monitor'));
 
 -- ---- TRANSACTION GUARANTORS ----
-CREATE POLICY "Offices can only access guarantors of their transactions"
-    ON public.transaction_guarantors FOR ALL
+CREATE POLICY "Offices can SELECT own guarantors"
+    ON public.transaction_guarantors FOR SELECT
     TO public
     USING (transaction_id IN (
         SELECT id FROM transactions
         WHERE office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid)
     ));
+
+CREATE POLICY "Offices can INSERT own guarantors"
+    ON public.transaction_guarantors FOR INSERT
+    TO public
+    WITH CHECK (transaction_id IN (
+        SELECT id FROM transactions
+        WHERE office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid)
+    ));
+
+CREATE POLICY "Offices can UPDATE own guarantors"
+    ON public.transaction_guarantors FOR UPDATE
+    TO public
+    USING (transaction_id IN (
+        SELECT id FROM transactions
+        WHERE office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid)
+    ))
+    WITH CHECK (transaction_id IN (
+        SELECT id FROM transactions
+        WHERE office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid)
+    ));
+
+CREATE POLICY "Only managers can DELETE own guarantors"
+    ON public.transaction_guarantors FOR DELETE
+    TO public
+    USING (
+        transaction_id IN (
+            SELECT id FROM transactions
+            WHERE office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid)
+        )
+        AND ((auth.jwt() -> 'app_metadata' ->> 'role') = 'manager')
+    );
 
 CREATE POLICY "Admins have full access to transaction_guarantors"
     ON public.transaction_guarantors FOR ALL
@@ -289,11 +358,29 @@ CREATE POLICY "Monitors can read transaction_guarantors"
     USING (((auth.jwt() -> 'app_metadata' ->> 'role') = 'monitor'));
 
 -- ---- SETTLEMENTS ----
-CREATE POLICY "Offices can access their own settlements"
-    ON public.settlements FOR ALL
+CREATE POLICY "Offices can SELECT own settlements"
+    ON public.settlements FOR SELECT
+    TO authenticated
+    USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Offices can INSERT own settlements"
+    ON public.settlements FOR INSERT
+    TO authenticated
+    WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Offices can UPDATE own settlements"
+    ON public.settlements FOR UPDATE
     TO authenticated
     USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid))
     WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Only managers can DELETE own settlements"
+    ON public.settlements FOR DELETE
+    TO authenticated
+    USING (
+        office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid)
+        AND ((auth.jwt() -> 'app_metadata' ->> 'role') = 'manager')
+    );
 
 CREATE POLICY "Admins have full access to settlements"
     ON public.settlements FOR ALL

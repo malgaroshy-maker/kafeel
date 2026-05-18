@@ -67,6 +67,7 @@ export default function Login() {
           break;
         case 'manager':
         case 'staff':
+        case 'accountant':
           navigate('/office', { replace: true });
           break;
         default:

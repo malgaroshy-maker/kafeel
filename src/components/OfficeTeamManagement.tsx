@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Users, UserCheck, Shield, ToggleLeft, ToggleRight, Search, ChevronDown } from 'lucide-react'
+import { Users, Shield, ToggleLeft, ToggleRight, Search, ChevronDown } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 

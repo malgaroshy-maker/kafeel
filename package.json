@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "graphify": "graphify update ."
+    "graphify": "graphify update .",
+    "graphify:watch": "graphify watch ."
   },
   "devDependencies": {
     "@types/react": "^19.2.14",

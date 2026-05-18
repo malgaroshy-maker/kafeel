@@ -123,7 +123,7 @@ export default function Settlements() {
       
       // 2. Upload to Supabase Storage
       const fileName = `${Date.now()}-${file.name}`
-      const { data: uploadData, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from('settlement-checks')
         .upload(fileName, compressed)
       

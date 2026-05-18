@@ -15,6 +15,7 @@ interface AuthState {
   isAdmin: boolean;
   officeId: string | null;
   officeName: string | null;
+  planType: 'BASIC' | 'PREMIUM' | 'UNLIMITED';
   isLoading: boolean;
   signOut: () => Promise<void>;
 }
@@ -22,10 +23,10 @@ interface AuthState {
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
 // Resolve role from user_profiles table (more reliable than app_metadata)
-async function resolveUserProfile(userId: string): Promise<{ role: UserRole; officeId: string | null; officeName: string | null }> {
+async function resolveUserProfile(userId: string): Promise<{ role: UserRole; officeId: string | null; officeName: string | null; planType: 'BASIC' | 'PREMIUM' | 'UNLIMITED' }> {
   const { data } = await supabase
     .from('user_profiles')
-    .select('role, office_id, offices(name)')
+    .select('role, office_id, offices(name, plan_type)')
     .eq('id', userId)
     .single();
 
@@ -34,9 +35,10 @@ async function resolveUserProfile(userId: string): Promise<{ role: UserRole; off
       role: (data.role as UserRole) || 'none',
       officeId: data.office_id,
       officeName: (data.offices as any)?.name || null,
+      planType: (data.offices as any)?.plan_type || 'BASIC',
     };
   }
-  return { role: 'none', officeId: null, officeName: null };
+  return { role: 'none', officeId: null, officeName: null, planType: 'BASIC' };
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -45,6 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [role, setRole] = useState<UserRole>('none');
   const [officeId, setOfficeId] = useState<string | null>(null);
   const [officeName, setOfficeName] = useState<string | null>(null);
+  const [planType, setPlanType] = useState<'BASIC' | 'PREMIUM' | 'UNLIMITED'>('BASIC');
   const [isLoading, setIsLoading] = useState(true);
 
   const loadProfile = async (currentUser: User | null) => {
@@ -71,9 +74,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setRole(profile.role);
         setOfficeId(profile.officeId);
         setOfficeName(profile.officeName);
+        setPlanType(profile.planType);
       }
     } catch {
-      // Fallback to metadata if profile query fails
+      // Fallback if fails
     }
     setIsLoading(false);
   };
@@ -114,6 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isAdmin: role === 'admin',
       officeId, 
       officeName, 
+      planType,
       isLoading, 
       signOut 
     }}>

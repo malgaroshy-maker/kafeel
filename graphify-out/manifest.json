@@ -1,7 +1,7 @@
 {
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\package.json": {
-    "mtime": 1779139338.624421,
-    "ast_hash": "1c92fe6c066e43b462a5392fe8443d54",
+    "mtime": 1779143453.4992993,
+    "ast_hash": "40c52301b8a44cddf90157b4bae20eeb",
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\tsconfig.json": {
@@ -40,23 +40,23 @@
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\src\\components\\CustomerForm.tsx": {
-    "mtime": 1779038543.101101,
-    "ast_hash": "2b067adff5ceb151145f0901b09277a6",
+    "mtime": 1779140221.0020926,
+    "ast_hash": "01dac788705775059d6bb5a74125a767",
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\src\\components\\CustomerList.tsx": {
-    "mtime": 1779119148.9668913,
-    "ast_hash": "047caedf752538f4df4a92c1b4957db9",
+    "mtime": 1779144227.9887295,
+    "ast_hash": "cca7d2a50f1095263e40eb179e3cc754",
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\src\\components\\DocumentUploader.tsx": {
-    "mtime": 1779038543.1094687,
-    "ast_hash": "b56b8cdb2c730426f3472bc2e6291f28",
+    "mtime": 1779140281.2317297,
+    "ast_hash": "dfd1d5412bba1742c311d100526788e7",
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\src\\components\\ErrorBoundary.tsx": {
-    "mtime": 1779038543.1135948,
-    "ast_hash": "6b0bcfe470b6d141cfa660516ca737e5",
+    "mtime": 1779140187.5945952,
+    "ast_hash": "734055cec549ae5d8579aac70d0c4ab1",
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\src\\components\\MonitorDashboard.tsx": {
@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\src\\components\\OfficeTeamManagement.tsx": {
-    "mtime": 1779041242.7174525,
-    "ast_hash": "175154d275f2f63c2bd8c7cf6ae6b5c1",
+    "mtime": 1779140194.4581192,
+    "ast_hash": "d03f260505dc203a4309396dc23ccd70",
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\src\\components\\ProtectedRoute.tsx": {
@@ -80,8 +80,8 @@
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\src\\components\\ReportsDashboard.tsx": {
-    "mtime": 1779038543.1246417,
-    "ast_hash": "1f50688276c592313b8d53a7c55a1905",
+    "mtime": 1779144111.9445474,
+    "ast_hash": "1862d3abce39fd724b120fd1ef6d4ced",
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\src\\components\\SettingsPanel.tsx": {
@@ -90,23 +90,23 @@
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\src\\components\\Settlements.tsx": {
-    "mtime": 1779038543.1283858,
-    "ast_hash": "653fbd3a2d6ef9c0901ce9d1fdfabeb0",
+    "mtime": 1779140228.8629692,
+    "ast_hash": "17038ec42040db00e51a60a8df66531d",
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\src\\components\\StaffDashboard.tsx": {
-    "mtime": 1779119148.9688704,
-    "ast_hash": "4bdc7c90e79a1aba4f5592ff88b341db",
+    "mtime": 1779140180.42445,
+    "ast_hash": "de980bfb445ea5ae7928b2628a740b0b",
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\src\\components\\WaitingQueue.tsx": {
-    "mtime": 1779120542.2238977,
-    "ast_hash": "8c7c91b3e887fef5a06c0b8d759b80f2",
+    "mtime": 1779140204.2053099,
+    "ast_hash": "c3ab632d59fa1f4b1fd734e23ae66630",
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\src\\contexts\\AuthContext.tsx": {
-    "mtime": 1779119148.97531,
-    "ast_hash": "908ad2466493d3ad1a5ae350c2b936ad",
+    "mtime": 1779142650.4876041,
+    "ast_hash": "42e4ac81dc57f9a156885af084ef3c7f",
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\src\\hooks\\useLocalStorage.ts": {
@@ -130,8 +130,8 @@
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\src\\layouts\\OfficeLayout.tsx": {
-    "mtime": 1779123719.456056,
-    "ast_hash": "5c6a9095db6bff076bfc9b0c9ec36820",
+    "mtime": 1779143844.0166335,
+    "ast_hash": "f29e3c2634019f35bdf9cc23e5cb7f4e",
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\src\\lib\\financialEngine.ts": {
@@ -155,8 +155,8 @@
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\src\\pages\\Login.tsx": {
-    "mtime": 1779123903.173208,
-    "ast_hash": "0b9bc7d4a677df5f37c6ddb741c5746f",
+    "mtime": 1779140549.1910112,
+    "ast_hash": "9ad7b8ad15c2dbab9c268708fd0913ed",
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\src\\utils\\imageCompression.ts": {
@@ -170,8 +170,8 @@
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\supabase\\schema.sql": {
-    "mtime": 1779038543.207216,
-    "ast_hash": "610bbafa7858148bb3b955c2b9293d96",
+    "mtime": 1779140033.5287857,
+    "ast_hash": "2d52b77841d0b101ea55ecb1779130e0",
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\supabase\\functions\\admin-manage-users\\index.ts": {
@@ -225,8 +225,8 @@
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\Design.md": {
-    "mtime": 1779125628.4522734,
-    "ast_hash": "4608c198f521ce670402ccc0162bf6e4",
+    "mtime": 1779144318.3278062,
+    "ast_hash": "eec233ee37687c421887e7c9ca912d1d",
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\index.html": {
@@ -235,28 +235,28 @@
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\Mahamed 18-5.md": {
-    "mtime": 1779119148.949136,
-    "ast_hash": "580c99a748c4530f013995220da70a60",
+    "mtime": 1779143777.2385824,
+    "ast_hash": "5e9b105d475c53c7fec48ae055944a3d",
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\Plan.md": {
-    "mtime": 1779125645.6000202,
-    "ast_hash": "55f8d4583205615a3a4b603335bedbda",
+    "mtime": 1779144309.5261035,
+    "ast_hash": "70847f3a659e1e813563a25769a85d31",
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\prd.md": {
-    "mtime": 1779125041.309807,
-    "ast_hash": "bc9575b85486a7e1f1588023fff93a15",
+    "mtime": 1779144446.8740969,
+    "ast_hash": "a1504381e27c726fe121e5e9197ef8b1",
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\README.md": {
-    "mtime": 1779125058.9834776,
-    "ast_hash": "3ad860af20b7fb1dff09c20dbe2c4a62",
+    "mtime": 1779144415.8611782,
+    "ast_hash": "77bed8bd49e8988f36614a39ebd4109f",
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\roadmap.md": {
-    "mtime": 1779125658.2240274,
-    "ast_hash": "746c5b565a76886d3715fe948bac1f23",
+    "mtime": 1779144404.648056,
+    "ast_hash": "77aebe465eb64ef231e74c2fe96eb2ef",
     "semantic_hash": ""
   },
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\\u0634\u0645\u0633.md": {
@@ -322,6 +322,21 @@
   "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\src\\assets\\vite.svg": {
     "mtime": 1779038543.0855772,
     "ast_hash": "6d5180a782d64c8cf51ba01c2a2184d8",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\supabase\\migrations\\05_restrict_deletes_to_managers.sql": {
+    "mtime": 1779140022.9673376,
+    "ast_hash": "1832278bfe016fc8055ee7d293f7e9f9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\src\\components\\StaffStats.tsx": {
+    "mtime": 1779143073.1621695,
+    "ast_hash": "bedc5c9b9aa44455db4e3a235c4f13ba",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Administrator\\Desktop\\\u0645\u0646\u0638\u0648\u0645\u0629 \u0643\u0641\u064a\u0644\\src\\components\\PremiumLock.tsx": {
+    "mtime": 1779143750.7297423,
+    "ast_hash": "04cd8bb0cf5b8e86a49c58b1ff01d854",
     "semantic_hash": ""
   }
 }

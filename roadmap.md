@@ -100,18 +100,23 @@
 - [x] Redesigned all primary actions/important buttons globally with the premium blue-grey-gold gradient.
 - [x] Watermark logo centered perfectly (`top: 50%`) with customized clear translucency (`0.4` in light mode, `0.6` in dark mode) for perfect branding.
 
-## Phase 13: SaaS Admin Suite & Security Control ✅
-- [x] Integrate "طاقم الإدارة العليا" (System Owners) dashboard.
-- [x] Seed and query "سجل الحركات الأمني" (Security Audit Logs) for live operations logging.
-- [x] Hook admin actions (office creations, updates, role promotions) to log activities in `admin_activity_logs` database table.
-- [x] Redesign top-left user block with personal greeting, configuration link, and logout button.
-- [x] Position Sun/Moon toggles next to user welcome block for complete light/dark theme transition.
+## Phase 14: Role Optimization, Premium Remuneration & Reusable Padlocks ✅
+- [x] Strict Role Separation (`manager`, `accountant`, `staff`) with exclusive dashboard portals and layouts.
+- [x] Implement `purchase_cost` and Net Profit masking for `staff` (limited to manager/accountant only).
+- [x] RLS Policy Updates: Restrict customer deletion actions to `manager` only.
+- [x] Office Settings Tab: Exclusive to `manager` for configuring default bank and managing staff join limit.
+- [x] Gamified Staff Dashboard: "إنجازاتي" (My Achievements) view with Quick Actions, Status Tracking, and dynamic submission quotas.
+- [x] Advanced Murabaha Remuneration Model:
+  - Wagers engine (Salary only, Salary+Commission, Commission only).
+  - 30-day absent salary docking system.
+  - Standardized administrative agency fees and showroom resale margins.
+- [x] Reusable Golden Padlock System (`PremiumLock.tsx`):
+  - Local content blur overlay `PremiumLockOverlay` for hiding cost cards and net profits.
+  - Golden dashed banner overlay `PremiumLockBanner` with package badge details.
+  - Complete gating of the Reports dashboard (Audit tab, Ledger tab, actual purchase cost cards, and net profit cards) to encourage upgrade to PREMIUM or UNLIMITED plans.
 
-## Phase 14: Role Optimization & Dashboard Gamification
-- [ ] Strict Role Separation (`manager`, `accountant`, `staff`) with exclusive access controls.
-- [ ] Implement `purchase_cost` and Net Profit masking for `staff`.
-- [ ] RLS Policy Updates: Restrict `DELETE` actions to `manager` only.
-- [ ] Document Verification Flow: Require Manager/Accountant approval for uploaded docs before matchmaking.
-- [ ] Office Settings Tab: Exclusive to Manager for configuring default bank and managing staff limits.
-- [ ] Gamified Staff Dashboard: "My Recent Submissions" view with Quick Actions and Status Tracking.
-- [ ] Smart Notifications: Route match alerts to the Manager and the specific Staff who entered the data.
+## Phase 15: Production Deployment & External Integrations
+- [ ] External Notifications: Integrate SMS/WhatsApp API to notify customers and guarantors when a match is found.
+- [ ] Production Deployment (Vercel + Supabase).
+- [ ] MVP Launch & Onboarding of initial offices.
+

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calculator, UserPlus, Users, FileCheck, Clock, Receipt, LogOut, BarChart3, Settings, LayoutDashboard } from 'lucide-react';
+import { Calculator, UserPlus, Users, FileCheck, Clock, Receipt, LogOut, BarChart3, Settings, LayoutDashboard, TrendingUp, Sun, Moon } from 'lucide-react';
 import FinancialCalculator from '../components/Calculator';
 import CustomerForm from '../components/CustomerForm';
 import CustomerList from '../components/CustomerList';
@@ -10,9 +10,10 @@ import Settlements from '../components/Settlements';
 import ReportsDashboard from '../components/ReportsDashboard';
 import StaffDashboard from '../components/StaffDashboard';
 import OfficeSettings from '../components/OfficeSettings';
+import StaffStats from '../components/StaffStats';
 import { useAuth } from '../contexts/AuthContext';
 
-type Tab = 'dashboard' | 'calculator' | 'customers' | 'beneficiary' | 'documents' | 'queue' | 'settlements' | 'reports' | 'settings';
+type Tab = 'dashboard' | 'calculator' | 'customers' | 'beneficiary' | 'documents' | 'queue' | 'settlements' | 'reports' | 'settings' | 'staff-stats';
 
 const tabs: { id: Tab; label: string; icon: typeof Calculator }[] = [
   { id: 'dashboard', label: 'لوحة التحكم', icon: LayoutDashboard },
@@ -23,20 +24,38 @@ const tabs: { id: Tab; label: string; icon: typeof Calculator }[] = [
   { id: 'queue', label: 'الانتظار', icon: Clock },
   { id: 'settlements', label: 'التسويات', icon: Receipt },
   { id: 'reports', label: 'التقارير', icon: BarChart3 },
+  { id: 'staff-stats', label: 'إحصائيات الموظفين', icon: TrendingUp },
   { id: 'settings', label: 'الإعدادات', icon: Settings },
 ];
 
 const OfficeLayout: React.FC = () => {
-  const { isManager, isStaff, signOut, officeName } = useAuth();
+  const { isManager, isStaff, isAccountant, signOut, officeName } = useAuth();
   
   // Set default active tab based on role
-  const [activeTab, setActiveTab] = useState<Tab>(isStaff ? 'dashboard' : 'beneficiary');
+  const [activeTab, setActiveTab] = useState<Tab>(
+    isStaff ? 'dashboard' : (isAccountant ? 'reports' : 'beneficiary')
+  );
   
   const [selectedBeneficiary, setSelectedBeneficiary] = useState<any>(null);
   const [selectedGuarantor, setSelectedGuarantor] = useState<any>(null);
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
   const [docCustomerId, setDocCustomerId] = useState<any>(null);
   const navigate = useNavigate();
+
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    return (localStorage.getItem('theme') as 'light' | 'dark') || 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    localStorage.setItem('landing-theme', newTheme);
+  };
 
   useEffect(() => {
     if (isStaff && activeTab === 'beneficiary') {
@@ -49,13 +68,24 @@ const OfficeLayout: React.FC = () => {
     navigate('/');
   };
 
-  const visibleTabs = tabs.filter(tab => {
+  let visibleTabs = tabs.filter(tab => {
     if (tab.id === 'dashboard' && !isStaff) return false;
     if (tab.id === 'settings' && !isManager) return false;
     if (tab.id === 'reports' && isStaff) return false;
     if (tab.id === 'settlements' && isStaff) return false;
+    if (tab.id === 'beneficiary' && isAccountant) return false;
+    if (tab.id === 'staff-stats' && isStaff) return false;
     return true;
   });
+
+  if (isAccountant) {
+    const accountantOrder: Tab[] = ['reports', 'customers', 'staff-stats', 'queue', 'settlements', 'calculator', 'documents'];
+    visibleTabs = [...visibleTabs].sort((a, b) => {
+      const idxA = accountantOrder.indexOf(a.id);
+      const idxB = accountantOrder.indexOf(b.id);
+      return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+    });
+  }
 
   return (
     <div className="app-shell office-theme" style={{ position: 'relative', background: 'var(--bg-primary)', color: 'var(--text-primary)', transition: 'background-color 0.4s ease, color 0.4s ease' }}>
@@ -77,7 +107,9 @@ const OfficeLayout: React.FC = () => {
               }} 
             />
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <h2 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.1 }}>بوابة مكاتب كفيل</h2>
+              <h2 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.1 }}>
+                {isAccountant ? `مرحبا محاسب مكتب ( ${officeName || ''} )` : 'بوابة مكاتب كفيل'}
+              </h2>
               <span style={{ fontSize: '0.7rem', color: '#b45309', fontWeight: 'bold' }}>منظومة المرابحة الإسلامية للسيارات</span>
             </div>
             {officeName && (
@@ -87,27 +119,52 @@ const OfficeLayout: React.FC = () => {
               </div>
             )}
           </div>
-          <button 
-            className="btn" 
-            onClick={handleLogout}
-            style={{ 
-              background: '#0f172a', 
-              color: '#fff', 
-              border: 'none', 
-              padding: '0.45rem 1rem', 
-              borderRadius: '8px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              fontSize: '0.85rem',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
-            }}
-          >
-            <LogOut size={16} />
-            <span>خروج</span>
-          </button>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            {isAccountant && (
+              <button 
+                onClick={toggleTheme}
+                style={{
+                  background: '#0f172a',
+                  color: theme === 'light' ? '#fbbf24' : '#fef08a',
+                  border: '1px solid #aa771c',
+                  padding: '0.45rem',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                  transition: 'all 0.2s ease'
+                }}
+                title={theme === 'light' ? 'تفعيل الوضع الداكن' : 'تفعيل الوضع المضيء'}
+              >
+                {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+              </button>
+            )}
+
+            <button 
+              className="btn" 
+              onClick={handleLogout}
+              style={{ 
+                background: '#0f172a', 
+                color: '#fff', 
+                border: 'none', 
+                padding: '0.45rem 1rem', 
+                borderRadius: '8px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                fontSize: '0.85rem',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+              }}
+            >
+              <LogOut size={16} />
+              <span>خروج</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -177,7 +234,8 @@ const OfficeLayout: React.FC = () => {
           {activeTab === 'queue' && <WaitingQueue />}
           {activeTab === 'settlements' && <Settlements />}
           {activeTab === 'reports' && <ReportsDashboard />}
-          {activeTab === 'dashboard' && <StaffDashboard />}
+          {activeTab === 'dashboard' && <StaffDashboard onTabChange={setActiveTab} />}
+          {activeTab === 'staff-stats' && <StaffStats />}
           {activeTab === 'settings' && <OfficeSettings />}
         </div>
       </main>

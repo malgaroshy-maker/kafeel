@@ -1,16 +1,16 @@
-# Graph Report - منظومة كفيل  (2026-05-18)
+# Graph Report - منظومة كفيل  (2026-05-19)
 
 ## Corpus Check
-- 56 files · ~118,997 words
+- 59 files · ~128,602 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 408 nodes · 483 edges · 32 communities (31 shown, 1 thin omitted)
+- 430 nodes · 515 edges · 32 communities (31 shown, 1 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e3fcded8`
+- Built from commit: `b1c24d63`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -44,13 +44,13 @@
 - [[_COMMUNITY_Community 28|Community 28]]
 - [[_COMMUNITY_Community 29|Community 29]]
 - [[_COMMUNITY_Community 30|Community 30]]
-- [[_COMMUNITY_Community 31|Community 31]]
+- [[_COMMUNITY_Community 32|Community 32]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `useAuth()` - 31 edges
-2. `supabase` - 17 edges
-3. `compilerOptions` - 16 edges
-4. `Kafeel (كفيل) - Project Roadmap` - 15 edges
+1. `useAuth()` - 33 edges
+2. `supabase` - 18 edges
+3. `Kafeel (كفيل) - Project Roadmap` - 17 edges
+4. `compilerOptions` - 16 edges
 5. `☀️ سجل تعديلات جلسة "شمس" - منظومة كفيل السحابية للمرابحة الإسلامية للسيارات` - 12 edges
 6. `Kafeel (كفيل) - Project Roadmap` - 12 edges
 7. `Agent Instructions — Kafeel (كفيل)` - 10 edges
@@ -61,20 +61,20 @@
 ## Surprising Connections (you probably didn't know these)
 - `AdminDashboard()` --calls--> `useAuth()`  [EXTRACTED]
   src/components/AdminDashboard.tsx → src/contexts/AuthContext.tsx
-- `CustomerList()` --calls--> `useAuth()`  [EXTRACTED]
-  src/components/CustomerList.tsx → src/contexts/AuthContext.tsx
+- `DocumentUploader()` --calls--> `useAuth()`  [EXTRACTED]
+  src/components/DocumentUploader.tsx → src/contexts/AuthContext.tsx
 - `OfficeTeamManagement()` --calls--> `useAuth()`  [EXTRACTED]
   src/components/OfficeTeamManagement.tsx → src/contexts/AuthContext.tsx
+- `ReportsDashboard()` --calls--> `useAuth()`  [EXTRACTED]
+  src/components/ReportsDashboard.tsx → src/contexts/AuthContext.tsx
 - `Settlements()` --calls--> `useAuth()`  [EXTRACTED]
   src/components/Settlements.tsx → src/contexts/AuthContext.tsx
-- `StaffDashboard()` --calls--> `useAuth()`  [EXTRACTED]
-  src/components/StaffDashboard.tsx → src/contexts/AuthContext.tsx
 
 ## Communities (32 total, 1 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.21
-Nodes (6): ProtectedRoute(), ProtectedRouteProps, AuthContext, AuthProvider(), AuthState, UserRole
+Cohesion: 0.16
+Nodes (13): Customer, CustomerList(), Props, RecentCustomer, StaffDashboard(), StaffDashboardProps, useAuth(), AdminLayout() (+5 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.11
@@ -82,7 +82,7 @@ Nodes (18): CalcState, CAR_PRESETS, defaultState, FinancialCalculator(), Props, 
 
 ### Community 2 - "Community 2"
 Cohesion: 0.08
-Nodes (24): dependencies, lucide-react, react, react-dom, react-router-dom, @supabase/supabase-js, devDependencies, @types/react (+16 more)
+Nodes (25): dependencies, lucide-react, react, react-dom, react-router-dom, @supabase/supabase-js, devDependencies, @types/react (+17 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.10
@@ -117,16 +117,16 @@ Cohesion: 0.12
 Nodes (15): 1. Core Variables (المدخلات والمتغيرات الأساسية), 2. Mathematical Equations & Algorithms (العمليات الحسابية) ✅, 3. Dynamic Banking Rules (شروط وضوابط المصارف الليبية) ✅, 4. Implementation Details (تفاصيل التنفيذ), A. Salary & Deduction Validations ✅, B. Guarantor Requirements (Workplace Dependent) ✅, C. System Overrides (استثناءات النظام) ✅, Kafeel Platform - Financial Calculator Logic & Banking Rules (+7 more)
 
 ### Community 11 - "Community 11"
-Cohesion: 0.12
-Nodes (15): Critical Fixes (Post Phase 4), Kafeel (كفيل) - Project Roadmap, Phase 10: Banking Infrastructure & Regional Management ✅, Phase 11: Production Deployment & External Integrations, Phase 12: Premium Design System & Global Styling ✅, Phase 13: SaaS Admin Suite & Security Control ✅, Phase 14: Role Optimization & Dashboard Gamification, Phase 1: Foundation & Setup (Weeks 1-2) (+7 more)
+Cohesion: 0.11
+Nodes (17): Critical Fixes (Post Phase 4), Kafeel (كفيل) - Project Roadmap, Phase 10: Banking Infrastructure & Regional Management ✅, Phase 11: Production Deployment & External Integrations, Phase 12: Premium Design System & Global Styling ✅, Phase 13: SaaS Admin Suite & Security Control ✅, Phase 14: Role Optimization & Dashboard Gamification, Phase 14: Role Optimization, Premium Remuneration & Reusable Padlocks ✅ (+9 more)
 
 ### Community 12 - "Community 12"
 Cohesion: 0.13
 Nodes (14): 1. نظرة عامة على المنتج (Product Overview) 🎯, 2. المستخدمون والصلاحيات (User Roles & Permissions) 👥, 3. الميزات الأساسية ومنطق العمل (Core Features & Business Logic) 🚀, 4. الهيكلية التقنية وقاعدة البيانات (Technical Architecture & Schema) 🗄️, 5. تجربة المستخدم والواجهات (UX/UI Requirements) 🎨, أ. محرك المطابقة وخوارزمية الضمان (Matchmaking Engine) ✅, ب. الحاسبة المالية التفاعلية (Reactive Financial Calculator) ✅, ج. تسويات ما بعد التسليم (Post-Delivery Settlements) ✅ (+6 more)
 
 ### Community 13 - "Community 13"
-Cohesion: 0.13
-Nodes (14): 🎨 1. لوحة الألوان الرئيسية (Visual Color Palette), ✨ 2. عناصر التصميم الفاخرة (Premium UI Elements), 🏛️ 3. هيكلة القوائم المنسدلة الذكية (Smart Hover Dropdowns), 🔒 4. الضوابط الأمنية وقواعد البيانات, code:css (border: 1px solid #bf953f; /* لون ذهبي معدني فاتح للمحيط */), code:css (border-color: #fef08a;), 🌟 الحدود الذهبية الفاتحة لكافة عناصر المنظومة (Global Golden Borders), 💧 الشعار الهافت المائي (Faded Watermark) (+6 more)
+Cohesion: 0.11
+Nodes (18): 🎨 1. لوحة الألوان الرئيسية (Visual Color Palette), ✨ 2. عناصر التصميم الفاخرة (Premium UI Elements), 🏛️ 3. هيكلة القوائم المنسدلة الذكية (Smart Hover Dropdowns), 🔒 4. الضوابط الأمنية وقواعد البيانات, 🔐 5. نظام التغبيش وقفل الميزات الفاخر (SaaS Premium Padlock & Glass Lock System), 👥 6. بطاقات الزبائن الفاخرة وعناصر التحكم التفاعلية (Premium Customer Cards & Interactive Actions), code:css (border: 1px solid #bf953f; /* لون ذهبي معدني فاتح للمحيط */), code:css (border-color: #fef08a;) (+10 more)
 
 ### Community 14 - "Community 14"
 Cohesion: 0.15
@@ -145,12 +145,12 @@ Cohesion: 0.15
 Nodes (12): 📈 10. استقرار وتماسك كامل بيئة المنظومة, 🚀 11. الترقية الشاملة والذكية لبوابة وكيل السيارات (Monitor/Car Dealer Portal), 🎨 1. الهوية البصرية والعلامة المائية الفاخرة لـ "كفيل", 👑 2. هندسة المربع الذهبي العلوي الأقصى (Topmost Compact Gold Header), ⚡ 3. قوائم التحويم التلقائية الذكية (Hover Dropdowns Navigation), 🛡️ 4. إصلاح تباين حقول الإدخال والتعديل (Contrast Input Fix), 📢 5. الإعلانات التفاعلية المزدوجة وموقع البث الجديد, 🔑 6. ترقية أذونات قاعدة البيانات وحل مشكلة بث وكيل السيارات (+4 more)
 
 ### Community 18 - "Community 18"
-Cohesion: 0.22
-Nodes (8): AdminDashboard(), Bank, Branch, Office, ROLE_LABELS, Tab, UserProfile, Workplace
+Cohesion: 0.19
+Nodes (7): SettingsPanelProps, WaitingQueue(), WaitingTransaction, MatchEvent, supabase, supabaseAnonKey, supabaseUrl
 
 ### Community 19 - "Community 19"
-Cohesion: 0.25
-Nodes (7): 1. 💼 مدير المكتب (Manager), 2. 🧮 المحاسب (Accountant), 3. ⌨️ موظف إدخال بيانات (Data Entry / Staff), 🌟 الاستراتيجية الأساسية, 🚀 تحسينات إضافية وتجربة المستخدم (UI/UX), 👥 تعريف الأدوار والصلاحيات, خطة تحسين أدوار المستخدمين في المكاتب (18-5)
+Cohesion: 0.18
+Nodes (10): 1. 💼 مدير المكتب (Manager), 1. هيكل الرواتب والتعويضات:, 2. 🧮 المحاسب (Accountant), 2. مكونات القفل وإعادة الاستخدام لـ SaaS (PremiumLock System):, 3. ⌨️ موظف إدخال بيانات (Data Entry / Staff), 🌟 الاستراتيجية الأساسية, 🚀 تحسينات إضافية وتجربة المستخدم (UI/UX), 👥 تعريف الأدوار والصلاحيات (+2 more)
 
 ### Community 20 - "Community 20"
 Cohesion: 0.29
@@ -165,48 +165,48 @@ Cohesion: 0.40
 Nodes (4): allowedRoles, corsHeaders, roleNames, supabaseClient
 
 ### Community 26 - "Community 26"
-Cohesion: 0.19
-Nodes (8): Customer, CustomerList(), Props, RecentCustomer, StaffDashboard(), supabase, supabaseAnonKey, supabaseUrl
+Cohesion: 0.18
+Nodes (7): ProtectedRoute(), ProtectedRouteProps, AuthContext, AuthProvider(), AuthState, UserRole, MonitorTab
 
 ### Community 27 - "Community 27"
-Cohesion: 0.21
-Nodes (9): DocumentUploader(), ARABIC_MONTHS, MonthlyReport, ReportsDashboard(), useAuth(), AdminLayout(), MonitorLayout(), MonitorTab (+1 more)
+Cohesion: 0.20
+Nodes (9): DocItem, DocumentUploader(), initialDocs, Props, ExternalSaleTimer, SettlementData, Settlements(), SettlementType (+1 more)
 
 ### Community 28 - "Community 28"
 Cohesion: 0.22
-Nodes (8): DocItem, initialDocs, Props, ExternalSaleTimer, SettlementData, Settlements(), SettlementType, compressImage()
+Nodes (8): AdminDashboard(), Bank, Branch, Office, ROLE_LABELS, Tab, UserProfile, Workplace
 
 ### Community 29 - "Community 29"
-Cohesion: 0.24
-Nodes (8): BroadcastItem, CarInventoryItem, IncomingShipment, MonitorDashboard(), MonitorDashboardProps, MonitorEntry, MatchEvent, useRealtimeMatches()
+Cohesion: 0.33
+Nodes (3): OfficeTeamManagement(), ROLE_LABELS, UserProfile
 
 ### Community 30 - "Community 30"
-Cohesion: 0.22
-Nodes (4): OfficeTeamManagement(), ROLE_LABELS, UserProfile, SettingsPanelProps
-
-### Community 31 - "Community 31"
 Cohesion: 0.29
-Nodes (5): WaitingQueue(), WaitingTransaction, OfficeLayout(), Tab, tabs
+Nodes (7): BroadcastItem, CarInventoryItem, IncomingShipment, MonitorDashboard(), MonitorDashboardProps, MonitorEntry, useRealtimeMatches()
+
+### Community 32 - "Community 32"
+Cohesion: 0.17
+Nodes (12): PremiumLockBanner(), PremiumLockBannerProps, PremiumLockOverlay(), PremiumLockOverlayProps, ARABIC_MONTHS, MonthlyReport, ReportsDashboard(), SettlementReport (+4 more)
 
 ## Knowledge Gaps
-- **264 isolated node(s):** `name`, `private`, `version`, `type`, `dev` (+259 more)
+- **279 isolated node(s):** `name`, `private`, `version`, `type`, `dev` (+274 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **1 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `useAuth()` connect `Community 27` to `Community 0`, `Community 1`, `Community 18`, `Community 26`, `Community 28`, `Community 30`, `Community 31`?**
-  _High betweenness centrality (0.020) - this node is a cross-community bridge._
-- **Why does `supabase` connect `Community 26` to `Community 0`, `Community 1`, `Community 18`, `Community 27`, `Community 28`, `Community 29`, `Community 30`, `Community 31`?**
-  _High betweenness centrality (0.011) - this node is a cross-community bridge._
+- **Why does `useAuth()` connect `Community 0` to `Community 32`, `Community 1`, `Community 18`, `Community 26`, `Community 27`, `Community 28`, `Community 29`?**
+  _High betweenness centrality (0.022) - this node is a cross-community bridge._
+- **Why does `supabase` connect `Community 18` to `Community 0`, `Community 1`, `Community 32`, `Community 26`, `Community 27`, `Community 28`, `Community 29`, `Community 30`?**
+  _High betweenness centrality (0.012) - this node is a cross-community bridge._
 - **Why does `🚀 Getting Started | بداية سريعة` connect `Community 8` to `Community 3`?**
   _High betweenness centrality (0.005) - this node is a cross-community bridge._
 - **What connects `name`, `private`, `version` to the rest of the system?**
-  _264 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _279 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 1` be split into smaller, more focused modules?**
   _Cohesion score 0.10869565217391304 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
-  _Cohesion score 0.08 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07692307692307693 - nodes in this community are weakly interconnected._
 - **Should `Community 3` be split into smaller, more focused modules?**
   _Cohesion score 0.09523809523809523 - nodes in this community are weakly interconnected._

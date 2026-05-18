@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import { UserPlus, Save, RotateCcw, Search, ChevronDown, ShieldCheck, User, Clock } from 'lucide-react'
+import { Save, RotateCcw, ChevronDown, ShieldCheck, User, Clock } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 
@@ -85,7 +85,6 @@ const CustomerFields = ({
   const [branchSearchTerm, setBranchSearchTerm] = useState('')
   const [isBranchOpen, setIsBranchOpen] = useState(false)
   const [banks, setBanks] = useState<any[]>([])
-  const [branches, setBranches] = useState<any[]>([])
   const [selectedBankBranches, setSelectedBankBranches] = useState<any[]>([])
 
   useEffect(() => {
@@ -346,7 +345,7 @@ const CustomerFields = ({
   )
 }
 
-export default function CustomerForm({ role = 'beneficiary', onSuccess, initialData }: Props) {
+export default function CustomerForm({ role: _role = 'beneficiary', onSuccess, initialData }: Props) {
   const { role: userRole, officeId } = useAuth()
   const [beneficiary, setBeneficiary] = useLocalStorage<CustomerDraft>(`kafeel_customer_beneficiary_draft`, emptyDraft)
   const [guarantor1, setGuarantor1] = useLocalStorage<CustomerDraft>(`kafeel_customer_guarantor1_draft`, emptyDraft)
