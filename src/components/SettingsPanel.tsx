@@ -26,6 +26,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onThemeChange }) => {
   const handleThemeChange = (newTheme: 'light' | 'dark') => {
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
+    localStorage.setItem('landing-theme', newTheme); // Keep both synchronized
     document.documentElement.setAttribute('data-theme', newTheme);
     if (onThemeChange) {
       onThemeChange(newTheme);

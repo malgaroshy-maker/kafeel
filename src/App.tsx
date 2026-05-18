@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -11,6 +12,12 @@ import MonitorLayout from './layouts/MonitorLayout';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 function App() {
+  useEffect(() => {
+    // Sync theme on app mount
+    const savedTheme = localStorage.getItem('theme') || localStorage.getItem('landing-theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
+
   return (
     <ErrorBoundary>
       <AuthProvider>

@@ -100,7 +100,14 @@
 - [x] Redesigned all primary actions/important buttons globally with the premium blue-grey-gold gradient.
 - [x] Watermark logo centered perfectly (`top: 50%`) with customized clear translucency (`0.4` in light mode, `0.6` in dark mode) for perfect branding.
 
-## Phase 13: Role Optimization & Dashboard Gamification
+## Phase 13: SaaS Admin Suite & Security Control ✅
+- [x] Integrate "طاقم الإدارة العليا" (System Owners) dashboard.
+- [x] Seed and query "سجل الحركات الأمني" (Security Audit Logs) for live operations logging.
+- [x] Hook admin actions (office creations, updates, role promotions) to log activities in `admin_activity_logs` database table.
+- [x] Redesign top-left user block with personal greeting, configuration link, and logout button.
+- [x] Position Sun/Moon toggles next to user welcome block for complete light/dark theme transition.
+
+## Phase 14: Role Optimization & Dashboard Gamification
 - [ ] Strict Role Separation (`manager`, `accountant`, `staff`) with exclusive access controls.
 - [ ] Implement `purchase_cost` and Net Profit masking for `staff`.
 - [ ] RLS Policy Updates: Restrict `DELETE` actions to `manager` only.

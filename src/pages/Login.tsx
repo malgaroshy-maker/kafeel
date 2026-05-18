@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Lock, Mail, AlertCircle, Home } from 'lucide-react';
+import { Lock, Mail, AlertCircle, Home, Sun, Moon } from 'lucide-react';
 import { UserRole } from '../contexts/AuthContext';
 
 export default function Login() {
@@ -16,6 +16,24 @@ export default function Login() {
   const hideJoin = portalType === 'admin' || portalType === 'monitor';
 
   const from = location.state?.from?.pathname;
+
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    return (localStorage.getItem('theme') as 'light' | 'dark') || 'light';
+  });
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    localStorage.setItem('landing-theme', newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+  };
+
+  useEffect(() => {
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    setTheme(currentTheme as 'light' | 'dark');
+    document.documentElement.setAttribute('data-theme', currentTheme);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,10 +79,15 @@ export default function Login() {
 
   return (
     <div className="join-page">
+      <div className="global-watermark"></div>
       <div className="glass-container">
         <div className="glass login-card">
           <button onClick={() => navigate('/')} className="home-back-btn" title="الرئيسية">
             <Home size={20} />
+          </button>
+
+          <button onClick={toggleTheme} className="home-theme-toggle-btn" title={theme === 'light' ? 'الوضع الداكن' : 'الوضع المضيء'}>
+            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} style={{ color: '#fbbf24' }} />}
           </button>
           <div className="login-header">
             <img src="/logo.png" alt="كفيل" className="login-logo" />

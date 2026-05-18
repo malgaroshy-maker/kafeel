@@ -14,9 +14,12 @@ const AdminLayout: React.FC = () => {
   };
 
   return (
-    <div className="app-shell admin-theme">
+    <div className="app-shell admin-theme" style={{ position: 'relative', background: 'var(--bg-primary)', color: 'var(--text-primary)', transition: 'background-color 0.4s ease, color 0.4s ease' }}>
+      {/* Subtle Faded Branding Watermark Backdrop */}
+      <div className="global-watermark"></div>
+
       {/* Header */}
-      <header className="app-header glass">
+      <header className="app-header glass" style={{ display: 'none' }}>
         <div className="header-inner">
           <div className="brand">
             <img src="/logo.png" alt="كفيل" className="brand-img" />
@@ -32,7 +35,7 @@ const AdminLayout: React.FC = () => {
       </header>
 
       {/* Tab Navigation (Single tab for now) */}
-      <nav className="tab-nav">
+      <nav className="tab-nav" style={{ display: 'none' }}>
         <div className="tab-nav-inner">
           <button className="tab-btn active">
             <LayoutDashboard size={18} />
@@ -42,8 +45,8 @@ const AdminLayout: React.FC = () => {
       </nav>
 
       {/* Content */}
-      <main className="app-main">
-        <div className="main-inner">
+      <main className="app-main" style={{ padding: 0, margin: 0, background: 'transparent' }}>
+        <div className="main-inner" style={{ padding: 0, margin: 0, maxWidth: '100%' }}>
           <AdminDashboard />
         </div>
       </main>

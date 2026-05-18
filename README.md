@@ -25,8 +25,9 @@
 
 - **Manual calculation errors** → Reactive financial calculator with real-time results
 - **Guarantor duplication** → AI-powered matchmaking engine across competing offices
-- **Data security** → Row-Level Security (RLS) with role-based access control
+- **Data security** → Row-Level Security (RLS) with role-based access control and account protection
 - **Paper-based workflows** → Digital document management with client-side compression
+- **Platform Personalization** → White-label branding configurations with customizable SaaS packages
 
 ---
 
@@ -44,11 +45,13 @@
 - Manual override for operations monitors
 - Real-time notifications via Supabase Realtime
 
-### 👥 Multi-Tenant Architecture
+### 👥 Multi-Tenant Architecture & Roles
 | Role | Access |
 |------|--------|
-| **Admin** (مدير النظام) | Full platform management, offices, users, workplaces |
+| **Super Admin** (مدير النظام) | Full platform configurations, white-labeling, SaaS packages, and security controls |
 | **Monitor** (مراقب العمليات) | Queue oversight, manual linking (financial data masked) |
+| **Car Agent** (وكيل السيارات) | Independent partner vehicle dealers (onboarded via special partner codes) |
+| **Assistant Agent** (مساعد الوكيل) | Sub-agent vehicle manager |
 | **Manager** (مدير المكتب) | Office operations, reports, settlements |
 | **Accountant** (محاسب) | Financial operations within office |
 | **Staff** (موظف) | Data entry, customer registration |
@@ -68,6 +71,14 @@
 - Regional tagging (Tripoli, Western, etc.)
 - Toyota car price presets from official bank rates
 
+### ⚙️ SaaS Administration & Security Hub
+- **White-Label Configuration**: Dynamic branding updates (Brand name, custom logo, footer copyright)
+- **SaaS Packages Builder**: Real-time package pricing, user limits, and features editor
+- **SMS & Payments Gateways**: Interactive configurations for Twilio/BulkSMS and local Libyan payment portals (SADAD, Tadawul, Edfa3ly)
+- **Database Backups & Audit Trail**: Live system log streams and automated JSON schema database backup exporter
+- **Independent Partner Onboarding**: Generate unique partner join codes (outside standard offices) for car agents & assistants
+- **Advanced Users Hub**: Robust administrative controls to delete, reset passwords, and freeze/unfreeze accounts to counter brute force attacks
+
 ---
 
 ## 🛠️ Tech Stack | البنية التقنية
@@ -76,7 +87,7 @@
 |-------|-----------|
 | **Frontend** | React 19 + TypeScript 6 |
 | **Build Tool** | Vite 8 |
-| **Styling** | Vanilla CSS (HSL tokens, Glassmorphism, RTL-first) |
+| **Styling** | Vanilla CSS (HSL tokens, Glassmorphism, Lunar/Solar theme toggles, RTL-first) |
 | **Backend** | Supabase (PostgreSQL + Auth + Storage + Realtime) |
 | **Edge Functions** | Deno (join-with-code, admin-manage-users) |
 | **Routing** | React Router DOM 7 |
@@ -160,7 +171,7 @@ kafeel/
 ├── public/                  # Static assets (logo, favicon)
 ├── src/
 │   ├── components/          # UI Components
-│   │   ├── AdminDashboard.tsx    # Admin portal (offices, users, workplaces)
+│   │   ├── AdminDashboard.tsx    # Admin portal (offices, users, workplaces, SaaS configs)
 │   │   ├── Calculator.tsx        # Reactive financial calculator
 │   │   ├── CustomerForm.tsx      # Unified beneficiary + guarantor registration
 │   │   ├── CustomerList.tsx      # Customer browser with queue actions
@@ -182,8 +193,8 @@ kafeel/
 │   │   └── supabase.ts           # Supabase client initialization
 │   ├── pages/
 │   │   ├── LandingPage.tsx       # Entry page
-│   │   ├── Login.tsx             # Authentication
-│   │   └── JoinPage.tsx          # Self-registration with join code
+│   │   ├── Login.tsx             # Authentication with Lunar/Solar themes
+│   │   └── JoinPage.tsx          # Self-registration with join code and theme switches
 │   ├── utils/
 │   │   └── imageCompression.ts   # Canvas API image compression
 │   ├── App.tsx                   # Router + protected routes
@@ -215,7 +226,7 @@ kafeel/
 | Table | Purpose | RLS |
 |-------|---------|:---:|
 | `offices` | Office management (join codes, max users) | ✅ |
-| `user_profiles` | User → office mapping with roles | ✅ |
+| `user_profiles` | User → office mapping with roles and freeze states | ✅ |
 | `workplaces` | Employer registry + guarantor requirements | ✅ |
 | `customers` | National ID (unique), salary, workplace | ✅ |
 | `transactions` | Financial lifecycle + matching status | ✅ |
@@ -237,7 +248,8 @@ kafeel/
 ## 🔐 Security | الأمان
 
 - **Row-Level Security (RLS)** on all tables — tenant isolation enforced at the database level
-- **Role-based access** — Admin, Monitor, Manager, Accountant, Staff
+- **Role-based access** — Admin, Monitor, Car Agent, Assistant Agent, Manager, Accountant, Staff
+- **Account Protection** — Brute-force anti-intrusion account freezing from the Admin hub
 - **Data masking** — Monitor portal hides salaries, car prices, and debts
 - **Edge Functions** — Service-role key used server-side only
 - **Environment variables** — No credentials in source code
@@ -262,18 +274,6 @@ The test suite covers:
 
 ---
 
-## 📜 Available Scripts
-
-| Script | Description |
-|--------|-------------|
-| `npm run dev` | Start development server (Vite) |
-| `npm run build` | TypeScript check + production build |
-| `npm run preview` | Preview production build locally |
-| `npm test` | Run unit tests (Vitest) |
-| `npm run test:watch` | Run tests in watch mode |
-
----
-
 ## 🗺️ Roadmap | خارطة الطريق
 
 - [x] **Phase 1-4**: Foundation, Financial Engine, Matchmaking, Settlements
@@ -282,9 +282,9 @@ The test suite covers:
 - [x] **Phase 7**: Join Code System, User Management, Edge Functions
 - [x] **Phase 9**: Unified Registration, Customer Management
 - [x] **Phase 10**: Banking Infrastructure, Regional Branch Management
-- [ ] **Phase 11**: SMS/WhatsApp Notifications, Production Deployment
-
-See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the detailed roadmap.
+- [x] **Phase 12**: Premium Visual Design & Lunar/Solar Theme Swapping
+- [x] **Phase 13**: SaaS Admin Hub, Custom Packages, Gateways, Audit logs & Anti-Brute-Force security configurations
+- [ ] **Phase 14**: Live production API testing
 
 ---
 

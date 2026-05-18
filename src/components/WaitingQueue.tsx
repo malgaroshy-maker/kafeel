@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { Clock, Search, CheckCircle, AlertCircle, RefreshCw, Zap } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
 
 interface WaitingTransaction {
   id: string
@@ -10,7 +11,6 @@ interface WaitingTransaction {
   workplace_name: string
   salary: number
   car_price: number
-  guarantors_needed: number
   guarantors_needed: number
   current_guarantors: number
   created_at: string

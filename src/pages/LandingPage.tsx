@@ -9,13 +9,23 @@ const LandingPage: React.FC = () => {
 
   // Load and save theme preference in localStorage
   const [isDark, setIsDark] = React.useState(() => {
-    return localStorage.getItem('landing-theme') === 'dark';
+    const savedTheme = localStorage.getItem('theme') || localStorage.getItem('landing-theme');
+    return savedTheme === 'dark';
   });
 
   const toggleTheme = (dark: boolean) => {
     setIsDark(dark);
-    localStorage.setItem('landing-theme', dark ? 'dark' : 'light');
+    const themeStr = dark ? 'dark' : 'light';
+    localStorage.setItem('theme', themeStr);
+    localStorage.setItem('landing-theme', themeStr);
+    document.documentElement.setAttribute('data-theme', themeStr);
   };
+
+  // Sync theme attribute on mount
+  React.useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') || localStorage.getItem('landing-theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
 
   // Auto-redirect administrative roles if they are already logged in
   React.useEffect(() => {
@@ -35,7 +45,7 @@ const LandingPage: React.FC = () => {
       minHeight: '100vh'
     }}>
       <div className="global-watermark"></div>
-      <header className="landing-header" style={{ borderBottom: '1.5px solid #aa771c', background: 'linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%)', padding: '0.4rem 2rem', boxShadow: '0 4px 15px rgba(170, 119, 28, 0.25)', position: 'sticky', top: 0, zIndex: 100 }}>
+      <header className="landing-header" style={{ borderBottom: '1.5px solid #aa771c', background: 'linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%)', padding: '0.75rem 2rem', boxShadow: '0 4px 15px rgba(170, 119, 28, 0.25)', position: 'sticky', top: 0, zIndex: 100 }}>
         <div className="header-inner container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           
           {/* Logo & Theme Switcher */}

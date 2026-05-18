@@ -25,7 +25,7 @@
   --text-secondary: #334155;
   --text-tertiary: #64748b;
   
-  --glass-border: rgba(212, 175, 55, 0.35);
+  --glass-border: #bf953f; /* Premium solid light gold border */
   --glass-highlight: rgba(255, 255, 255, 0.9);
   
   --accent: #b45309; /* Deep Gold/Amber for readability in Light Mode */
@@ -65,7 +65,7 @@
   --text-secondary: #d4d4d8;
   --text-tertiary: #a1a1aa;
   
-  --glass-border: rgba(212, 175, 55, 0.25);
+  --glass-border: rgba(191, 149, 63, 0.85); /* Glowing light gold border */
   --glass-highlight: rgba(255, 255, 255, 0.05);
   
   --accent: #f59e0b; /* Golden accent in dark mode */
@@ -2317,17 +2317,19 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--glass-border);
-  background: var(--surface-light);
-  color: var(--text-secondary);
+  border-radius: 6px;
+  border: 1.5px solid #d4af37;
+  background: rgba(251, 245, 183, 0.08);
+  color: #d4af37;
   cursor: pointer;
   transition: all var(--transition);
+  box-shadow: 0 1px 4px rgba(170, 119, 28, 0.2);
 }
 .btn-icon:hover {
-  background: var(--primary-ghost);
-  color: var(--primary);
-  border-color: var(--primary-light);
+  background: rgba(251, 245, 183, 0.18);
+  color: #bf953f;
+  border-color: #bf953f;
+  transform: scale(1.08);
 }
 .btn-icon:disabled {
   opacity: 0.5;
@@ -2366,6 +2368,34 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .home-back-btn:hover {
+  background: var(--primary-ghost);
+  color: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Home Theme Toggle Button in Login/Join screens */
+.home-theme-toggle-btn {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  background: var(--navy-800);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  z-index: 50;
+  box-shadow: var(--shadow-sm);
+}
+
+.home-theme-toggle-btn:hover {
   background: var(--primary-ghost);
   color: var(--primary);
   border-color: var(--primary);
@@ -2657,4 +2687,45 @@ h1, h2, h3, h4, h5, h6 {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+/* ============================================================================
+   GLOBAL LIGHT GOLDEN ICON BORDERS & LUXURY HOVER ANIMATIONS
+   ============================================================================ */
+.app-header svg,
+.btn svg,
+.btn-icon svg,
+.tab-btn svg,
+.form-icon-wrap svg,
+.queue-badges svg,
+.queue-detail svg,
+.nav-dropdown-item svg,
+.nav-dropdown-btn svg,
+.office-name-header svg,
+.toggle-btn svg,
+.section-header svg,
+.admin-section-toggle svg,
+.form-header svg,
+.results-empty svg {
+  border: 1.5px solid #d4af37; /* Premium light gold border */
+  border-radius: 6px;
+  padding: 2px;
+  background: rgba(251, 245, 183, 0.08); /* Subtle warm gold shine background */
+  box-shadow: 0 1px 4px rgba(170, 119, 28, 0.2);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: content-box; /* Prevent padding from shrinking icon */
+}
+
+/* Hover effects for bordered icons */
+.btn:hover svg,
+.btn-icon:hover svg,
+.tab-btn:hover svg,
+.nav-dropdown-item:hover svg,
+.nav-dropdown-btn:hover svg,
+.toggle-btn:hover svg,
+.admin-section-toggle button:hover svg {
+  border-color: #fef08a; /* Bright glowing light gold on hover */
+  background: rgba(251, 245, 183, 0.22);
+  transform: scale(1.08) rotate(3deg);
+  box-shadow: 0 2px 8px rgba(170, 119, 28, 0.35);
 }
