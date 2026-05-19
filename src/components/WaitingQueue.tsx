@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
-import { Clock, Search, CheckCircle, AlertCircle, RefreshCw, Zap } from 'lucide-react'
+import { Clock, Search, CheckCircle, AlertCircle, RefreshCw, Zap, FileCheck, X, FileText } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
 interface WaitingTransaction {
@@ -17,8 +17,6 @@ interface WaitingTransaction {
   verification_status?: string
 }
 
-// Types stay the same
-
 export default function WaitingQueue() {
   const [queue, setQueue] = useState<WaitingTransaction[]>([])
   const [searching, setSearching] = useState<string | null>(null)
@@ -27,7 +25,12 @@ export default function WaitingQueue() {
   const [verifying, setVerifying] = useState<string | null>(null)
   const { isManager, isAccountant } = useAuth()
 
-  // Load from Supabase (when auth is wired up)
+  const [selectedTxForDocs, setSelectedTxForDocs] = useState<{ id: string; customerName: string } | null>(null)
+  const [txDocs, setTxDocs] = useState<{ label: string; url: string; isImage: boolean; name: string }[]>([])
+  const [loadingTxDocs, setLoadingTxDocs] = useState(false)
+  const [selectedPreviewImage, setSelectedPreviewImage] = useState<string | null>(null)
+
+  // Load from Supabase
   const loadQueue = useCallback(async () => {
     setLoading(true)
     try {
@@ -84,9 +87,63 @@ export default function WaitingQueue() {
     }
   }
 
+  const fetchTxDocs = async (txId: string) => {
+    setLoadingTxDocs(true)
+    try {
+      const { data: files, error } = await supabase.storage
+        .from('transaction-docs')
+        .list(txId)
+
+      if (error) throw error
+
+      if (files && files.length > 0) {
+        const docKeys: Record<string, string> = {
+          salary_cert: 'شهادة مرتب',
+          birth_cert: 'شهادة ميلاد',
+          bank_statement: 'كشف حساب بنكي',
+          promissory_notes: 'كمبيالات',
+          declaration: 'إقرار',
+        }
+
+        const formatted = files.map((file) => {
+          const { data: { publicUrl } } = supabase.storage
+            .from('transaction-docs')
+            .getPublicUrl(`${txId}/${file.name}`)
+
+          const prefix = file.name.split('-')[0]
+          const label = docKeys[prefix] || 'مستند إضافي'
+          const isImage = !file.name.toLowerCase().endsWith('.pdf')
+
+          return {
+            label,
+            url: publicUrl,
+            isImage,
+            name: file.name.substring(prefix.length + 1)
+          }
+        })
+        setTxDocs(formatted)
+      } else {
+        setTxDocs([])
+      }
+    } catch (err) {
+      console.error('Error fetching tx docs:', err)
+      setTxDocs([])
+    } finally {
+      setLoadingTxDocs(false)
+    }
+  }
+
   useEffect(() => {
     loadQueue()
   }, [loadQueue])
+
+  useEffect(() => {
+    if (selectedTxForDocs) {
+      fetchTxDocs(selectedTxForDocs.id)
+    } else {
+      setTxDocs([])
+    }
+  }, [selectedTxForDocs])
 
   const attemptMatch = async (transactionId: string) => {
     setSearching(transactionId)
@@ -173,7 +230,17 @@ export default function WaitingQueue() {
               </div>
             </div>
 
-            <div className="queue-card-actions">
+            <div className="queue-card-actions" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%', marginTop: '1rem' }}>
+              {/* Document Review Action */}
+              <button
+                className="btn btn-outline btn-sm w-full"
+                onClick={() => setSelectedTxForDocs({ id: item.id, customerName: item.customer_name })}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', border: '1px solid rgba(191, 149, 63, 0.4)', color: 'var(--primary)', padding: '0.5rem' }}
+              >
+                <FileCheck size={14} />
+                <span>عرض المستندات المرفوعة</span>
+              </button>
+
               {item.verification_status === 'pending' ? (
                 <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
                   <button
@@ -196,7 +263,7 @@ export default function WaitingQueue() {
                 </div>
               ) : (
                 <button
-                  className="btn btn-primary btn-sm"
+                  className="btn btn-primary btn-sm w-full"
                   onClick={() => attemptMatch(item.id)}
                   disabled={searching === item.id}
                 >
@@ -229,6 +296,108 @@ export default function WaitingQueue() {
           </div>
         )}
       </div>
+
+      {/* Document Viewer Overlay Modal */}
+      {selectedTxForDocs && (
+        <div className="lightbox-overlay" onClick={() => setSelectedTxForDocs(null)}>
+          <div className="lightbox-content" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--surface)', padding: '2rem', borderRadius: '16px', border: '1px solid var(--glass-border)', minWidth: '320px', maxWidth: '550px', width: '90%', cursor: 'default' }}>
+            <button className="lightbox-close" onClick={() => setSelectedTxForDocs(null)} style={{ top: '15px', right: '15px' }}>
+              <X size={20} /> إغلاق
+            </button>
+
+            <div style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1rem', width: '100%' }}>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 900, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <FileCheck size={22} style={{ color: 'var(--primary)' }} />
+                <span>المستندات المرفوعة للمعاملة</span>
+              </h3>
+              <p style={{ margin: '0.4rem 0 0 0', fontSize: '0.88rem', color: 'var(--text-tertiary)' }}>
+                للزبون: <strong style={{ color: 'var(--text-primary)' }}>{selectedTxForDocs.customerName}</strong>
+              </p>
+            </div>
+
+            {loadingTxDocs ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '3rem', width: '100%' }}>
+                <RefreshCw size={36} className="spin" style={{ color: 'var(--primary)' }} />
+                <span style={{ marginTop: '1rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>جاري جلب المستندات...</span>
+              </div>
+            ) : txDocs.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)', border: '1px dashed var(--glass-border)', borderRadius: '12px', width: '100%' }}>
+                لم يتم رفع أي مستندات لهذه المعاملة بعد.
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', width: '100%', maxHeight: '60vh', overflowY: 'auto', paddingRight: '0.25rem' }}>
+                {txDocs.map((doc, index) => (
+                  <div 
+                    key={index}
+                    style={{
+                      background: 'var(--surface-hover)',
+                      border: '1px solid var(--glass-border)',
+                      borderRadius: '12px',
+                      padding: '1rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.75rem',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--success)' }}></div>
+                        <span style={{ fontWeight: 'bold', fontSize: '0.95rem', color: 'var(--text-primary)' }}>{doc.label}</span>
+                      </div>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', direction: 'ltr', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '200px' }}>{doc.name}</span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      {doc.isImage ? (
+                        <div 
+                          className="preview-thumbnail-container"
+                          onClick={() => setSelectedPreviewImage(doc.url)}
+                          style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--glass-border)', cursor: 'zoom-in', width: '64px', height: '64px' }}
+                        >
+                          <img 
+                            src={doc.url} 
+                            alt={doc.label} 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                          <div className="preview-thumbnail-hover" style={{ fontSize: '0.7rem' }}>معاينة</div>
+                        </div>
+                      ) : (
+                        <div style={{ width: '64px', height: '64px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
+                          <FileText size={28} />
+                        </div>
+                      )}
+
+                      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                        <a 
+                          href={doc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-sm btn-outline"
+                          style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem' }}
+                        >
+                          تحميل / فتح
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Embedded Lightbox for Image Preview within Modal */}
+      {selectedPreviewImage && (
+        <div className="lightbox-overlay" onClick={() => setSelectedPreviewImage(null)} style={{ zIndex: 100000 }}>
+          <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+            <button className="lightbox-close" onClick={() => setSelectedPreviewImage(null)}>
+              <X size={20} /> إغلاق المعاينة
+            </button>
+            <img src={selectedPreviewImage} alt="معاينة المستند" className="lightbox-img" />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

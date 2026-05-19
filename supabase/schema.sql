@@ -46,11 +46,17 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
         CHECK (role IN ('admin', 'monitor', 'manager', 'accountant', 'staff')),
     display_name TEXT DEFAULT '',
     phone TEXT,
+    email TEXT,
     is_active BOOLEAN DEFAULT true,
+    accepted_terms BOOLEAN NOT NULL DEFAULT false,
+    accepted_terms_at TIMESTAMPTZ DEFAULT NULL,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
 COMMENT ON TABLE public.user_profiles IS 'Maps auth.users to offices with role assignments.';
+COMMENT ON COLUMN public.user_profiles.accepted_terms IS 'True if the user has read and accepted terms and conditions';
+COMMENT ON COLUMN public.user_profiles.accepted_terms_at IS 'The date and time when the user accepted terms and conditions';
+COMMENT ON COLUMN public.user_profiles.email IS 'User login email address for display in admin dashboard';
 
 -- ---- BANKS ----
 CREATE TABLE IF NOT EXISTS public.banks (
@@ -195,6 +201,12 @@ CREATE POLICY "users_read_own_profile"
     ON public.user_profiles FOR SELECT
     TO public
     USING (id = auth.uid());
+
+CREATE POLICY "users_update_own_profile"
+    ON public.user_profiles FOR UPDATE
+    TO authenticated
+    USING (id = auth.uid())
+    WITH CHECK (id = auth.uid());
 
 CREATE POLICY "admin_full_access_profiles"
     ON public.user_profiles FOR ALL

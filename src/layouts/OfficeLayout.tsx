@@ -19,7 +19,7 @@ type Tab = 'dashboard' | 'calculator' | 'customers' | 'beneficiary' | 'documents
 const tabs: { id: Tab; label: string; icon: typeof Calculator }[] = [
   { id: 'dashboard', label: 'لوحة التحكم', icon: LayoutDashboard },
   { id: 'customers', label: 'الزبائن', icon: Users },
-  { id: 'beneficiary', label: 'تسجيل جديد', icon: UserPlus },
+  { id: 'beneficiary', label: 'تسجيل زبون', icon: UserPlus },
   { id: 'calculator', label: 'الحاسبة', icon: Calculator },
   { id: 'documents', label: 'المستندات', icon: FileCheck },
   { id: 'queue', label: 'الانتظار', icon: Clock },
@@ -99,6 +99,15 @@ const OfficeLayout: React.FC = () => {
     return true;
   });
 
+  if (isManager) {
+    const managerOrder: Tab[] = ['calculator', 'customers', 'queue', 'reports', 'staff-stats', 'settlements', 'beneficiary', 'documents', 'settings'];
+    visibleTabs = [...visibleTabs].sort((a, b) => {
+      const idxA = managerOrder.indexOf(a.id);
+      const idxB = managerOrder.indexOf(b.id);
+      return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+    });
+  }
+
   if (isAccountant) {
     const accountantOrder: Tab[] = ['reports', 'customers', 'staff-stats', 'queue', 'settlements', 'calculator', 'documents'];
     visibleTabs = [...visibleTabs].sort((a, b) => {
@@ -129,7 +138,13 @@ const OfficeLayout: React.FC = () => {
             />
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <h2 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.1 }}>
-                {isAccountant ? `مرحبا محاسب مكتب ( ${officeName || ''} )` : 'بوابة مكاتب كفيل'}
+                {isManager 
+                  ? `مرحبا مدير مكتب ( ${officeName || ''} )` 
+                  : isAccountant 
+                  ? `مرحبا محاسب مكتب ( ${officeName || ''} )` 
+                  : isStaff 
+                  ? `مرحبا موظف مكتب ( ${officeName || ''} )` 
+                  : 'بوابة مكاتب كفيل'}
               </h2>
               <span style={{ fontSize: '0.7rem', color: '#b45309', fontWeight: 'bold' }}>منظومة المرابحة الإسلامية للسيارات</span>
             </div>
@@ -220,7 +235,12 @@ const OfficeLayout: React.FC = () => {
               <button
                 key={tab.id}
                 className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  if (tab.id === 'documents' && !docCustomerId && selectedBeneficiary) {
+                    setDocCustomerId(selectedBeneficiary);
+                  }
+                  setActiveTab(tab.id);
+                }}
               >
                 <Icon size={18} />
                 <span>{tab.label}</span>

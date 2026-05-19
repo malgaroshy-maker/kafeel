@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Receipt, Car, Store, ShoppingBag, Timer, CheckCircle2, AlertTriangle, Clock, DollarSign } from 'lucide-react'
+import { Receipt, Car, Store, ShoppingBag, Timer, CheckCircle2, AlertTriangle, Clock, DollarSign, X } from 'lucide-react'
 
 type SettlementType = 'PERSONAL_USE' | 'CASH_OUT' | 'EXTERNAL_SALE'
 
@@ -33,6 +33,7 @@ import { useAuth } from '../contexts/AuthContext'
 export default function Settlements() {
   const { officeId } = useAuth()
   const [activeType, setActiveType] = useState<SettlementType>('PERSONAL_USE')
+  const [selectedPreviewImage, setSelectedPreviewImage] = useState<string | null>(null)
   const [data, setData] = useState<SettlementData>(() => {
     const saved = localStorage.getItem(DRAFT_KEY)
     if (saved) {
@@ -119,7 +120,7 @@ export default function Settlements() {
     setUploading(true)
     try {
       // 1. Compress
-      const compressed = await compressImage(file)
+      const compressed = await compressImage(file, 2048, 0.85)
       
       // 2. Upload to Supabase Storage
       const fileName = `${Date.now()}-${file.name}`
@@ -402,8 +403,23 @@ export default function Settlements() {
           />
           {uploading && <div className="spinner-sm" style={{ marginTop: '0.5rem' }}>جاري الرفع...</div>}
           {data.checkImageUrl && (
-            <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--success-color)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <CheckCircle2 size={14} /> تم إرفاق الصورة
+            <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <CheckCircle2 size={14} /> تم إرفاق الصورة بنجاح
+              </div>
+              <div 
+                className="preview-thumbnail-container"
+                onClick={() => setSelectedPreviewImage(data.checkImageUrl)}
+                style={{ width: '120px', height: '120px', cursor: 'pointer' }}
+              >
+                <img 
+                  src={data.checkImageUrl} 
+                  alt="صورة الصك المالي" 
+                  className="preview-thumbnail"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--glass-border)', display: 'block' }}
+                />
+                <div className="preview-thumbnail-hover">معاينة</div>
+              </div>
             </div>
           )}
         </div>
@@ -462,6 +478,18 @@ export default function Settlements() {
                 </div>
               )
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox Modal */}
+      {selectedPreviewImage && (
+        <div className="lightbox-overlay" onClick={() => setSelectedPreviewImage(null)}>
+          <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+            <button className="lightbox-close" onClick={() => setSelectedPreviewImage(null)}>
+              <X size={20} /> إغلاق المعاينة
+            </button>
+            <img src={selectedPreviewImage} alt="معاينة الصك" className="lightbox-img" />
           </div>
         </div>
       )}

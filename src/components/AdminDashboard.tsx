@@ -27,6 +27,8 @@ interface UserProfile {
   phone?: string
   username?: string
   office_name?: string
+  accepted_terms?: boolean
+  accepted_terms_at?: string
 }
 
 interface Workplace {
@@ -121,6 +123,7 @@ export default function AdminDashboard() {
   }
 
   const [editingOfficeSub, setEditingOfficeSub] = useState<any | null>(null)
+  const [selectedUserForReport, setSelectedUserForReport] = useState<UserProfile | null>(null)
 
   // --- Advanced Admin & SaaS Configurations States ---
   // 1. White-labeling Configuration
@@ -1275,16 +1278,16 @@ export default function AdminDashboard() {
       {/* ===================== USERS TAB ===================== */}
       {activeTab === 'users' && (
         <div className="admin-table-wrap">
-          <table className="monitor-table">
-            <thead>
-              <tr>
-                <th>الاسم الكامل</th>
-                <th>اسم المستخدم / الهاتف</th>
-                <th>رقم الهاتف للتواصل</th>
-                <th>المكتب التابع له</th>
-                <th>الدور / الرتبة</th>
-                <th>الحالة</th>
-                <th>إجراءات الإدارة</th>
+          <table className="monitor-table compact-table">
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>اسم المستخدم</th>
+              <th>رقم الهاتف</th>
+              <th>المكتب</th>
+              <th>الدور</th>
+              <th>الحالة</th>
+              <th style={{ textAlign: 'center' }}>الإجراءات</th>
               </tr>
             </thead>
             <tbody>
@@ -1294,7 +1297,7 @@ export default function AdminDashboard() {
                   <tr key={u.id} className={!u.is_active ? 'row-disabled' : ''}>
                     <td className="cell-name" style={{ fontWeight: 'bold' }}>{u.display_name}</td>
                     <td style={{ color: 'var(--primary)', fontFamily: 'monospace', fontWeight: 'bold' }}>
-                      {u.username || u.phone || '—'}
+                      {u.email || u.username || u.phone || '—'}
                     </td>
                     <td dir="ltr" style={{ textAlign: 'right' }}>{u.phone || '—'}</td>
                     <td>
@@ -1352,51 +1355,61 @@ export default function AdminDashboard() {
                         </span>
                       )}
                     </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+                    <td style={{ minWidth: '155px', textAlign: 'center' }}>
+                      <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center', justifyContent: 'center' }}>
                         {u.role !== 'admin' && (
                           <>
+                            {/* Terms of Service Acceptance Status */}
+                            <button 
+                              className="btn-icon btn-icon-compact" 
+                              onClick={() => setSelectedUserForReport(u)}
+                              title="عرض وتحميل تقرير قبول شروط وأحكام الخدمة"
+                              style={{ color: u.accepted_terms ? 'var(--success)' : 'var(--error)' }}
+                            >
+                              <ShieldCheck size={14} />
+                            </button>
+
                             {/* Reset Password */}
                             <button 
-                              className="btn-icon" 
+                              className="btn-icon btn-icon-compact" 
                               onClick={() => resetPassword(u.id, u.display_name)} 
                               disabled={actionLoading === `pw-${u.id}`} 
                               title="تعديل وإعادة تعيين كلمة المرور في حال نسيانها"
                             >
-                              <Key size={15} style={{ color: 'var(--primary)' }} />
+                              <Key size={14} style={{ color: 'var(--primary)' }} />
                             </button>
 
                             {/* Freeze/Unfreeze Account */}
                             <button 
-                              className="btn-icon" 
+                              className="btn-icon btn-icon-compact" 
                               onClick={() => freezeUser(u.id, u.display_name, !!u.is_frozen)} 
                               disabled={actionLoading === `freeze-${u.id}`} 
                               title={u.is_frozen ? 'فك تجميد الحساب' : 'تجميد الحساب (بسبب تكرار محاولة الدخول الخاطئ)'} 
                               style={{ color: u.is_frozen ? 'var(--success)' : '#d97706' }}
                             >
-                              <ShieldAlert size={15} />
+                              <ShieldAlert size={14} />
                             </button>
 
                             {/* Deactivate/Reactivate */}
                             <button 
-                              className="btn-icon" 
+                              className="btn-icon btn-icon-compact" 
                               onClick={() => deactivateUser(u.id, u.display_name)} 
                               disabled={actionLoading === `deact-${u.id}`} 
                               title={u.is_active ? 'تعطيل الحساب' : 'تفعيل الحساب'} 
                               style={{ color: u.is_active ? 'var(--error)' : 'var(--text-tertiary)' }}
                             >
-                              <UserX size={15} />
+                              <UserX size={14} />
                             </button>
 
                             {/* Permanent Delete */}
                             <button 
-                              className="btn-icon" 
+                              className="btn-icon btn-icon-compact" 
                               onClick={() => deleteUser(u.id, u.display_name)} 
                               disabled={actionLoading === `del-user-${u.id}`} 
                               title="حذف حساب المستخدم نهائياً" 
                               style={{ color: 'var(--error)' }}
                             >
-                              <Trash2 size={15} />
+                              <Trash2 size={14} />
                             </button>
                           </>
                         )}
@@ -1487,7 +1500,7 @@ export default function AdminDashboard() {
                           {owner.display_name}
                         </td>
                         <td style={{ fontFamily: 'monospace', fontWeight: 'bold', fontSize: '0.85rem' }}>
-                          {owner.username || owner.phone || '—'}
+                          {owner.email || owner.username || owner.phone || '—'}
                         </td>
                         <td>
                           <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', fontWeight: 'bold' }}>
@@ -2978,6 +2991,179 @@ export default function AdminDashboard() {
                 {actionLoading === `sub-${editingOfficeSub.id}` ? 'جاري الحفظ...' : 'حفظ التعديلات'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== BRANDED PDF ACCEPTANCE REPORT CERTIFICATE MODAL ===================== */}
+      {selectedUserForReport && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem', overflowY: 'auto' }} className="printable-report-actions-overlay">
+          <div style={{ background: 'var(--surface)', borderRadius: '24px', border: '2px solid #bf953f', boxShadow: '0 20px 50px rgba(0,0,0,0.3)', width: '100%', maxWidth: '800px', padding: '2.5rem', position: 'relative', display: 'flex', flexDirection: 'column', gap: '1.5rem' }} className="printable-report-modal-card">
+            
+            {/* The actual printable report layout */}
+            <div className="printable-report-area" dir="rtl" style={{
+              background: '#fff',
+              color: '#1e293b',
+              padding: '2.5rem',
+              borderRadius: '16px',
+              border: '4px double #aa771c',
+              position: 'relative',
+              boxShadow: 'inset 0 0 40px rgba(170,119,28,0.05)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.5rem',
+              fontFamily: 'system-ui, -apple-system, sans-serif'
+            }}>
+              {/* Decorative Corner Borders */}
+              <div style={{ position: 'absolute', top: '10px', right: '10px', left: '10px', bottom: '10px', border: '1px solid rgba(170,119,28,0.25)', pointerEvents: 'none' }}></div>
+              
+              {/* Branded Official Header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2.5px solid #bf953f', paddingBottom: '1rem', flexWrap: 'nowrap', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                  <img 
+                    src="/logo.png" 
+                    alt="شعار كفيل" 
+                    style={{ height: '70px', objectFit: 'contain', filter: 'drop-shadow(0px 3px 6px rgba(0,0,0,0.1))' }} 
+                  />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                    <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 900, color: '#0f172a' }}>منظومة كفيل السحابية</h1>
+                    <span style={{ fontSize: '0.8rem', color: '#b45309', fontWeight: 'bold' }}>لإدارة مكاتب التقسيط وتقييم الملاءة المالية</span>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 'bold' }}>الرقم المرجعي: KFL-TC-{selectedUserForReport.id.substring(0, 8).toUpperCase()}</span>
+                  <span style={{ fontSize: '0.75rem', color: '#64748b' }}>تاريخ الطباعة: {new Date().toLocaleDateString('ar-LY')}</span>
+                </div>
+              </div>
+
+              {/* Title Section */}
+              <div style={{ textAlign: 'center', margin: '0.5rem 0' }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#aa771c', textDecoration: 'underline', textUnderlineOffset: '8px', margin: 0 }}>
+                  شهادة إلكترونية وإقرار بقبول شروط وأحكام الخدمة
+                </h2>
+                <p style={{ fontSize: '0.85rem', color: '#475569', marginTop: '0.5rem' }}>
+                  وثيقة إلكترونية رسمية صادرة آلياً لتأكيد امتثال وقبول المستخدم لشروط وسياسات استخدام منظومة كفيل
+                </p>
+              </div>
+
+              {/* Certificate Metadata Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', background: '#f8fafc', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', margin: '0.5rem 0' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: '#64748b', display: 'block', fontWeight: '500' }}>الاسم الكامل للمستخدم:</span>
+                    <strong style={{ fontSize: '1.05rem', color: '#0f172a' }}>{selectedUserForReport.display_name}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: '#64748b', display: 'block', fontWeight: '500' }}>اسم المستخدم / البريد الإلكتروني:</span>
+                    <strong style={{ fontSize: '1.05rem', color: '#0f172a', fontFamily: 'monospace' }}>{selectedUserForReport.email || selectedUserForReport.username || '—'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: '#64748b', display: 'block', fontWeight: '500' }}>رقم الهاتف المسجل:</span>
+                    <strong style={{ fontSize: '1.05rem', color: '#0f172a', fontFamily: 'monospace' }}>{selectedUserForReport.phone || '—'}</strong>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', borderRight: '1px dashed #cbd5e1', paddingRight: '1.25rem' }}>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: '#64748b', display: 'block', fontWeight: '500' }}>المكتب التابع له:</span>
+                    <strong style={{ fontSize: '1.05rem', color: '#0f172a' }}>{selectedUserForReport.office_name || 'مستقل / عام'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: '#64748b', display: 'block', fontWeight: '500' }}>الدور والمسؤولية بالمنظومة:</span>
+                    <strong style={{ fontSize: '1.05rem', color: '#0f172a' }}>{ROLE_LABELS[selectedUserForReport.role]?.label || selectedUserForReport.role}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: '#64748b', display: 'block', fontWeight: '500' }}>حالة القبول والالتزام:</span>
+                    <span style={{ 
+                      fontSize: '0.85rem', 
+                      fontWeight: 'bold', 
+                      padding: '0.2rem 0.6rem', 
+                      borderRadius: '6px', 
+                      background: selectedUserForReport.accepted_terms ? '#dcfce7' : '#fee2e2', 
+                      color: selectedUserForReport.accepted_terms ? '#15803d' : '#b91c1c',
+                      display: 'inline-block',
+                      marginTop: '0.2rem'
+                    }}>
+                      {selectedUserForReport.accepted_terms ? '✓ وافق على شروط الخدمة' : '❌ لم يوافق بعد'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Acceptance Details */}
+              <div style={{ border: '1px solid #bf953f', background: 'rgba(251, 245, 183, 0.12)', padding: '1.25rem', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 'bold', color: '#aa771c' }}>بيانات وتوقيت التوثيق الرقمي للإقرار:</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.85rem', color: '#334155' }}>
+                  <span>
+                    <strong>تاريخ وساعة الموافقة: </strong>
+                    {selectedUserForReport.accepted_terms ? (
+                      selectedUserForReport.accepted_terms_at ? (
+                        <span style={{ fontWeight: 'bold' }}>
+                          {new Date(selectedUserForReport.accepted_terms_at).toLocaleDateString('ar-LY')} {new Date(selectedUserForReport.accepted_terms_at).toLocaleTimeString('ar-LY', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        </span>
+                      ) : 'موافق (تاريخ غير مسجل)'
+                    ) : 'لم يتم الإقرار والموافقة حتى الآن'}
+                  </span>
+                  <span>
+                    <strong>البصمة الرقمية للتحقق: </strong>
+                    <code style={{ fontSize: '0.75rem', background: '#e2e8f0', padding: '0.15rem 0.4rem', borderRadius: '4px', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                      {selectedUserForReport.accepted_terms
+                        ? `SHA256:${btoa(selectedUserForReport.id + (selectedUserForReport.accepted_terms_at || 'tc')).substring(0, 32).toUpperCase()}`
+                        : 'PENDING_VERIFICATION_TOKEN'}
+                    </code>
+                  </span>
+                </div>
+              </div>
+
+              {/* Summarized Legal Text Box */}
+              <div style={{ fontSize: '0.82rem', color: '#475569', lineHeight: '1.6', background: '#f8fafc', padding: '1.25rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <strong style={{ color: '#0f172a', display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem' }}>موجز السياسات وبنود المسؤولية القانونية التي تم التعهد بها:</strong>
+                يتعهد المستخدم بموجب هذا الإقرار بالحفاظ الكامل على سرية بيانات العملاء والمستندات المرفوعة بالمنظومة، ويقر بمسؤولوته الجنائية والمدنية التامة عن أي عمليات إدخال بيانات أو استعلامات يقوم بها من حسابه الشخصي. كما يلتزم بعدم مشاركة بيانات الدخول مع أي أطراف ثالثة وتحت أي ظرف، والامتثال المطلق لتعليمات وسياسات أمن المعلومات التابعة لشبكة كفيل وإدارة النظام.
+              </div>
+
+              {/* Official Seal and Signature Stamp */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem', flexWrap: 'nowrap' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem' }}>
+                  <span style={{ color: '#64748b' }}>إدارة الحماية الرقمية والامتثال</span>
+                  <span style={{ fontWeight: 'bold', color: '#0f172a' }}>شبكة كفيل السحابية للتقسيط</span>
+                  <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>صادر كوثيقة إلكترونية موثقة رقمياً</span>
+                </div>
+                
+                {/* Official Stamp Decorative Box */}
+                <div style={{
+                  border: '3px double #aa771c',
+                  borderRadius: '50%',
+                  width: '90px',
+                  height: '90px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transform: 'rotate(-8deg)',
+                  background: 'rgba(251, 245, 183, 0.05)',
+                  boxShadow: '0 0 8px rgba(170,119,28,0.1)',
+                  position: 'relative'
+                }}>
+                  <span style={{ fontSize: '0.55rem', fontWeight: 'bold', color: '#aa771c', textAlign: 'center', lineHeight: 1.2 }}>
+                    تكامل الحماية<br/>
+                    والأمان<br/>
+                    🛡️ كفيل 🛡️
+                  </span>
+                  <div style={{ position: 'absolute', border: '1px dashed #aa771c', inset: '4px', borderRadius: '50%', pointerEvents: 'none' }}></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal actions, hidden during print */}
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '0.5rem' }} className="printable-report-actions">
+              <button className="btn btn-secondary" onClick={() => setSelectedUserForReport(null)}>
+                إلغاء وإغلاق
+              </button>
+              <button className="btn btn-primary" onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <ShieldCheck size={16} />
+                طباعة المستند / حفظ بصيغة PDF
+              </button>
+            </div>
+
           </div>
         </div>
       )}

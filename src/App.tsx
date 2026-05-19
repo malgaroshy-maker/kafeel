@@ -10,6 +10,7 @@ import AdminLayout from './layouts/AdminLayout';
 import MonitorLayout from './layouts/MonitorLayout';
 
 import { SecurityErrorBoundary } from './components/SecurityErrorBoundary';
+import { TermsOverlay } from './components/TermsOverlay';
 
 function App() {
   useEffect(() => {
@@ -22,7 +23,8 @@ function App() {
     <SecurityErrorBoundary>
       <AuthProvider>
         <Router>
-        <Routes>
+          <TermsOverlay />
+          <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />

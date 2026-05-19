@@ -17,16 +17,19 @@ interface AuthState {
   officeName: string | null;
   planType: 'BASIC' | 'PREMIUM' | 'UNLIMITED';
   isLoading: boolean;
+  acceptedTerms: boolean;
+  acceptedTermsAt: string | null;
+  setAcceptedTerms: (accepted: boolean, date?: string | null) => void;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
 // Resolve role from user_profiles table (more reliable than app_metadata)
-async function resolveUserProfile(userId: string): Promise<{ role: UserRole; officeId: string | null; officeName: string | null; planType: 'BASIC' | 'PREMIUM' | 'UNLIMITED' }> {
+async function resolveUserProfile(userId: string): Promise<{ role: UserRole; officeId: string | null; officeName: string | null; planType: 'BASIC' | 'PREMIUM' | 'UNLIMITED'; acceptedTerms: boolean; acceptedTermsAt: string | null }> {
   const { data } = await supabase
     .from('user_profiles')
-    .select('role, office_id, offices(name, plan_type)')
+    .select('role, office_id, accepted_terms, accepted_terms_at, offices(name, plan_type)')
     .eq('id', userId)
     .single();
 
@@ -36,9 +39,11 @@ async function resolveUserProfile(userId: string): Promise<{ role: UserRole; off
       officeId: data.office_id,
       officeName: (data.offices as any)?.name || null,
       planType: (data.offices as any)?.plan_type || 'BASIC',
+      acceptedTerms: !!data.accepted_terms,
+      acceptedTermsAt: data.accepted_terms_at || null,
     };
   }
-  return { role: 'none', officeId: null, officeName: null, planType: 'BASIC' };
+  return { role: 'none', officeId: null, officeName: null, planType: 'BASIC', acceptedTerms: false, acceptedTermsAt: null };
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -50,11 +55,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [planType, setPlanType] = useState<'BASIC' | 'PREMIUM' | 'UNLIMITED'>('BASIC');
   const [isLoading, setIsLoading] = useState(true);
 
+  const [acceptedTerms, setAcceptedTerms] = useState<boolean>(false);
+  const [acceptedTermsAt, setAcceptedTermsAt] = useState<string | null>(null);
+
   const loadProfile = async (currentUser: User | null) => {
     if (!currentUser) {
       setRole('none');
       setOfficeId(null);
       setOfficeName(null);
+      setAcceptedTerms(false);
+      setAcceptedTermsAt(null);
       setIsLoading(false);
       return;
     }
@@ -75,11 +85,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setOfficeId(profile.officeId);
         setOfficeName(profile.officeName);
         setPlanType(profile.planType);
+        setAcceptedTerms(profile.acceptedTerms);
+        setAcceptedTermsAt(profile.acceptedTermsAt);
       }
     } catch {
       // Fallback if fails
     }
     setIsLoading(false);
+  };
+
+  const updateAcceptedTerms = (accepted: boolean, date?: string | null) => {
+    setAcceptedTerms(accepted);
+    if (accepted) {
+      setAcceptedTermsAt(date || new Date().toISOString());
+    } else {
+      setAcceptedTermsAt(null);
+    }
   };
 
   useEffect(() => {
@@ -120,6 +141,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       officeName, 
       planType,
       isLoading, 
+      acceptedTerms,
+      acceptedTermsAt,
+      setAcceptedTerms: updateAcceptedTerms,
       signOut 
     }}>
       {children}
