@@ -1,12 +1,12 @@
 # 🛡️ Security Hardening & Threat Telemetry Documentation | وثيقة الأمن والتحصين السيبراني
-**Version / الإصدار:** `1.3.3 (security fix)`
+**Version / الإصدار:** `1.3.5`
 **Last Updated / آخر تحديث:** May 2026
 
 ---
 
 ## 🇺🇸 English Version
 
-This document outlines the security architecture, threat logging, and data masking mechanisms implemented in the Kafeel multi-tenant financial application as of version `1.3.3 (security fix)`. 
+This document outlines the security architecture, threat logging, and data masking mechanisms implemented in the Kafeel multi-tenant financial application as of version `1.3.5`. 
 
 The security suite guarantees absolute protection against data leaks, client-side financial parameter tampering, structural crash path leaks, and unauthorized ledger queries.
 
@@ -44,7 +44,7 @@ The security suite guarantees absolute protection against data leaks, client-sid
 
 ## 🇱🇾 النسخة العربية (Arabic Version)
 
-توثق هذه الصفحة البنية التحتية للحماية والأمن السيبراني، ومراقبة محاولات الاختراق وحجب البيانات الحساسة المطبقة في منظومة **كفيل** المالية ابتداءً من الإصدار الآمن `1.3.3 (security fix)`.
+توثق هذه الصفحة البنية التحتية للحماية والأمن السيبراني، ومراقبة محاولات الاختراق وحجب البيانات الحساسة المطبقة في منظومة **كفيل** المالية ابتداءً من الإصدار الآمن `1.3.5`.
 
 توفر هذه الحزمة الأمنية حصانة كاملة ضد تسريب معلومات الشراء الفعلي، ومكافحة التلاعب بنسب المرابحة، وحجب تفاصيل الأخطاء الفنية عن المستخدمين لمنع الهندسة العكسية.
 
