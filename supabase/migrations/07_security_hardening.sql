@@ -64,7 +64,10 @@ CREATE POLICY "Admins and managers can read auth failures"
 ALTER TABLE public.transactions RENAME TO transactions_raw;
 
 -- Create updatable VIEW transactions with security barrier
-CREATE OR REPLACE VIEW public.transactions WITH (security_barrier) AS
+-- Drop view cascadingly to allow column changes and avoid type mismatch errors
+DROP VIEW IF EXISTS public.transactions CASCADE;
+
+CREATE VIEW public.transactions WITH (security_barrier) AS
 SELECT
     id,
     office_id,
@@ -84,6 +87,7 @@ SELECT
     is_files_complete,
     status,
     guarantors_needed,
+    verification_status,
     created_at
 FROM public.transactions_raw;
 
@@ -96,9 +100,25 @@ AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
         INSERT INTO public.transactions_raw (
-            id, office_id, customer_id, workplace_id, car_price, bank_ceiling, margin_rate, down_payment, total_installments, office_loan, car_model, purchase_cost, is_files_complete, status, guarantors_needed, created_at
+            id, office_id, customer_id, workplace_id, car_price, bank_ceiling, margin_rate, down_payment, total_installments, office_loan, car_model, purchase_cost, is_files_complete, status, guarantors_needed, verification_status, created_at
         ) VALUES (
-            COALESCE(NEW.id, gen_random_uuid()), NEW.office_id, NEW.customer_id, NEW.workplace_id, NEW.car_price, NEW.bank_ceiling, NEW.margin_rate, NEW.down_payment, NEW.total_installments, NEW.office_loan, NEW.car_model, NEW.purchase_cost, NEW.is_files_complete, NEW.status, NEW.guarantors_needed, COALESCE(NEW.created_at, now())
+            COALESCE(NEW.id, gen_random_uuid()),
+            NEW.office_id,
+            NEW.customer_id,
+            NEW.workplace_id,
+            COALESCE(NEW.car_price, 0),
+            COALESCE(NEW.bank_ceiling, 0),
+            COALESCE(NEW.margin_rate, 0),
+            COALESCE(NEW.down_payment, 0),
+            COALESCE(NEW.total_installments, 0),
+            NEW.office_loan,
+            NEW.car_model,
+            NEW.purchase_cost,
+            COALESCE(NEW.is_files_complete, false),
+            COALESCE(NEW.status, 'PENDING'),
+            COALESCE(NEW.guarantors_needed, 1),
+            COALESCE(NEW.verification_status, 'pending'),
+            COALESCE(NEW.created_at, now())
         ) RETURNING * INTO NEW;
         
         -- Make sure we dynamically evaluate purchase_cost visibility for return
@@ -112,20 +132,21 @@ BEGIN
             office_id = NEW.office_id,
             customer_id = NEW.customer_id,
             workplace_id = NEW.workplace_id,
-            car_price = NEW.car_price,
-            bank_ceiling = NEW.bank_ceiling,
-            margin_rate = NEW.margin_rate,
-            down_payment = NEW.down_payment,
-            total_installments = NEW.total_installments,
+            car_price = COALESCE(NEW.car_price, 0),
+            bank_ceiling = COALESCE(NEW.bank_ceiling, 0),
+            margin_rate = COALESCE(NEW.margin_rate, 0),
+            down_payment = COALESCE(NEW.down_payment, 0),
+            total_installments = COALESCE(NEW.total_installments, 0),
             office_loan = NEW.office_loan,
             car_model = NEW.car_model,
             purchase_cost = CASE
                 WHEN (auth.jwt() -> 'app_metadata' ->> 'role') IN ('admin', 'manager', 'accountant') THEN NEW.purchase_cost
                 ELSE transactions_raw.purchase_cost -- Keep old value for staff
             END,
-            is_files_complete = NEW.is_files_complete,
-            status = NEW.status,
-            guarantors_needed = NEW.guarantors_needed,
+            is_files_complete = COALESCE(NEW.is_files_complete, false),
+            status = COALESCE(NEW.status, 'PENDING'),
+            guarantors_needed = COALESCE(NEW.guarantors_needed, 1),
+            verification_status = COALESCE(NEW.verification_status, 'pending'),
             created_at = NEW.created_at
         WHERE id = OLD.id;
         
@@ -165,8 +186,8 @@ DECLARE
     v_term_months INT := 96; -- 8 years (96 installments)
     v_bank_ceiling NUMERIC := 120000; -- Ideal Max Bank Murabaha Ceiling
 BEGIN
-    -- Only validate if status is not default empty
-    IF NEW.car_price = 0 THEN
+    -- Only validate if status is not default empty or PENDING
+    IF NEW.car_price = 0 OR NEW.status = 'PENDING' THEN
         RETURN NEW;
     END IF;
 

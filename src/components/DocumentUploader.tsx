@@ -42,10 +42,11 @@ export default function DocumentUploader({ customerId }: Props) {
   const [customerName, setCustomerName] = useState<string | null>(null)
   const [docs, setDocs] = useState<DocItem[]>(initialDocs)
   const [selectedPreviewImage, setSelectedPreviewImage] = useState<string | null>(null)
-  const [activeTransactionId, setActiveTransactionId] = useState<string | null>(null)
+  const [activeTransactionId, setActiveTransactionId] = useState<string | null>(customerId || null)
   const [loadingDocs, setLoadingDocs] = useState(false)
   const [compressing, setCompressing] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [uploadingDocs, setUploadingDocs] = useState<Record<string, boolean>>({})
   
   // Track all generated object URLs for thorough cleanup
   const objectUrlsRef = useRef<string[]>([])
@@ -159,14 +160,96 @@ export default function DocumentUploader({ customerId }: Props) {
     }
   }, [])
 
-  const toggleCheck = (key: string) => {
-    setDocs((prev) =>
-      prev.map((d) => (d.key === key ? { ...d, checked: !d.checked } : d))
-    )
+  const getOrCreateTransactionId = async (cId: string): Promise<string> => {
+    if (activeTransactionId) return activeTransactionId
+
+    // Double check if a pending/active transaction was created in the meantime
+    const { data: tx } = await supabase
+      .from('transactions')
+      .select('id')
+      .eq('customer_id', cId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (tx && tx.id) {
+      setActiveTransactionId(tx.id)
+      return tx.id
+    }
+
+    // Determine guarantors needed based on customer's workplace in database or draft
+    let guarantorsNeeded = 1
+    try {
+      const { data: custData } = await supabase
+        .from('customers')
+        .select('*, workplace:workplace_id(required_guarantors)')
+        .eq('id', cId)
+        .single()
+      
+      if (custData && custData.workplace) {
+        guarantorsNeeded = custData.workplace.required_guarantors || 1
+      }
+    } catch (err) {
+      console.warn('Could not determine guarantors_needed from DB:', err)
+    }
+
+    // Auto-populate transaction details from drafts if present in localStorage
+    const calcDraft = JSON.parse(localStorage.getItem('kafeel_calc_draft') || '{}')
+    const beneficiaryDraft = JSON.parse(localStorage.getItem('kafeel_customer_beneficiary_draft') || '{}')
+
+    if (beneficiaryDraft.workplaceType === 'classified') {
+      guarantorsNeeded = 2
+    }
+
+    const { data: newTx, error: createError } = await supabase
+      .from('transactions')
+      .insert({
+        office_id: officeId,
+        customer_id: cId,
+        car_price: parseFloat(calcDraft.carPrice) || 0,
+        bank_ceiling: parseFloat(calcDraft.bankCeiling) || 0,
+        margin_rate: parseFloat(calcDraft.marginRate) || 0.24,
+        down_payment: 0,
+        total_installments: 96,
+        status: 'PENDING',
+        workplace_id: beneficiaryDraft.workplaceId || null,
+        guarantors_needed: guarantorsNeeded
+      })
+      .select()
+      .single()
+
+    if (createError) throw createError
+    
+    setActiveTransactionId(newTx.id)
+    return newTx.id
+  }
+
+  const toggleCheck = async (key: string) => {
+    let isComplete = false
+    setDocs((prev) => {
+      const next = prev.map((d) => (d.key === key ? { ...d, checked: !d.checked } : d))
+      isComplete = next.filter((d) => d.checked).length === next.length
+      return next
+    })
+
+    if (activeTransactionId) {
+      try {
+        await supabase
+          .from('transactions')
+          .update({ is_files_complete: isComplete })
+          .eq('id', activeTransactionId)
+      } catch (err) {
+        console.error('Error updating transaction files complete status:', err)
+      }
+    }
   }
 
   const handleFileSelect = async (key: string, file: File | null) => {
     if (!file) return
+    if (!selectedCustomerId) {
+      alert('يرجى تحديد زبون أولاً.')
+      return
+    }
 
     let processedFile = file
     const originalSize = file.size
@@ -186,14 +269,6 @@ export default function DocumentUploader({ customerId }: Props) {
         processedFile = file
       }
       setCompressing(null)
-
-      // Create high-res visual preview
-      previewUrl = URL.createObjectURL(processedFile)
-      objectUrlsRef.current.push(previewUrl)
-    } else if (file.type === 'application/pdf') {
-      // Create preview URL for PDF to allow opening/viewing
-      previewUrl = URL.createObjectURL(processedFile)
-      objectUrlsRef.current.push(previewUrl)
     }
 
     // Validate file size (MAX 2MB)
@@ -202,33 +277,114 @@ export default function DocumentUploader({ customerId }: Props) {
       return
     }
 
-    setDocs((prev) =>
-      prev.map((d) => {
-        if (d.key === key) {
-          // Revoke old URL if replaced
-          if (d.previewUrl) {
-            URL.revokeObjectURL(d.previewUrl)
-            objectUrlsRef.current = objectUrlsRef.current.filter((url) => url !== d.previewUrl)
+    // Start immediate upload
+    setUploadingDocs(prev => ({ ...prev, [key]: true }))
+    try {
+      // 1. Get or create transaction ID
+      const txId = await getOrCreateTransactionId(selectedCustomerId)
+      
+      // 2. Clean up any existing files for this document key in the bucket
+      const { data: existingFiles } = await supabase.storage
+        .from('transaction-docs')
+        .list(txId)
+
+      if (existingFiles && existingFiles.length > 0) {
+        const filesToDelete = existingFiles
+          .filter(f => f.name.startsWith(`${key}-`))
+          .map(f => `${txId}/${f.name}`)
+
+        if (filesToDelete.length > 0) {
+          const { error: removeError } = await supabase.storage
+            .from('transaction-docs')
+            .remove(filesToDelete)
+          if (removeError) {
+            console.warn('Could not clean up old files:', removeError)
           }
-          return { ...d, file: processedFile, checked: true, originalSize, previewUrl, remoteFileName: undefined, remoteSize: undefined }
         }
-        return d
+      }
+
+      // 3. Upload the new file
+      const fileName = `${txId}/${key}-${processedFile.name}`
+      const { error: uploadError } = await supabase.storage
+        .from('transaction-docs')
+        .upload(fileName, processedFile, { upsert: true })
+
+      if (uploadError) throw uploadError
+
+      // 4. Retrieve public URL
+      const { data: { publicUrl } } = supabase.storage
+         .from('transaction-docs')
+         .getPublicUrl(fileName)
+
+      previewUrl = publicUrl
+
+      // 5. Update UI State for this specific document
+      setDocs((prev) =>
+        prev.map((d) => {
+          if (d.key === key) {
+            return {
+              ...d,
+              file: null, // clear local file as it is successfully uploaded
+              checked: true,
+              previewUrl,
+              remoteFileName: processedFile.name,
+              remoteSize: processedFile.size,
+              originalSize
+            }
+          }
+          return d
+        })
+      )
+
+      // 6. Update database status `is_files_complete`
+      setDocs(currentDocs => {
+        const updated = currentDocs.map(d => d.key === key ? { ...d, checked: true } : d)
+        const isComplete = updated.filter(d => d.checked).length === updated.length
+        
+        supabase
+          .from('transactions')
+          .update({ is_files_complete: isComplete })
+          .eq('id', txId)
+          .then(({ error: dbError }) => {
+            if (dbError) console.error('Database update failed:', dbError)
+          })
+
+        return updated
       })
-    )
+
+    } catch (err: any) {
+      console.error('File upload failed:', err)
+      alert(`فشل رفع الملف: ${err?.message || 'خطأ غير معروف'}`)
+    } finally {
+      setUploadingDocs(prev => ({ ...prev, [key]: false }))
+    }
   }
 
   const handleUpdateTransactionDocs = async () => {
     if (!activeTransactionId) return
     setSubmitting(true)
     try {
-      // Upload documents to Storage
-      for (const doc of docs) {
-        if (doc.file) {
-          const fileName = `${activeTransactionId}/${doc.key}-${doc.file.name}`
-          const { error: uploadError } = await supabase.storage
-            .from('transaction-docs')
-            .upload(fileName, doc.file, { upsert: true })
-          if (uploadError) throw uploadError
+      // 1. Pull guarantor draft from localStorage if exists and save it
+      const guarantorData = JSON.parse(localStorage.getItem('kafeel_customer_guarantor_draft') || '{}')
+      if (guarantorData.nationalId && guarantorData.fullName) {
+        const { data: existingG } = await supabase
+          .from('transaction_guarantors')
+          .select('id')
+          .eq('transaction_id', activeTransactionId)
+          .limit(1)
+
+        if (!existingG || existingG.length === 0) {
+          const { error: guarError } = await supabase
+            .from('transaction_guarantors')
+            .insert({
+              transaction_id: activeTransactionId,
+              guarantor_name: guarantorData.fullName,
+              guarantor_national_id: guarantorData.nationalId,
+              workplace_id: guarantorData.workplaceId || null,
+              match_type: 'MANUAL',
+              match_status: 'PENDING'
+            })
+          if (guarError) throw guarError
         }
       }
 
@@ -243,10 +399,14 @@ export default function DocumentUploader({ customerId }: Props) {
 
       if (updateError) throw updateError
 
-      alert('تم تحديث مستندات المعاملة بنجاح!')
-      if (selectedCustomerId) {
-        fetchExistingDocs(selectedCustomerId)
-      }
+      alert('تم إرسال وتأكيد المعاملة بنجاح!')
+      
+      // Clear drafts
+      localStorage.removeItem('kafeel_calc_draft')
+      localStorage.removeItem('kafeel_customer_beneficiary_draft')
+      localStorage.removeItem('kafeel_customer_guarantor_draft')
+
+      window.location.reload()
     } catch (err) {
       console.error('Update failed:', err)
       alert('حدث خطأ أثناء تحديث المستندات.')
@@ -511,7 +671,11 @@ export default function DocumentUploader({ customerId }: Props) {
                     </label>
 
                     <div className="doc-actions">
-                      {doc.file ? (
+                      {uploadingDocs[doc.key] ? (
+                        <span className="doc-file-name" style={{ color: 'var(--primary)' }}>
+                          <Loader2 size={14} className="spin" /> جاري الرفع لخوادم Supabase...
+                        </span>
+                      ) : doc.file ? (
                         <span className="doc-file-name">
                           <ImageIcon size={14} />
                           {doc.file.name} {doc.originalSize ? `(تم ضغطه من ${formatSize(doc.originalSize)} إلى ${formatSize(doc.file.size)})` : `(${formatSize(doc.file.size)})`}
@@ -526,11 +690,15 @@ export default function DocumentUploader({ customerId }: Props) {
                       <button
                         className="btn btn-sm btn-outline"
                         onClick={() => fileInputRefs.current[doc.key]?.click()}
-                        disabled={compressing === doc.key}
+                        disabled={compressing === doc.key || uploadingDocs[doc.key]}
                       >
                         {compressing === doc.key ? (
                           <>
                             <Loader2 size={14} className="spin" /> جاري الضغط...
+                          </>
+                        ) : uploadingDocs[doc.key] ? (
+                          <>
+                            <Loader2 size={14} className="spin" /> جاري الرفع...
                           </>
                         ) : (
                           <>
@@ -602,7 +770,7 @@ export default function DocumentUploader({ customerId }: Props) {
                     </>
                   ) : (
                     <>
-                      <Send size={20} /> تحديث مستندات المعاملة القائمة
+                      <Send size={20} /> تأكيد وإرسال المعاملة للمراجعة
                     </>
                   )}
                 </button>
