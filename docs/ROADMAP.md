@@ -115,7 +115,13 @@
   - Golden dashed banner overlay `PremiumLockBanner` with package badge details.
   - Complete gating of the Reports dashboard (Audit tab, Ledger tab, actual purchase cost cards, and net profit cards) to encourage upgrade to PREMIUM or UNLIMITED plans.
 
-## Phase 15: Production Deployment & External Integrations
+## Phase 15: Arabic Legal Terms Agreement & Compliance (شروط الاستخدام والامتثال القانوني) ✅
+- [x] Draft 8 robust legal clauses aligning with Libyan Cybercrime Law No. 5 of 2022, Central Bank of Libya interest-free Murabaha directives (Law No. 1 of 2013), force majeure liabilities, and approximate calculation disclaimers.
+- [x] Integrate interactive signup gate checkbox forcing user verification before submitting registration.
+- [x] Design beautiful theme-adaptive Glassmorphic modal displaying legal clauses dynamically for Light and Dark modes.
+
+## Phase 16: Production Deployment & External Integrations
 - [ ] External Notifications: Integrate SMS/WhatsApp API to notify customers and guarantors when a match is found.
 - [ ] Production Deployment (Vercel + Supabase).
 - [ ] MVP Launch & Onboarding of initial offices.
+
