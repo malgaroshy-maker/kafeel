@@ -2729,3 +2729,15 @@ h1, h2, h3, h4, h5, h6 {
   transform: scale(1.08) rotate(3deg);
   box-shadow: 0 2px 8px rgba(170, 119, 28, 0.35);
 }
+
+/* ============================================================================
+   BROADCAST MARQUEE ANIMATIONS
+   ============================================================================ */
+@keyframes marqueeLTR {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+@keyframes marqueeRTL {
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}

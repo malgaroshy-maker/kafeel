@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calculator, UserPlus, Users, FileCheck, Clock, Receipt, LogOut, BarChart3, Settings, LayoutDashboard, TrendingUp, Sun, Moon } from 'lucide-react';
+import { Calculator, UserPlus, Users, FileCheck, Clock, Receipt, LogOut, BarChart3, Settings, LayoutDashboard, TrendingUp, Sun, Moon, Megaphone } from 'lucide-react';
 import FinancialCalculator from '../components/Calculator';
 import CustomerForm from '../components/CustomerForm';
 import CustomerList from '../components/CustomerList';
@@ -12,6 +12,7 @@ import StaffDashboard from '../components/StaffDashboard';
 import OfficeSettings from '../components/OfficeSettings';
 import StaffStats from '../components/StaffStats';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 type Tab = 'dashboard' | 'calculator' | 'customers' | 'beneficiary' | 'documents' | 'queue' | 'settlements' | 'reports' | 'settings' | 'staff-stats';
 
@@ -62,6 +63,26 @@ const OfficeLayout: React.FC = () => {
        setActiveTab('dashboard');
     }
   }, [isStaff]);
+
+  const [broadcasts, setBroadcasts] = useState<any[]>([]);
+  const [isBannerClosed, setIsBannerClosed] = useState(false);
+
+  useEffect(() => {
+    supabase
+      .from('broadcasts')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(10)
+      .then(({ data }) => {
+        const now = new Date().toISOString();
+        const active = (data || []).filter(b => {
+          if (b.expires_at && b.expires_at < now) return false;
+          if (b.target_role && !['all', 'office'].includes(b.target_role)) return false;
+          return true;
+        });
+        setBroadcasts(active.slice(0, 5));
+      });
+  }, []);
 
   const handleLogout = async () => {
     await signOut();
@@ -167,6 +188,28 @@ const OfficeLayout: React.FC = () => {
           </div>
         </div>
       </header>
+
+      {/* Broadcasts Marquee Banner */}
+      {broadcasts.length > 0 && !isBannerClosed && (() => {
+        const isArabicBroadcast = /[\u0600-\u06FF]/.test(broadcasts.map(b => b.message).join(' '));
+        return (
+          <div style={{ borderBottom: '1px solid var(--glass-border)', padding: '0.6rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', position: 'relative', overflow: 'hidden', zIndex: 90 }}>
+            <div style={{ overflow: 'hidden', whiteSpace: 'nowrap', flex: 1, marginRight: '1rem' }}>
+              <div style={{ display: 'inline-flex', gap: '3rem', animation: `${isArabicBroadcast ? 'marqueeLTR' : 'marqueeRTL'} 25s linear infinite` }}>
+                {broadcasts.map(b => (
+                  <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem', color: b.type === 'urgent' ? 'var(--error)' : b.type === 'warning' ? 'var(--warning)' : 'var(--primary)', fontWeight: 700 }}>
+                    <Megaphone size={18} />
+                    <span>{b.message}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <button onClick={() => setIsBannerClosed(true)} style={{ background: 'transparent', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', padding: '0.25rem', flexShrink: 0 }} title="إغلاق">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+        );
+      })()}
 
       {/* Tab Navigation */}
       <nav className="tab-nav">

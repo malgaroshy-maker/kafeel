@@ -92,3 +92,30 @@
 - [ ] External Notifications: Integrate SMS/WhatsApp API to notify customers and guarantors when a match is found.
 - [ ] Production Deployment (Vercel + Supabase).
 - [ ] MVP Launch & Onboarding of initial offices.
+
+## Phase 12: Premium Design System & Global Styling ✅
+- [x] Stateful Dark/Light Mode on the Landing Page.
+- [x] Crescent (Moon) and Sun icons next to the logo for smooth theme switching.
+- [x] Fixed Hero text clipping and background gradient glitches.
+- [x] Redesigned all primary actions/important buttons globally with the premium blue-grey-gold gradient.
+- [x] Watermark logo centered perfectly (`top: 50%`) with customized clear translucency (`0.4` in light mode, `0.6` in dark mode) for perfect branding.
+
+## Phase 14: Role Optimization, Premium Remuneration & Reusable Padlocks ✅
+- [x] Strict Role Separation (`manager`, `accountant`, `staff`) with exclusive dashboard portals and layouts.
+- [x] Implement `purchase_cost` and Net Profit masking for `staff` (limited to manager/accountant only).
+- [x] RLS Policy Updates: Restrict customer deletion actions to `manager` only.
+- [x] Office Settings Tab: Exclusive to `manager` for configuring default bank and managing staff join limit.
+- [x] Gamified Staff Dashboard: "إنجازاتي" (My Achievements) view with Quick Actions, Status Tracking, and dynamic submission quotas.
+- [x] Advanced Murabaha Remuneration Model:
+  - Wagers engine (Salary only, Salary+Commission, Commission only).
+  - 30-day absent salary docking system.
+  - Standardized administrative agency fees and showroom resale margins.
+- [x] Reusable Golden Padlock System (`PremiumLock.tsx`):
+  - Local content blur overlay `PremiumLockOverlay` for hiding cost cards and net profits.
+  - Golden dashed banner overlay `PremiumLockBanner` with package badge details.
+  - Complete gating of the Reports dashboard (Audit tab, Ledger tab, actual purchase cost cards, and net profit cards) to encourage upgrade to PREMIUM or UNLIMITED plans.
+
+## Phase 15: Production Deployment & External Integrations
+- [ ] External Notifications: Integrate SMS/WhatsApp API to notify customers and guarantors when a match is found.
+- [ ] Production Deployment (Vercel + Supabase).
+- [ ] MVP Launch & Onboarding of initial offices.
