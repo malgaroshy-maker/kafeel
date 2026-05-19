@@ -120,7 +120,14 @@
 - [x] Integrate interactive signup gate checkbox forcing user verification before submitting registration.
 - [x] Design beautiful theme-adaptive Glassmorphic modal displaying legal clauses dynamically for Light and Dark modes.
 
-## Phase 16: Production Deployment & External Integrations
+## Phase 17: Security Hardening & Threat Telemetry (الأمن والتحصين السيبراني) ✅
+- [x] Apply comprehensive security migration (`supabase/migrations/07_security_hardening.sql`) defining custom tracking tables (`system_runtime_errors`, `auth_failures`).
+- [x] Protect actual car purchase cost (`purchase_cost`) using a custom PostgreSQL `VIEW` with `security_barrier` that masks values for restricted roles (`staff`, `monitor`) while allowing access for `manager` and `accountant`.
+- [x] Implement robust database triggers to prevent financial calculation tampering and enforce the maximum bank ceiling (120,000 LYD).
+- [x] Develop a luxury `SecurityErrorBoundary` React component that filters stack traces from leaking to standard users and automatically records runtime crashes to the telemetry logs.
+- [x] Construct a stunning "الأمن والتحصين" (Security & Hardening) tab inside the Master Admin Dashboard for real-time threat auditing, brute-force logs, and safe error trace analysis.
+
+## Phase 18: Production Deployment & External Integrations
 - [ ] External Notifications: Integrate SMS/WhatsApp API to notify customers and guarantors when a match is found.
 - [ ] Production Deployment (Vercel + Supabase).
 - [ ] MVP Launch & Onboarding of initial offices.

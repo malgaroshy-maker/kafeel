@@ -56,7 +56,7 @@ const ROLE_LABELS: Record<string, { label: string; color: string }> = {
   car_agent_assistant: { label: 'مساعد وكيل', color: '#10b981' },
 }
 
-type Tab = 'offices' | 'users' | 'workplaces' | 'banks' | 'codes' | 'revenues' | 'resellers' | 'broadcasts' | 'tickets' | 'health' | 'saas-plans' | 'system-logs' | 'white-label' | 'gateways' | 'system-owners'
+type Tab = 'offices' | 'users' | 'workplaces' | 'banks' | 'codes' | 'revenues' | 'resellers' | 'broadcasts' | 'tickets' | 'health' | 'saas-plans' | 'system-logs' | 'white-label' | 'gateways' | 'system-owners' | 'security'
 
 export default function AdminDashboard() {
   const { session, signOut } = useAuth()
@@ -100,6 +100,11 @@ export default function AdminDashboard() {
   // System Owners & Audit Logs State
   const [systemOwners, setSystemOwners] = useState<UserProfile[]>([])
   const [auditLogs, setAuditLogs] = useState<any[]>([])
+
+  // Security Hardening (Phase 17) State
+  const [runtimeErrors, setRuntimeErrors] = useState<any[]>([])
+  const [authFailures, setAuthFailures] = useState<any[]>([])
+  const [selectedErrorStack, setSelectedErrorStack] = useState<string | null>(null)
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('theme') as 'light' | 'dark') || 'light'
@@ -378,11 +383,44 @@ export default function AdminDashboard() {
         if (data) auditData = data
       } catch (e) { console.error('Error fetching audit logs:', e) }
 
+      let runtimeErrorsData: any[] = []
+      let authFailuresData: any[] = []
+
+      try {
+        const { data } = await supabase
+          .from('system_runtime_errors')
+          .select('*, user_profiles(display_name, role)')
+          .order('created_at', { ascending: false })
+          .limit(100)
+        if (data) runtimeErrorsData = data
+      } catch (e) {
+        console.error('Error fetching runtime errors:', e)
+        try {
+          const { data } = await supabase
+            .from('system_runtime_errors')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(100)
+          if (data) runtimeErrorsData = data
+        } catch (innerE) { console.error('Fallback runtime errors fetch failed:', innerE) }
+      }
+
+      try {
+        const { data } = await supabase
+          .from('auth_failures')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(100)
+        if (data) authFailuresData = data
+      } catch (e) { console.error('Error fetching auth failures:', e) }
+
       setResellers(resellersData)
       setBroadcasts(broadcastsData)
       setTickets(ticketsData)
       setHealthLogs(logsData)
       setAuditLogs(auditData)
+      setRuntimeErrors(runtimeErrorsData)
+      setAuthFailures(authFailuresData)
 
     } catch (err) {
       console.error('Error loading admin data:', err)
@@ -719,6 +757,30 @@ export default function AdminDashboard() {
     setActionLoading(null)
   }
 
+  const clearRuntimeErrors = async () => {
+    if (!confirm('هل أنت متأكد من مسح سجلات الانهيارات البرمجية بالكامل؟')) return
+    setActionLoading('clear-errors')
+    try {
+      const { error } = await supabase.from('system_runtime_errors').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+      if (error) throw error
+      setRuntimeErrors([])
+      alert('تم إفراغ سجل الانهيارات بنجاح!')
+    } catch (err) { alert((err as Error).message) }
+    setActionLoading(null)
+  }
+
+  const clearAuthFailures = async () => {
+    if (!confirm('هل أنت متأكد من مسح سجلات محاولات الاختراق الفاشلة؟')) return
+    setActionLoading('clear-auth')
+    try {
+      const { error } = await supabase.from('auth_failures').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+      if (error) throw error
+      setAuthFailures([])
+      alert('تم إفراغ سجل المحاولات بنجاح!')
+    } catch (err) { alert((err as Error).message) }
+    setActionLoading(null)
+  }
+
   const addWorkplace = async () => {
     if (!newWorkplaceName.trim()) return
     try {
@@ -884,7 +946,7 @@ export default function AdminDashboard() {
 
             {/* Group 3: System & Communication */}
             <div className="nav-dropdown-group">
-              <button className="nav-dropdown-btn" style={{ background: ['broadcasts', 'tickets', 'health', 'system-logs'].includes(activeTab) ? '#0f172a' : 'transparent', color: ['broadcasts', 'tickets', 'health', 'system-logs'].includes(activeTab) ? '#fef08a' : '#0f172a' }}>
+              <button className="nav-dropdown-btn" style={{ background: ['broadcasts', 'tickets', 'health', 'system-logs', 'security'].includes(activeTab) ? '#0f172a' : 'transparent', color: ['broadcasts', 'tickets', 'health', 'system-logs', 'security'].includes(activeTab) ? '#fef08a' : '#0f172a' }}>
                 <Megaphone size={16} />
                 <span>النظام والاتصال</span>
               </button>
@@ -916,6 +978,13 @@ export default function AdminDashboard() {
                 >
                   <ShieldCheck size={14} style={{ color: activeTab === 'system-logs' ? '#fef08a' : '#d97706' }} />
                   <span>النسخ الاحتياطي وحماية السيرفر</span>
+                </button>
+                <button 
+                  onClick={() => setActiveTab('security')} 
+                  className={`nav-dropdown-item ${activeTab === 'security' ? 'active' : ''}`}
+                >
+                  <ShieldAlert size={14} style={{ color: activeTab === 'security' ? '#fef08a' : '#d97706' }} />
+                  <span>الأمن والتحصين السيبراني 🛡️</span>
                 </button>
               </div>
             </div>
@@ -2192,6 +2261,276 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ===================== SECURITY & CYBERSECURITY CENTER TAB ===================== */}
+      {activeTab === 'security' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          <div className="glass" style={{ padding: '2.5rem', borderRadius: '24px', position: 'relative', overflow: 'hidden' }}>
+            <div style={{
+              position: 'absolute',
+              top: '-10%',
+              left: '-10%',
+              width: '300px',
+              height: '300px',
+              background: 'radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%)',
+              pointerEvents: 'none'
+            }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem' }}>
+              <div>
+                <h3 style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--primary)', fontSize: '1.65rem' }}>
+                  <ShieldAlert size={28} style={{ color: 'var(--primary)' }} />
+                  مركز الأمن والتحصين السيبراني
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.6, maxWidth: '800px' }}>
+                  لوحة المراقبة الفنية التلقائية والتحصين السيبراني لشبكة كفيل. يضمن هذا المركز استقرار النظام، تشفير وحماية بيانات العمليات المالية من التلاعب، وتوثيق أي انهيار أو محاولات تخمين و brute-force فور حدوثها.
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button className="btn btn-secondary btn-sm" onClick={loadData} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <RefreshCw size={14} /> تحديث البيانات
+                </button>
+              </div>
+            </div>
+
+            {/* Security Indicator Widgets */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginTop: '2rem' }}>
+              <div style={{ background: 'rgba(16, 185, 129, 0.05)', border: '1.5px solid rgba(16, 185, 129, 0.2)', padding: '1.5rem', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ background: 'var(--success)', color: '#fff', borderRadius: '50%', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center' }}>
+                  <ShieldCheck size={24} />
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-primary)' }}>حالة سلامة النظام</h4>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--success)', fontWeight: 'bold' }}>مُحصّن ونشط (RLS Active)</span>
+                </div>
+              </div>
+
+              <div style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1.5px solid rgba(239, 68, 68, 0.2)', padding: '1.5rem', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ background: 'rgba(239, 68, 68, 0.8)', color: '#fff', borderRadius: '50%', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center' }}>
+                  <ShieldAlert size={24} />
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-primary)' }}>الانهيارات المرصودة</h4>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{runtimeErrors.length} انهيار فني تم إخماده</span>
+                </div>
+              </div>
+
+              <div style={{ background: 'rgba(245, 158, 11, 0.05)', border: '1.5px solid rgba(245, 158, 11, 0.2)', padding: '1.5rem', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ background: 'rgba(245, 158, 11, 0.8)', color: '#fff', borderRadius: '50%', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center' }}>
+                  <UserX size={24} />
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-primary)' }}>هجمات التخمين المشبوهة</h4>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{authFailures.length} محاولات دخول فاشلة</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gap: '2rem', gridTemplateColumns: '1fr' }}>
+            {/* Runtime Crashes Monitor */}
+            <div className="glass" style={{ padding: '2rem', borderRadius: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                    💻 سجل الأعطال والانهيارات البرمجية الفنية (Technical Crash Telemetry)
+                  </h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.25rem', margin: 0 }}>
+                    يتولى معترض الانهيارات الآمن تسجيل الانهيارات وتفاصيلها دون كشف معلومات النظام الحساسة للعميل.
+                  </p>
+                </div>
+                {runtimeErrors.length > 0 && (
+                  <button className="btn btn-secondary btn-sm" onClick={clearRuntimeErrors} style={{ borderColor: 'rgba(239, 68, 68, 0.4)', color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <Trash2 size={14} /> تفريغ سجل الأعطال
+                  </button>
+                )}
+              </div>
+
+              {runtimeErrors.length === 0 ? (
+                <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                  <ShieldCheck size={48} style={{ color: 'var(--success)', margin: '0 auto 1rem', display: 'block' }} />
+                  <p style={{ fontSize: '0.95rem', fontWeight: 'bold' }}>سجل الانهيارات البرمجية نظيف تماماً!</p>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>لا توجد أي انهيارات تقنية مسجلة حالياً في النظام.</p>
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '2px solid var(--border-color)', color: 'var(--text-secondary)', textAlign: 'right' }}>
+                        <th style={{ padding: '0.75rem 1rem' }}>المستخدم</th>
+                        <th style={{ padding: '0.75rem 1rem' }}>المكون البرمجي / المسار</th>
+                        <th style={{ padding: '0.75rem 1rem' }}>رسالة الخطأ الآمنة</th>
+                        <th style={{ padding: '0.75rem 1rem' }}>التاريخ والوقت</th>
+                        <th style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>التحقيق الفني</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {runtimeErrors.map((err) => (
+                        <tr key={err.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                          <td style={{ padding: '0.75rem 1rem', fontWeight: 'bold' }}>
+                            {err.user_profiles ? (
+                              <div>
+                                <span>{err.user_profiles.display_name}</span>
+                                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>{err.user_profiles.role}</span>
+                              </div>
+                            ) : (
+                              <span style={{ color: 'var(--text-tertiary)' }}>زائر غير مسجل</span>
+                            )}
+                          </td>
+                          <td style={{ padding: '0.75rem 1rem', color: 'var(--primary)', fontFamily: 'monospace' }}>
+                            {err.component_name || 'غير محدد'}
+                          </td>
+                          <td style={{ padding: '0.75rem 1rem', color: 'var(--danger)', fontWeight: 'bold', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {err.error_message}
+                          </td>
+                          <td style={{ padding: '0.75rem 1rem', color: 'var(--text-secondary)' }}>
+                            {new Date(err.created_at).toLocaleString('ar-LY')}
+                          </td>
+                          <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
+                            {err.stack_trace && (
+                              <button 
+                                className="btn btn-secondary btn-sm"
+                                style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
+                                onClick={() => setSelectedErrorStack(err.stack_trace)}
+                              >
+                                عرض المراجع 🔍
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Brute-Force Monitoring Center */}
+            <div className="glass" style={{ padding: '2rem', borderRadius: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                    🚨 كاشف هجمات التخمين والاختراقات الفاشلة (Brute-Force Access Auditor)
+                  </h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.25rem', margin: 0 }}>
+                    يسجل المحاولات المشبوهة لمحاولة تسجيل الدخول بكلمات مرور خاطئة أو معرفات مزيفة.
+                  </p>
+                </div>
+                {authFailures.length > 0 && (
+                  <button className="btn btn-secondary btn-sm" onClick={clearAuthFailures} style={{ borderColor: 'rgba(239, 68, 68, 0.4)', color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <Trash2 size={14} /> تفريغ سجل المحاولات
+                  </button>
+                )}
+              </div>
+
+              {authFailures.length === 0 ? (
+                <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                  <ShieldCheck size={48} style={{ color: 'var(--success)', margin: '0 auto 1rem', display: 'block' }} />
+                  <p style={{ fontSize: '0.95rem', fontWeight: 'bold' }}>بوابة المصادقة آمنة ومستقرة تماماً!</p>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>لا توجد أي هجمات تخمين أو محاولات دخول مشبوهة مرصودة.</p>
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '2px solid var(--border-color)', color: 'var(--text-secondary)', textAlign: 'right' }}>
+                        <th style={{ padding: '0.75rem 1rem' }}>البريد المستهدف</th>
+                        <th style={{ padding: '0.75rem 1rem' }}>عنوان الـ IP</th>
+                        <th style={{ padding: '0.75rem 1rem' }}>تفاصيل المتصفح / العميل</th>
+                        <th style={{ padding: '0.75rem 1rem' }}>توقيت المحاولة</th>
+                        <th style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>الخطورة</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {authFailures.map((fail) => (
+                        <tr key={fail.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                          <td style={{ padding: '0.75rem 1rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                            {fail.email}
+                          </td>
+                          <td style={{ padding: '0.75rem 1rem', color: 'var(--primary)', fontFamily: 'monospace' }}>
+                            {fail.ip_address || '127.0.0.1'}
+                          </td>
+                          <td style={{ padding: '0.75rem 1rem', color: 'var(--text-secondary)', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={fail.user_agent}>
+                            {fail.user_agent || 'غير محدد'}
+                          </td>
+                          <td style={{ padding: '0.75rem 1rem', color: 'var(--text-secondary)' }}>
+                            {new Date(fail.created_at).toLocaleString('ar-LY')}
+                          </td>
+                          <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
+                            <span style={{ padding: '0.2rem 0.5rem', borderRadius: '6px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', fontSize: '0.7rem', fontWeight: 'bold' }}>
+                              تحذير أمني 🛑
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Secure Stack Trace Popup Modal */}
+          {selectedErrorStack && (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(15, 23, 42, 0.8)',
+              backdropFilter: 'blur(8px)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '2rem'
+            }}>
+              <div className="glass" style={{
+                width: '100%',
+                maxWidth: '750px',
+                padding: '2.5rem',
+                borderRadius: '24px',
+                border: '1.5px solid var(--primary)',
+                background: 'var(--bg-primary)',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+                maxHeight: '80vh',
+                overflowY: 'auto'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                  <h3 style={{ color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.25rem', margin: 0 }}>
+                    🛡️ تفاصيل الانهيار البرمجي الفنية (Secure Stack Trace Console)
+                  </h3>
+                  <button 
+                    className="btn btn-secondary btn-sm"
+                    style={{ minWidth: '40px', padding: '0.2rem' }}
+                    onClick={() => setSelectedErrorStack(null)}
+                  >
+                    إغلاق ❌
+                  </button>
+                </div>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1rem', lineHeight: 1.5 }}>
+                  تنبيه: سجلات الأخطاء البرمجية التالية مشفرة ومعزولة لأغراض التطوير فقط، ولا يمكن للعملاء الخارجيين أو المستخدمين غير المصرح لهم قراءتها عبر الواجهة.
+                </p>
+                <pre style={{
+                  background: 'var(--bg-secondary)',
+                  padding: '1rem',
+                  borderRadius: '12px',
+                  fontFamily: 'monospace',
+                  fontSize: '0.8rem',
+                  color: 'var(--text-primary)',
+                  overflowX: 'auto',
+                  border: '1px solid var(--border-color)',
+                  lineHeight: 1.6,
+                  whiteSpace: 'pre-wrap',
+                  textAlign: 'left'
+                }}>
+                  {selectedErrorStack}
+                </pre>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

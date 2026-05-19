@@ -9,7 +9,7 @@ import OfficeLayout from './layouts/OfficeLayout';
 import AdminLayout from './layouts/AdminLayout';
 import MonitorLayout from './layouts/MonitorLayout';
 
-import { ErrorBoundary } from './components/ErrorBoundary';
+import { SecurityErrorBoundary } from './components/SecurityErrorBoundary';
 
 function App() {
   useEffect(() => {
@@ -19,7 +19,7 @@ function App() {
   }, []);
 
   return (
-    <ErrorBoundary>
+    <SecurityErrorBoundary>
       <AuthProvider>
         <Router>
         <Routes>
@@ -61,7 +61,7 @@ function App() {
         </Routes>
       </Router>
       </AuthProvider>
-    </ErrorBoundary>
+    </SecurityErrorBoundary>
   );
 }
 

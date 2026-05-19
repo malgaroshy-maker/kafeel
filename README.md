@@ -71,13 +71,19 @@
 - Regional tagging (Tripoli, Western, etc.)
 - Toyota car price presets from official bank rates
 
-### ⚙️ SaaS Administration & Security Hub
+### 🪪 SaaS Administration & Security Hub
 - **White-Label Configuration**: Dynamic branding updates (Brand name, custom logo, footer copyright)
 - **SaaS Packages Builder**: Real-time package pricing, user limits, and features editor
 - **SMS & Payments Gateways**: Interactive configurations for Twilio/BulkSMS and local Libyan payment portals (SADAD, Tadawul, Edfa3ly)
 - **Database Backups & Audit Trail**: Live system log streams and automated JSON schema database backup exporter
 - **Independent Partner Onboarding**: Generate unique partner join codes (outside standard offices) for car agents & assistants
 - **Advanced Users Hub**: Robust administrative controls to delete, reset passwords, and freeze/unfreeze accounts to counter brute force attacks
+- **Cybersecurity Hardening (Phase 17)**: 
+  - Safe `SecurityErrorBoundary` preventing stack trace leaks to frontend.
+  - Telemetry database registers (`system_runtime_errors` and `auth_failures`).
+  - Secure `transactions` view with `security_barrier` masking actual `purchase_cost` from unauthorized staff.
+  - SQL calculation validation trigger `prevent_financial_tampering` blocking database tampering.
+  - Gorgeous central Admin "الأمن والتحصين" monitoring console for audit traces and logs.
 
 ---
 
@@ -286,7 +292,8 @@ The test suite covers:
 - [x] **Phase 13**: SaaS Admin Hub, Custom Packages, Gateways, Audit logs & Anti-Brute-Force security configurations
 - [x] **Phase 14**: Role Separation, Murabaha Compensation Models, and Reusable Gold Padlock SaaS Gates
 - [x] **Phase 15**: Arabic Legal Terms Agreement & Compliance (شروط الاستخدام والامتثال القانوني)
-- [ ] **Phase 16**: Live production API testing & SMS integration
+- [x] **Phase 17**: Security Hardening, Threat Telemetry Logs, Safe Error boundaries, Purchase cost masking views, and Admin Security Control Center 🛡️
+- [ ] **Phase 18**: Live production API testing & SMS integration
 
 
 ---
