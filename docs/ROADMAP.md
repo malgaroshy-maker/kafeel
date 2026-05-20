@@ -88,10 +88,10 @@
 - [x] Integrate dynamic bank/branch selection in `CustomerForm.tsx` with automatic filtering.
 - [x] Add car price presets for Toyota models based on official bank rates.
 
-## Phase 11: Production Deployment & External Integrations
-- [ ] External Notifications: Integrate SMS/WhatsApp API to notify customers and guarantors when a match is found.
-- [ ] Production Deployment (Vercel + Supabase).
-- [ ] MVP Launch & Onboarding of initial offices.
+## Phase 11: Production Deployment & External Integrations ✅
+- [x] External Notifications: Integrate SMS/WhatsApp API to notify customers and guarantors when a match is found.
+- [x] Production Deployment (Vercel + Supabase).
+- [x] MVP Launch & Onboarding of initial offices.
 
 ## Phase 12: Premium Design System & Global Styling ✅
 - [x] Stateful Dark/Light Mode on the Landing Page.
@@ -127,8 +127,28 @@
 - [x] Develop a luxury `SecurityErrorBoundary` React component that filters stack traces from leaking to standard users and automatically records runtime crashes to the telemetry logs.
 - [x] Construct a stunning "الأمن والتحصين" (Security & Hardening) tab inside the Master Admin Dashboard for real-time threat auditing, brute-force logs, and safe error trace analysis.
 
-## Phase 18: Production Deployment & External Integrations
-- [ ] External Notifications: Integrate SMS/WhatsApp API to notify customers and guarantors when a match is found.
-- [ ] Production Deployment (Vercel + Supabase).
-- [ ] MVP Launch & Onboarding of initial offices.
+## Phase 18: Production Deployment & External Integrations ✅
+- [x] External Notifications: Integrate SMS/WhatsApp API to notify customers and guarantors when a match is found.
+- [x] Production Deployment (Vercel + Supabase).
+- [x] MVP Launch & Onboarding of initial offices.
+
+## Phase 19: Unified Workflow Integration & Core Module Interlinking (ترابط وتكامل تدفق العمليات) ✅
+- [x] Remove Data Entry Staff lockout tab redirect in `OfficeLayout.tsx`.
+- [x] Implement "Save Calculation & Link to DB" in `Calculator.tsx` to replace `localStorage` drafts with Supabase transaction records.
+- [x] Adapt `DocumentUploader.tsx` to read the pre-existing transaction created during the Calculator step.
+- [x] Fix the silent matchmaking bug in `WaitingQueue.tsx` by inspecting the correct RPC response status.
+- [x] Import and trigger `notificationService.sendMatchAlert` inside the matchmaking flow for active WhatsApp/SMS alerts.
+- [x] Fully repair `Settlements.tsx` post-delivery settlement submissions:
+  - [x] Integrate active transactions dropdown list selector.
+  - [x] Fix Supabase schema mismatches (map correct database fields).
+  - [x] Solve foreign key violation by inserting `transaction_id`.
+  - [x] Fix countdown timer queries in `loadData` to prevent empty reports or crashes.
+
+## Phase 20: Document Verification & Transaction State Machine (التحقق من المستندات وآلة حالة المعاملات)
+- [x] Implement Manager/Accountant document verification workflow with `verification_status` field.
+- [x] Build transaction state machine: PENDING → VERIFIED → MATCHED → ACTIVE → COMPLETED.
+- [x] Add verification dashboard for Manager to approve/reject documents.
+- [x] Implement `activeTransactionId` state propagation across Calculator → DocumentUploader flow.
+- [x] Add real-time status indicators on customer cards showing transaction progress.
+- [x] Production deployment preparation and testing.
 

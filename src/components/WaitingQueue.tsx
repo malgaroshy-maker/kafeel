@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { Clock, Search, CheckCircle, AlertCircle, RefreshCw, Zap, FileCheck, X, FileText } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { notificationService } from '../utils/notifications'
 
 interface WaitingTransaction {
   id: string
@@ -15,6 +16,7 @@ interface WaitingTransaction {
   current_guarantors: number
   created_at: string
   verification_status?: string
+  rejection_reason?: string
 }
 
 export default function WaitingQueue() {
@@ -29,6 +31,8 @@ export default function WaitingQueue() {
   const [txDocs, setTxDocs] = useState<{ label: string; url: string; isImage: boolean; name: string }[]>([])
   const [loadingTxDocs, setLoadingTxDocs] = useState(false)
   const [selectedPreviewImage, setSelectedPreviewImage] = useState<string | null>(null)
+  const [rejectingTx, setRejectingTx] = useState<string | null>(null)
+  const [rejectReason, setRejectReason] = useState('')
 
   // Load from Supabase
   const loadQueue = useCallback(async () => {
@@ -37,7 +41,7 @@ export default function WaitingQueue() {
       const { data, error } = await supabase
         .from('transactions')
         .select(`
-          id, car_price, created_at, status, verification_status,
+          id, car_price, created_at, status, verification_status, rejection_reason,
           customers!inner(name, national_id, salary, workplaces(name, required_guarantors)),
           offices!inner(name)
         `)
@@ -58,7 +62,8 @@ export default function WaitingQueue() {
           guarantors_needed: item.customers.workplaces?.required_guarantors || 1,
           current_guarantors: 0,
           created_at: item.created_at,
-          verification_status: item.verification_status || 'verified' // Fallback to verified for old records
+          verification_status: item.verification_status || 'verified', // Fallback to verified for old records
+          rejection_reason: item.rejection_reason || ''
         }))
         setQueue(formatted)
       }
@@ -82,6 +87,32 @@ export default function WaitingQueue() {
     } catch (err) {
       console.error('Error verifying transaction:', err)
       alert('حدث خطأ أثناء اعتماد المعاملة')
+    } finally {
+      setVerifying(null)
+    }
+  }
+  const rejectTransaction = async (transactionId: string) => {
+    if (!rejectReason.trim()) {
+      alert('يرجى كتابة سبب الرفض')
+      return
+    }
+    setVerifying(transactionId)
+    try {
+      const { error } = await supabase
+        .from('transactions')
+        .update({ 
+          verification_status: 'rejected',
+          rejection_reason: rejectReason.trim()
+        })
+        .eq('id', transactionId)
+        
+      if (error) throw error
+      setRejectingTx(null)
+      setRejectReason('')
+      loadQueue()
+    } catch (err) {
+      console.error('Error rejecting transaction:', err)
+      alert('حدث خطأ أثناء رفض المعاملة')
     } finally {
       setVerifying(null)
     }
@@ -154,11 +185,59 @@ export default function WaitingQueue() {
 
       if (error) throw error
 
-      if (data && data.match_found) {
+      if (data && data.success && (data.status === 'MATCHED' || data.matched > 0)) {
+        // Fetch beneficiary (customer) details
+        const { data: txData } = await supabase
+          .from('transactions')
+          .select('customers(name, phone)')
+          .eq('id', transactionId)
+          .single()
+
+        // Fetch guarantor details
+        const { data: guarData } = await supabase
+          .from('transaction_guarantors')
+          .select('guarantor_name, guarantor_national_id')
+          .eq('transaction_id', transactionId)
+          .eq('match_status', 'CONFIRMED')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+
+        let guarantorPhone = ''
+        if (guarData) {
+          const { data: phoneData } = await supabase
+            .from('customers')
+            .select('phone')
+            .eq('national_id', guarData.guarantor_national_id)
+            .maybeSingle()
+          
+          if (phoneData) {
+            guarantorPhone = phoneData.phone || ''
+          }
+        }
+
+        const cust = txData?.customers
+        const customerName = (Array.isArray(cust) ? cust[0]?.name : (cust as any)?.name) || ''
+        const customerPhone = (Array.isArray(cust) ? cust[0]?.phone : (cust as any)?.phone) || ''
+        const guarantorName = guarData?.guarantor_name || 'ضامن مطابق'
+
         setMatchResults(prev => ({
           ...prev,
-          [transactionId]: `✅ تم العثور على تطابق تلقائي بنجاح! الضامن: ${data.guarantor_name}`
+          [transactionId]: `✅ تم العثور على تطابق تلقائي بنجاح! الضامن: ${guarantorName}`
         }))
+
+        // Call the notification service
+        try {
+          await notificationService.sendMatchAlert(
+            customerName,
+            customerPhone,
+            guarantorName,
+            guarantorPhone || customerPhone
+          )
+        } catch (notifErr) {
+          console.error('Failed to send WhatsApp match alerts:', notifErr)
+        }
+
         loadQueue() // Refresh to reflect change
       } else {
         setMatchResults(prev => ({
@@ -210,6 +289,11 @@ export default function WaitingQueue() {
                 <span className="queue-meta">{item.office_name} • {item.workplace_name}</span>
               </div>
               <div className="queue-badges">
+                {item.verification_status === 'rejected' && (
+                  <span className="badge badge-danger" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', fontWeight: 'bold' }}>
+                    مرفوضة
+                  </span>
+                )}
                 <span className="badge badge-warning">
                   {daysSince(item.created_at)} يوم في الانتظار
                 </span>
@@ -230,6 +314,26 @@ export default function WaitingQueue() {
               </div>
             </div>
 
+            {item.verification_status === 'rejected' && item.rejection_reason && (
+              <div style={{
+                background: 'rgba(239, 68, 68, 0.05)',
+                border: '1px dashed rgba(239, 68, 68, 0.25)',
+                borderRadius: '8px',
+                padding: '0.6rem 0.8rem',
+                marginTop: '0.5rem',
+                fontSize: '0.82rem',
+                color: '#f87171',
+                width: '100%',
+                lineHeight: '1.4',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.2rem'
+              }}>
+                <span style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>سبب الرفض:</span>
+                <span>{item.rejection_reason}</span>
+              </div>
+            )}
+
             <div className="queue-card-actions" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%', marginTop: '1rem' }}>
               {/* Document Review Action */}
               <button
@@ -241,7 +345,33 @@ export default function WaitingQueue() {
                 <span>عرض المستندات المرفوعة</span>
               </button>
 
-              {item.verification_status === 'pending' ? (
+              {item.verification_status === 'rejected' ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%' }}>
+                  <div style={{
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                    borderRadius: '8px',
+                    padding: '0.5rem',
+                    color: '#f87171',
+                    fontSize: '0.82rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    justifyContent: 'center'
+                  }}>
+                    <AlertCircle size={14} />
+                    <span>تم رفض مستندات هذه المعاملة</span>
+                  </div>
+                  <button
+                    className="btn btn-primary btn-sm w-full"
+                    disabled={true}
+                    style={{ opacity: 0.5 }}
+                    title="المستندات مرفوضة ولا يمكن مطابقة المعاملة"
+                  >
+                    بحث عن ضامن
+                  </button>
+                </div>
+              ) : item.verification_status === 'pending' ? (
                 <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
                   <button
                     className="btn btn-success btn-sm"
@@ -253,12 +383,16 @@ export default function WaitingQueue() {
                     {verifying === item.id ? 'جاري الاعتماد...' : 'اعتماد المستندات'}
                   </button>
                   <button
-                    className="btn btn-primary btn-sm"
-                    disabled={true}
-                    style={{ opacity: 0.5, flex: 1 }}
-                    title="يجب اعتماد المستندات أولاً"
+                    className="btn btn-danger btn-sm"
+                    onClick={() => {
+                      setRejectingTx(item.id)
+                      setRejectReason('')
+                    }}
+                    disabled={verifying === item.id || (!isManager && !isAccountant)}
+                    title={(!isManager && !isAccountant) ? "صلاحية رفض المستندات محصورة للمدير والمحاسب" : "رفض المستندات"}
+                    style={{ flex: 1, background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', fontWeight: 'bold' }}
                   >
-                    بحث عن ضامن
+                    رفض
                   </button>
                 </div>
               ) : (
@@ -395,6 +529,82 @@ export default function WaitingQueue() {
               <X size={20} /> إغلاق المعاينة
             </button>
             <img src={selectedPreviewImage} alt="معاينة المستند" className="lightbox-img" />
+          </div>
+        </div>
+      )}
+
+      {/* Rejection Reason Modal */}
+      {rejectingTx && (
+        <div className="lightbox-overlay" onClick={() => setRejectingTx(null)} style={{ zIndex: 100000 }}>
+          <div 
+            className="lightbox-content" 
+            onClick={(e) => e.stopPropagation()} 
+            style={{ 
+              background: 'var(--navy-950)', 
+              padding: '2rem', 
+              borderRadius: '16px', 
+              border: '1px solid rgba(239, 68, 68, 0.25)', 
+              minWidth: '320px', 
+              maxWidth: '480px', 
+              width: '90%', 
+              cursor: 'default',
+              boxShadow: '0 10px 25px rgba(239, 68, 68, 0.05)'
+            }}
+          >
+            <button className="lightbox-close" onClick={() => setRejectingTx(null)} style={{ top: '15px', right: '15px' }}>
+              <X size={20} /> إلغاء
+            </button>
+
+            <div style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1rem', width: '100%' }}>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 900, color: '#f87171', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <AlertCircle size={22} />
+                <span>سبب رفض مستندات المعاملة</span>
+              </h3>
+              <p style={{ margin: '0.4rem 0 0 0', fontSize: '0.88rem', color: 'var(--text-tertiary)' }}>
+                يرجى توضيح سبب رفض هذه المستندات ليتمكن موظف الفرع من مراجعتها وتعديلها.
+              </p>
+            </div>
+
+            <div style={{ width: '100%', marginBottom: '1.5rem' }}>
+              <textarea
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="اكتب سبب الرفض بالتفصيل هنا..."
+                style={{
+                  width: '100%',
+                  height: '120px',
+                  padding: '0.8rem',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  borderRadius: '8px',
+                  color: 'var(--text-primary)',
+                  fontSize: '0.9rem',
+                  outline: 'none',
+                  resize: 'none',
+                  fontFamily: 'inherit',
+                  textAlign: 'right'
+                }}
+                autoFocus
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={() => rejectTransaction(rejectingTx)}
+                disabled={verifying === rejectingTx}
+                style={{ flex: 1, padding: '0.65rem 1rem', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+              >
+                {verifying === rejectingTx ? 'جاري الرفض...' : 'تأكيد الرفض'}
+              </button>
+              <button
+                className="btn btn-outline btn-sm"
+                onClick={() => setRejectingTx(null)}
+                style={{ flex: 1, padding: '0.65rem 1rem', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', borderRadius: '8px', background: 'transparent', fontWeight: 'bold', cursor: 'pointer' }}
+              >
+                إلغاء
+              </button>
+            </div>
           </div>
         </div>
       )}

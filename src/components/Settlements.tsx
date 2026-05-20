@@ -20,6 +20,7 @@ interface ExternalSaleTimer {
   deadline: Date
   remainingHours: number
   completed: boolean
+  transactionId?: string
 }
 
 const DRAFT_KEY = 'kafeel_settlement_draft'
@@ -53,6 +54,36 @@ export default function Settlements() {
   const [timers, setTimers] = useState<ExternalSaleTimer[]>([])
   const [submitted, setSubmitted] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [activeTxList, setActiveTxList] = useState<any[]>([])
+  const [selectedTxId, setSelectedTxId] = useState<string>('')
+
+  const fetchActiveTransactions = useCallback(async () => {
+    if (!officeId) return
+    try {
+      const { data: txs, error } = await supabase
+        .from('transactions')
+        .select(`
+          id,
+          car_price,
+          down_payment,
+          customers!inner (
+            name,
+            workplace:workplace_id (
+              name
+            )
+          )
+        `)
+        .in('status', ['MATCHED', 'ACTIVE'])
+        .eq('office_id', officeId)
+      
+      if (error) throw error
+      if (txs) {
+        setActiveTxList(txs)
+      }
+    } catch (err) {
+      console.error('Error fetching active transactions:', err)
+    }
+  }, [officeId])
 
   const loadData = useCallback(async () => {
     if (!officeId) return
@@ -60,23 +91,30 @@ export default function Settlements() {
       const { data: timerData, error } = await supabase
         .from('settlements')
         .select(`
-          id, deadline, completed,
-          transactions!inner(
-            customers(full_name)
+          id,
+          transaction_id,
+          external_sale_deadline,
+          external_sale_completed,
+          transactions!inner (
+            id,
+            customers (
+              name
+            )
           )
         `)
-        .eq('type', 'EXTERNAL_SALE')
-        .eq('completed', false)
+        .eq('settlement_type', 'EXTERNAL_SALE')
+        .eq('external_sale_completed', false)
       
       if (error) throw error
       
       if (timerData) {
         const formatted: ExternalSaleTimer[] = timerData.map(t => ({
           id: t.id,
-          customerName: (t.transactions as any).customers.full_name,
-          deadline: new Date(t.deadline),
-          remainingHours: Math.max(0, (new Date(t.deadline).getTime() - Date.now()) / 3600000),
-          completed: t.completed
+          customerName: (t.transactions as any).customers.name,
+          deadline: new Date(t.external_sale_deadline),
+          remainingHours: Math.max(0, (new Date(t.external_sale_deadline).getTime() - Date.now()) / 3600000),
+          completed: t.external_sale_completed,
+          transactionId: (t.transactions as any).id
         }))
         setTimers(formatted)
       }
@@ -87,7 +125,8 @@ export default function Settlements() {
 
   useEffect(() => {
     loadData()
-  }, [loadData])
+    fetchActiveTransactions()
+  }, [loadData, fetchActiveTransactions])
 
   // Save draft
   useEffect(() => {
@@ -110,6 +149,31 @@ export default function Settlements() {
   const handleInput = (field: keyof SettlementData, value: string) => {
     setData((prev) => ({ ...prev, [field]: field === 'customerName' ? value : parseFloat(value) || 0 }))
     setSubmitted(false)
+  }
+
+  const handleTxChange = (txId: string) => {
+    setSelectedTxId(txId)
+    setSubmitted(false)
+    if (!txId) {
+      setData(prev => ({
+        ...prev,
+        customerName: '',
+        carPrice: 0,
+        downPayment: 0,
+        debtAmount: 0,
+      }))
+      return
+    }
+    const tx = activeTxList.find(t => t.id === txId)
+    if (tx) {
+      setData(prev => ({
+        ...prev,
+        customerName: tx.customers?.name || '',
+        carPrice: Number(tx.car_price) || 0,
+        downPayment: Number(tx.down_payment) || 0,
+        debtAmount: (Number(tx.car_price) || 0) - (Number(tx.down_payment) || 0),
+      }))
+    }
   }
 
   // Calculations
@@ -144,31 +208,113 @@ export default function Settlements() {
     }
   }
 
-  const handleSubmit = async () => {
+  const handleCompleteExternalSale = async (settlementId: string, transactionId: string) => {
+    if (!confirm('هل تريد إكمال هذا البيع الخارجي وإغلاق المعاملة بنجاح؟')) return
     try {
+      const { error: settlementError } = await supabase
+        .from('settlements')
+        .update({
+          external_sale_completed: true,
+          status: 'COMPLETED'
+        })
+        .eq('id', settlementId)
+
+      if (settlementError) throw settlementError
+
+      if (transactionId) {
+        const { error: txError } = await supabase
+          .from('transactions')
+          .update({
+            status: 'COMPLETED'
+          })
+          .eq('id', transactionId)
+
+        if (txError) throw txError
+      }
+
+      alert('✅ تم إكمال البيع الخارجي بنجاح!')
+      loadData()
+      fetchActiveTransactions()
+    } catch (err: any) {
+      console.error('Error completing external sale:', err)
+      alert(`فشل إكمال البيع: ${err.message || 'خطأ غير معروف'}`)
+    }
+  }
+
+  const handleSubmit = async () => {
+    if (!selectedTxId) {
+      alert('يرجى اختيار معاملة نشطة أولاً.')
+      return
+    }
+    if (!data.checkImageUrl) {
+      alert('يرجى إرفاق صورة الصك المالي أولاً.')
+      return
+    }
+    try {
+      let netCash = 0
+      if (activeType === 'CASH_OUT') {
+        netCash = data.carPrice - data.downPayment - data.debtAmount - data.officeCommission
+      } else if (activeType === 'EXTERNAL_SALE') {
+        netCash = data.salePrice - data.carPrice - data.officeCommission
+      }
+
+      const deadline = activeType === 'EXTERNAL_SALE'
+        ? new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
+        : null
+
+      const settlementStatus = activeType === 'EXTERNAL_SALE' ? 'IN_PROGRESS' : 'COMPLETED'
+
       const { error } = await supabase
         .from('settlements')
         .insert({
-          type: activeType,
-          customer_name: data.customerName,
-          car_price: data.carPrice,
-          down_payment: data.downPayment,
-          debt_amount: data.debtAmount,
-          sale_price: data.salePrice,
-          office_commission: data.officeCommission,
-          check_image_url: data.checkImageUrl,
+          transaction_id: selectedTxId,
           office_id: officeId,
-          completed: true
+          settlement_type: activeType,
+          down_payment_collected: data.downPayment,
+          debt_amount: data.debtAmount,
+          sale_price: activeType === 'EXTERNAL_SALE' ? data.salePrice : null,
+          office_commission: (activeType === 'CASH_OUT' || activeType === 'EXTERNAL_SALE') ? data.officeCommission : 0,
+          net_cash: netCash,
+          external_sale_deadline: deadline,
+          external_sale_completed: false,
+          status: settlementStatus,
+          check_image_url: data.checkImageUrl
         })
       
       if (error) throw error
 
+      // If the settlement type is not EXTERNAL_SALE, we mark the transaction as COMPLETED
+      if (activeType !== 'EXTERNAL_SALE') {
+        const { error: txError } = await supabase
+          .from('transactions')
+          .update({
+            status: 'COMPLETED'
+          })
+          .eq('id', selectedTxId)
+
+        if (txError) throw txError
+      }
+
       setSubmitted(true)
       localStorage.removeItem(DRAFT_KEY)
-      loadData() // Refresh timers
-    } catch (err) {
+      setSelectedTxId('')
+      setData({
+        type: activeType,
+        customerName: '',
+        carPrice: 0,
+        downPayment: 0,
+        debtAmount: 0,
+        salePrice: 0,
+        officeCommission: 0,
+        checkImageUrl: '',
+      })
+      await Promise.all([
+        loadData(),
+        fetchActiveTransactions()
+      ])
+    } catch (err: any) {
       console.error('Submission failed:', err)
-      alert('حدث خطأ أثناء حفظ التسوية.')
+      alert(`حدث خطأ أثناء حفظ التسوية: ${err.message || 'خطأ غير معروف'}`)
     }
   }
 
@@ -217,13 +363,36 @@ export default function Settlements() {
       {/* Form */}
       <div className="settlement-form">
         <div className="input-group">
-          <label>اسم الزبون</label>
-          <input
-            type="text"
-            placeholder="أدخل اسم الزبون"
-            value={data.customerName}
-            onChange={(e) => handleInput('customerName', e.target.value)}
-          />
+          <label>اختر المعاملة النشطة (الزبون)</label>
+          <select
+            value={selectedTxId}
+            onChange={(e) => handleTxChange(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '0.75rem 1rem',
+              borderRadius: '10px',
+              border: '1px solid rgba(191, 149, 63, 0.3)',
+              background: 'var(--surface-hover)',
+              color: 'var(--text-primary)',
+              fontSize: '0.88rem',
+              outline: 'none',
+              transition: 'all 0.3s ease',
+              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
+            }}
+          >
+            <option value="">-- اختر معاملة نشطة --</option>
+            {activeTxList.map((tx) => (
+              <option key={tx.id} value={tx.id}>
+                {tx.customers?.name} ({tx.customers?.workplace?.name || 'بدون جهة عمل'}) - سعر السيارة: {Number(tx.car_price).toLocaleString('ar-LY')} د.ل
+              </option>
+            ))}
+          </select>
+          {activeTxList.length === 0 && (
+            <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <AlertTriangle size={14} />
+              لا توجد معاملات نشطة بانتظار التسوية حالياً. يرجى تفعيل أو مطابقة معاملة أولاً.
+            </div>
+          )}
         </div>
 
         <div className="settlement-grid">
@@ -428,7 +597,7 @@ export default function Settlements() {
           <button 
             className="btn btn-primary" 
             onClick={handleSubmit} 
-            disabled={!data.customerName || !data.carPrice || !data.checkImageUrl}
+            disabled={!selectedTxId || !data.carPrice || !data.checkImageUrl}
           >
             <CheckCircle2 size={16} />
             تسجيل التسوية وإغلاق المعاملة
@@ -445,33 +614,58 @@ export default function Settlements() {
 
       {/* External Sale Timers */}
       {timers.length > 0 && (
-        <div className="timers-section">
-          <h4 className="panel-title">
+        <div className="timers-section" style={{ marginTop: '2rem' }}>
+          <h4 className="panel-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
             <Timer size={16} />
             عدادات البيع الخارجي (3 أيام)
           </h4>
-          <div className="timer-list">
+          <div className="timer-list" style={{ display: 'grid', gap: '0.75rem' }}>
             {timers.map((timer) => {
               const isUrgent = timer.remainingHours < 12
               const isExpired = timer.remainingHours <= 0
               return (
-                <div key={timer.id} className={`timer-card ${isUrgent ? 'urgent' : ''} ${isExpired ? 'expired' : ''}`}>
-                  <div className="timer-info">
-                    <span className="timer-name">{timer.customerName}</span>
-                    <span className="timer-remaining">
-                      {isExpired ? (
-                        <><AlertTriangle size={14} /> انتهت المهلة!</>
-                      ) : (
-                        <><Clock size={14} /> {formatHours(timer.remainingHours)} متبقية</>
-                      )}
-                    </span>
+                <div key={timer.id} className={`timer-card ${isUrgent ? 'urgent' : ''} ${isExpired ? 'expired' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '1rem', border: '1px solid var(--glass-border)', borderRadius: '12px', background: 'var(--surface-hover)' }}>
+                  <div className="timer-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                      <span className="timer-name" style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{timer.customerName}</span>
+                      <span className="timer-remaining" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem', color: isUrgent ? 'var(--error)' : 'var(--text-secondary)' }}>
+                        {isExpired ? (
+                          <><AlertTriangle size={14} style={{ color: 'var(--error)' }} /> انتهت المهلة!</>
+                        ) : (
+                          <><Clock size={14} /> {formatHours(timer.remainingHours)} متبقية</>
+                        )}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleCompleteExternalSale(timer.id, timer.transactionId || '')}
+                      className="btn btn-sm btn-success"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                        padding: '0.4rem 0.8rem',
+                        fontSize: '0.75rem',
+                        borderRadius: '6px',
+                        background: 'rgba(16, 185, 129, 0.15)',
+                        color: 'var(--success-color)',
+                        border: '1px solid rgba(16, 185, 129, 0.3)',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <CheckCircle2 size={12} />
+                      إكمال البيع
+                    </button>
                   </div>
-                  <div className="timer-bar">
+                  <div className="timer-bar" style={{ height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
                     <div
                       className="timer-bar-fill"
                       style={{
+                        height: '100%',
                         width: `${Math.max(0, (timer.remainingHours / 72) * 100)}%`,
                         background: isUrgent ? 'var(--error)' : 'var(--success)',
+                        transition: 'width 0.5s ease-out'
                       }}
                     />
                   </div>

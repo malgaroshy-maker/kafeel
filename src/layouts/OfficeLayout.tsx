@@ -41,6 +41,7 @@ const OfficeLayout: React.FC = () => {
   const [selectedGuarantor, setSelectedGuarantor] = useState<any>(null);
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
   const [docCustomerId, setDocCustomerId] = useState<any>(null);
+  const [activeTransactionId, setActiveTransactionId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -58,11 +59,6 @@ const OfficeLayout: React.FC = () => {
     localStorage.setItem('landing-theme', newTheme);
   };
 
-  useEffect(() => {
-    if (isStaff && activeTab === 'beneficiary') {
-       setActiveTab('dashboard');
-    }
-  }, [isStaff]);
 
   const [broadcasts, setBroadcasts] = useState<any[]>([]);
   const [isBannerClosed, setIsBannerClosed] = useState(false);
@@ -277,6 +273,11 @@ const OfficeLayout: React.FC = () => {
             <FinancialCalculator 
               beneficiaryId={selectedBeneficiary} 
               guarantorId={selectedGuarantor} 
+              onSaveSuccess={(txId) => {
+                setActiveTransactionId(txId);
+                setDocCustomerId(selectedBeneficiary);
+                setActiveTab('documents');
+              }}
             />
           )}
           {activeTab === 'beneficiary' && (
@@ -293,7 +294,7 @@ const OfficeLayout: React.FC = () => {
               }} 
             />
           )}
-          {activeTab === 'documents' && <DocumentUploader customerId={docCustomerId} />}
+          {activeTab === 'documents' && <DocumentUploader customerId={docCustomerId} transactionId={activeTransactionId} />}
           {activeTab === 'queue' && <WaitingQueue />}
           {activeTab === 'settlements' && <Settlements />}
           {activeTab === 'reports' && <ReportsDashboard />}

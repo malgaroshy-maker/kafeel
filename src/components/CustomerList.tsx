@@ -13,6 +13,7 @@ interface Customer {
     name: string
   }
   hasActiveTransaction: boolean
+  transactionStatus?: string | null
 }
 
 interface Props {
@@ -54,20 +55,33 @@ export default function CustomerList({ onSelect, onEdit, onDocuments, onSendToQu
       .order('created_at', { ascending: false })
 
     if (!error && data) {
-      // Fetch active transactions for these customers
+      // Fetch latest transaction for these customers (all statuses)
       const customerIds = data.map(c => c.id)
       const { data: txData } = await supabase
         .from('transactions')
-        .select('customer_id, status')
+        .select('customer_id, status, verification_status, created_at')
         .in('customer_id', customerIds)
-        .in('status', ['WAITING_MATCH', 'MATCHED', 'ACTIVE'])
+        .order('created_at', { ascending: false })
 
-      const activeCustomerIds = new Set(txData?.map(t => t.customer_id) || [])
+      // Build a map of customer_id -> latest transaction details
+      const customerTxMap = new Map<string, { status: string; verificationStatus: string | null }>()
+      txData?.forEach(t => {
+        if (!customerTxMap.has(t.customer_id)) {
+          customerTxMap.set(t.customer_id, {
+            status: t.status,
+            verificationStatus: t.verification_status || null
+          })
+        }
+      })
 
-      setCustomers(data.map(c => ({
-        ...c,
-        hasActiveTransaction: activeCustomerIds.has(c.id)
-      })) as any)
+      setCustomers(data.map(c => {
+        const tx = customerTxMap.get(c.id)
+        return {
+          ...c,
+          hasActiveTransaction: tx && ['WAITING_MATCH', 'MATCHED', 'ACTIVE'].includes(tx.status),
+          transactionStatus: tx ? (tx.verificationStatus === 'rejected' ? 'REJECTED' : tx.status) : null
+        }
+      }) as any)
     }
     setLoading(false)
   }
@@ -220,26 +234,37 @@ export default function CustomerList({ onSelect, onEdit, onDocuments, onSendToQu
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                     <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-primary)' }}>{customer.name}</span>
-                    {customer.hasActiveTransaction && (
-                      <span 
-                        style={{ 
-                          background: 'rgba(217, 119, 6, 0.12)', 
-                          color: '#fbbf24', 
-                          border: '1px solid rgba(217, 119, 6, 0.25)', 
-                          fontSize: '0.72rem', 
-                          fontWeight: 'bold', 
-                          padding: '0.2rem 0.6rem', 
-                          borderRadius: '12px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.25rem',
-                          animation: 'pulse 2s infinite'
-                        }}
-                      >
-                        <Clock size={11} />
-                        قيد المعاملة والانتظار
-                      </span>
-                    )}
+                    {customer.transactionStatus && (() => {
+                      const statusConfig: Record<string, { bg: string; color: string; border: string; label: string; animate?: boolean }> = {
+                        'PENDING': { bg: 'rgba(107, 114, 128, 0.12)', color: '#9ca3af', border: '1px solid rgba(107, 114, 128, 0.25)', label: 'مسودة' },
+                        'WAITING_MATCH': { bg: 'rgba(217, 119, 6, 0.12)', color: '#fbbf24', border: '1px solid rgba(217, 119, 6, 0.25)', label: 'في الانتظار', animate: true },
+                        'REJECTED': { bg: 'rgba(239, 68, 68, 0.12)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.25)', label: 'مستندات مرفوضة' },
+                        'MATCHED': { bg: 'rgba(16, 185, 129, 0.12)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.25)', label: 'تم التطابق' },
+                        'ACTIVE': { bg: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.25)', label: 'نشطة' },
+                        'COMPLETED': { bg: 'rgba(191, 149, 63, 0.12)', color: '#d4af37', border: '1px solid rgba(191, 149, 63, 0.25)', label: 'مكتملة' },
+                      }
+                      const cfg = statusConfig[customer.transactionStatus] || statusConfig['PENDING']
+                      return (
+                        <span 
+                          style={{ 
+                            background: cfg.bg, 
+                            color: cfg.color, 
+                            border: cfg.border, 
+                            fontSize: '0.72rem', 
+                            fontWeight: 'bold', 
+                            padding: '0.2rem 0.6rem', 
+                            borderRadius: '12px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.25rem',
+                            ...(cfg.animate ? { animation: 'pulse 2s infinite' } : {})
+                          }}
+                        >
+                          <Clock size={11} />
+                          {cfg.label}
+                        </span>
+                      )
+                    })()}
                   </div>
                   
                   {/* Chips row */}

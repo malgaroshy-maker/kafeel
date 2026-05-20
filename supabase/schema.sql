@@ -112,12 +112,16 @@ CREATE TABLE IF NOT EXISTS public.transactions (
     purchase_cost NUMERIC,
     is_files_complete BOOLEAN DEFAULT false,
     status TEXT NOT NULL DEFAULT 'PENDING',
+    verification_status TEXT DEFAULT 'pending' CHECK (verification_status IN ('pending', 'verified', 'rejected')),
+    rejection_reason TEXT,
     guarantors_needed INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
 COMMENT ON TABLE public.transactions IS 'Murabaha transaction lifecycle. Status: PENDING → WAITING_MATCH → MATCHED → ACTIVE → COMPLETED.';
 COMMENT ON COLUMN public.transactions.purchase_cost IS 'Actual car cost for the office. Hidden from staff/monitors for profit calculation.';
+COMMENT ON COLUMN public.transactions.verification_status IS 'Status of the document verification process by manager/accountant';
+COMMENT ON COLUMN public.transactions.rejection_reason IS 'Reason for document rejection by manager/accountant';
 
 -- ---- TRANSACTION GUARANTORS ----
 CREATE TABLE IF NOT EXISTS public.transaction_guarantors (

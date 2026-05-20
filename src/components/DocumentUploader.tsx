@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Upload, FileCheck, Image as ImageIcon, Loader2, Send, User, X, FileText, ChevronDown } from 'lucide-react'
+import { Upload, FileCheck, Image as ImageIcon, Loader2, Send, User, X, FileText, ChevronDown, AlertTriangle } from 'lucide-react'
 import { compressImage } from '../utils/imageCompression'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
@@ -25,6 +25,7 @@ const initialDocs: DocItem[] = [
 
 interface Props {
   customerId?: string | null
+  transactionId?: string | null
 }
 
 const formatSize = (bytes: number) => {
@@ -33,8 +34,8 @@ const formatSize = (bytes: number) => {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
 }
 
-export default function DocumentUploader({ customerId }: Props) {
-  const { officeId, role: userRole } = useAuth()
+export default function DocumentUploader({ customerId, transactionId }: Props) {
+  const { officeId } = useAuth()
   const [customers, setCustomers] = useState<{ id: string; name: string; national_id: string; phone: string }[]>([])
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(customerId || null)
   const [isCustomerSelectOpen, setIsCustomerSelectOpen] = useState(false)
@@ -42,7 +43,7 @@ export default function DocumentUploader({ customerId }: Props) {
   const [customerName, setCustomerName] = useState<string | null>(null)
   const [docs, setDocs] = useState<DocItem[]>(initialDocs)
   const [selectedPreviewImage, setSelectedPreviewImage] = useState<string | null>(null)
-  const [activeTransactionId, setActiveTransactionId] = useState<string | null>(customerId || null)
+  const [activeTransactionId, setActiveTransactionId] = useState<string | null>(transactionId || customerId || null)
   const [loadingDocs, setLoadingDocs] = useState(false)
   const [compressing, setCompressing] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -77,6 +78,13 @@ export default function DocumentUploader({ customerId }: Props) {
     setSelectedCustomerId(customerId || null)
   }, [customerId])
 
+  // Sync state if the transactionId prop changes from parent
+  useEffect(() => {
+    if (transactionId) {
+      setActiveTransactionId(transactionId)
+    }
+  }, [transactionId])
+
   const fetchCustomerName = async (cId: string) => {
     const { data } = await supabase.from('customers').select('name').eq('id', cId).single()
     if (data) setCustomerName(data.name)
@@ -85,16 +93,28 @@ export default function DocumentUploader({ customerId }: Props) {
   const fetchExistingDocs = async (cId: string) => {
     setLoadingDocs(true)
     try {
-      // Get the most recent active or pending transaction
-      const { data: tx, error: txError } = await supabase
-        .from('transactions')
-        .select('id, status, is_files_complete')
-        .eq('customer_id', cId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
+      let tx: { id: string; status: string; is_files_complete: boolean } | null = null
 
-      if (txError) throw txError
+      if (transactionId) {
+        const { data, error } = await supabase
+          .from('transactions')
+          .select('id, status, is_files_complete')
+          .eq('id', transactionId)
+          .maybeSingle()
+        if (!error && data) tx = data
+      }
+
+      if (!tx) {
+        // Get the most recent active or pending transaction
+        const { data, error } = await supabase
+          .from('transactions')
+          .select('id, status, is_files_complete')
+          .eq('customer_id', cId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (!error && data) tx = data
+      }
 
       if (tx) {
         setActiveTransactionId(tx.id)
@@ -177,51 +197,7 @@ export default function DocumentUploader({ customerId }: Props) {
       return tx.id
     }
 
-    // Determine guarantors needed based on customer's workplace in database or draft
-    let guarantorsNeeded = 1
-    try {
-      const { data: custData } = await supabase
-        .from('customers')
-        .select('*, workplace:workplace_id(required_guarantors)')
-        .eq('id', cId)
-        .single()
-      
-      if (custData && custData.workplace) {
-        guarantorsNeeded = custData.workplace.required_guarantors || 1
-      }
-    } catch (err) {
-      console.warn('Could not determine guarantors_needed from DB:', err)
-    }
-
-    // Auto-populate transaction details from drafts if present in localStorage
-    const calcDraft = JSON.parse(localStorage.getItem('kafeel_calc_draft') || '{}')
-    const beneficiaryDraft = JSON.parse(localStorage.getItem('kafeel_customer_beneficiary_draft') || '{}')
-
-    if (beneficiaryDraft.workplaceType === 'classified') {
-      guarantorsNeeded = 2
-    }
-
-    const { data: newTx, error: createError } = await supabase
-      .from('transactions')
-      .insert({
-        office_id: officeId,
-        customer_id: cId,
-        car_price: parseFloat(calcDraft.carPrice) || 0,
-        bank_ceiling: parseFloat(calcDraft.bankCeiling) || 0,
-        margin_rate: parseFloat(calcDraft.marginRate) || 0.24,
-        down_payment: 0,
-        total_installments: 96,
-        status: 'PENDING',
-        workplace_id: beneficiaryDraft.workplaceId || null,
-        guarantors_needed: guarantorsNeeded
-      })
-      .select()
-      .single()
-
-    if (createError) throw createError
-    
-    setActiveTransactionId(newTx.id)
-    return newTx.id
+    throw new Error('لم يتم العثور على معاملة مالية نشطة في قاعدة البيانات لهذا الزبون. يرجى الذهاب أولاً إلى الحاسبة المالية وحفظ معطيات الزبون.')
   }
 
   const toggleCheck = async (key: string) => {
@@ -394,12 +370,16 @@ export default function DocumentUploader({ customerId }: Props) {
       
       const { error: updateError } = await supabase
         .from('transactions')
-        .update({ is_files_complete: isComplete })
+        .update({ 
+          is_files_complete: isComplete,
+          status: 'WAITING_MATCH',
+          verification_status: 'pending'
+        })
         .eq('id', activeTransactionId)
 
       if (updateError) throw updateError
 
-      alert('تم إرسال وتأكيد المعاملة بنجاح!')
+      alert('تم تأكيد المستندات وإرسال المعاملة للمراجعة بنجاح! تم إحالة المعاملة إلى قائمة الانتظار.')
       
       // Clear drafts
       localStorage.removeItem('kafeel_calc_draft')
@@ -410,108 +390,6 @@ export default function DocumentUploader({ customerId }: Props) {
     } catch (err) {
       console.error('Update failed:', err)
       alert('حدث خطأ أثناء تحديث المستندات.')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const handleSubmitTransaction = async () => {
-    if (!officeId) return
-    setSubmitting(true)
-    try {
-      // 1. Pull data from localStorage
-      const calcData = JSON.parse(localStorage.getItem('kafeel_calc_draft') || '{}')
-      const beneficiaryData = JSON.parse(localStorage.getItem('kafeel_customer_beneficiary_draft') || '{}')
-      const guarantorData = JSON.parse(localStorage.getItem('kafeel_customer_guarantor_draft') || '{}')
-
-      if (!beneficiaryData.nationalId || !beneficiaryData.fullName || !calcData.carPrice) {
-        alert('يرجى إكمال بيانات المستفيد والحاسبة أولاً.')
-        setSubmitting(false)
-        return
-      }
-
-      // 2. Insert/Get Beneficiary
-      const { data: customer, error: custError } = await supabase
-        .from('customers')
-        .upsert({
-          national_id: beneficiaryData.nationalId,
-          name: beneficiaryData.fullName,
-          phone: beneficiaryData.phone,
-          salary: parseFloat(beneficiaryData.salary) || 0,
-          workplace_id: beneficiaryData.workplaceId || null,
-          office_id: officeId
-        }, { onConflict: 'national_id' })
-        .select()
-        .single()
-
-      if (custError) throw custError
-
-      // 3. Create Transaction
-      const { data: transaction, error: transError } = await supabase
-        .from('transactions')
-        .insert({
-          office_id: officeId,
-          customer_id: customer.id,
-          car_price: parseFloat(calcData.carPrice),
-          bank_ceiling: parseFloat(calcData.bankCeiling),
-          margin_rate: parseFloat(calcData.marginRate),
-          down_payment: 0, // Will be updated during settlement
-          total_installments: 96, // 8 years
-          status: 'PENDING',
-          workplace_id: beneficiaryData.workplaceId || null,
-          purchase_cost: userRole === 'manager' ? (parseFloat(beneficiaryData.purchaseCost) || parseFloat(calcData.purchaseCost) || 0) : null
-        })
-        .select()
-        .single()
-
-      if (transError) throw transError
-
-      // 4. Add Guarantor if exists
-      if (guarantorData.nationalId && guarantorData.fullName) {
-        const { error: guarError } = await supabase
-          .from('transaction_guarantors')
-          .insert({
-            transaction_id: transaction.id,
-            guarantor_name: guarantorData.fullName,
-            guarantor_national_id: guarantorData.nationalId,
-            workplace_id: guarantorData.workplaceId || null,
-            match_type: 'MANUAL',
-            match_status: 'PENDING'
-          })
-        if (guarError) throw guarError
-      }
-
-      // 5. Upload Documents to Storage
-      for (const doc of docs) {
-        if (doc.file) {
-          const fileName = `${transaction.id}/${doc.key}-${doc.file.name}`
-          const { error: uploadError } = await supabase.storage
-            .from('transaction-docs')
-            .upload(fileName, doc.file)
-          if (uploadError) {
-            console.error('Doc upload failed:', uploadError)
-            throw new Error(`خطأ في رفع الملف "${doc.label}": ${uploadError.message}`)
-          }
-        }
-      }
-
-      // 6. Update Transaction File Status
-      if (completedCount === docs.length) {
-        await supabase.from('transactions').update({ is_files_complete: true }).eq('id', transaction.id)
-      }
-
-      alert('تم إرسال المعاملة بنجاح!')
-      // Clear drafts
-      localStorage.removeItem('kafeel_calc_draft')
-      localStorage.removeItem('kafeel_customer_beneficiary_draft')
-      localStorage.removeItem('kafeel_customer_guarantor_draft')
-      
-      // Navigate to queue or refresh
-      window.location.reload() 
-
-    } catch (err: any) {
-      console.error('Submission failed:', err)
-      alert(err?.message || 'حدث خطأ أثناء إرسال المعاملة.')
     } finally {
       setSubmitting(false)
     }
@@ -651,6 +529,16 @@ export default function DocumentUploader({ customerId }: Props) {
             <Loader2 size={36} className="spin" style={{ color: 'var(--primary)' }} />
             <span style={{ marginRight: '0.75rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>جاري تحميل المستندات المرفوعة مسبقاً...</span>
           </div>
+        ) : !activeTransactionId ? (
+          <div style={{ padding: '3.5rem 2rem', textAlign: 'center', background: 'rgba(245,158,11,0.02)', borderRadius: '12px', border: '1px dashed var(--warning)', marginTop: '1.5rem' }}>
+            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto' }}>
+              <AlertTriangle size={32} style={{ color: 'var(--warning)' }} />
+            </div>
+            <h4 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '0.5rem' }}>لا توجد معاملة مالية نشطة</h4>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', maxWidth: '500px', margin: '0 auto 1.5rem auto', lineHeight: '1.6' }}>
+              لم يتم حفظ الحسابات المالية لهذه المعاملة في قاعدة البيانات بعد. يرجى الانتقال إلى تبويب <strong>"الحاسبة"</strong> وإجراء الحسابات المالية ثم الضغط على زر <strong>"حفظ المعاملة ومتابعة المستندات"</strong> لتفعيل رافع المستندات وحفظها بشكل آمن.
+            </p>
+          </div>
         ) : (
           <>
             <div className="doc-list">
@@ -756,45 +644,24 @@ export default function DocumentUploader({ customerId }: Props) {
               ))}
             </div>
 
-            {activeTransactionId ? (
-              <div className="form-actions" style={{ marginTop: '2rem' }}>
-                <button 
-                  className="btn btn-primary btn-lg w-full" 
-                  onClick={handleUpdateTransactionDocs}
-                  disabled={submitting}
-                  style={{ justifyContent: 'center', padding: '1rem' }}
-                >
-                  {submitting ? (
-                    <>
-                      <Loader2 size={20} className="spin" /> جاري التحديث...
-                    </>
-                  ) : (
-                    <>
-                      <Send size={20} /> تأكيد وإرسال المعاملة للمراجعة
-                    </>
-                  )}
-                </button>
-              </div>
-            ) : (
-              <div className="form-actions" style={{ marginTop: '2rem' }}>
-                <button 
-                  className="btn btn-primary btn-lg w-full" 
-                  onClick={handleSubmitTransaction}
-                  disabled={submitting}
-                  style={{ justifyContent: 'center', padding: '1rem' }}
-                >
-                  {submitting ? (
-                    <>
-                      <Loader2 size={20} className="spin" /> جاري الإرسال...
-                    </>
-                  ) : (
-                    <>
-                      <Send size={20} /> إرسال المعاملة للمراجعة
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
+            <div className="form-actions" style={{ marginTop: '2rem' }}>
+              <button 
+                className="btn btn-primary btn-lg w-full" 
+                onClick={handleUpdateTransactionDocs}
+                disabled={submitting}
+                style={{ justifyContent: 'center', padding: '1rem' }}
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 size={20} className="spin" /> جاري التحديث...
+                  </>
+                ) : (
+                  <>
+                    <Send size={20} /> تأكيد وإرسال المعاملة للمراجعة
+                  </>
+                )}
+              </button>
+            </div>
           </>
         )
       ) : (

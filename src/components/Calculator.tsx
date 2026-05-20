@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import { Calculator as CalcIcon, TrendingUp, Banknote, CreditCard, AlertTriangle, User, ShieldCheck } from 'lucide-react'
+import { Calculator as CalcIcon, TrendingUp, Banknote, CreditCard, AlertTriangle, User, ShieldCheck, Save } from 'lucide-react'
 import { calculateMurabaha, TERM_MONTHS } from '../lib/financialEngine'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
@@ -37,14 +37,16 @@ const CAR_PRESETS = [
 interface Props {
   beneficiaryId?: string | null
   guarantorId?: string | null
+  onSaveSuccess?: (txId: string) => void
 }
 
-export default function FinancialCalculator({ beneficiaryId, guarantorId }: Props) {
-  const { isStaff } = useAuth()
+export default function FinancialCalculator({ beneficiaryId, guarantorId, onSaveSuccess }: Props) {
+  const { isStaff, officeId } = useAuth()
   const [form, setForm] = useLocalStorage<CalcState>('kafeel_calc_draft', defaultState)
   const [beneficiaryData, setBeneficiaryData] = useState<any>(null)
   const [guarantorData, setGuarantorData] = useState<any>(null)
   const [selectedCar, setSelectedCar] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (beneficiaryId) {
@@ -61,7 +63,7 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId }: Prop
   const fetchBeneficiary = async (id: string) => {
     const { data } = await supabase
       .from('customers')
-      .select('*, workplace:workplace_id(name)')
+      .select('*, workplace:workplace_id(name, required_guarantors)')
       .eq('id', id)
       .single()
     
@@ -79,6 +81,81 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId }: Prop
       .eq('id', id)
       .single()
     if (data) setGuarantorData(data)
+  }
+
+  const handleSaveTransaction = async () => {
+    if (!beneficiaryId) {
+      alert('يرجى اختيار مستفيد أو زبون أولاً.')
+      return
+    }
+    if (!officeId) {
+      alert('يرجى تسجيل الدخول بشكل صحيح كعضو في مكتب.')
+      return
+    }
+    setSaving(true)
+    try {
+      let guarantorsNeeded = 1
+      if (beneficiaryData?.workplace?.required_guarantors) {
+        guarantorsNeeded = beneficiaryData.workplace.required_guarantors
+      }
+
+      const { data: existingTx, error: fetchError } = await supabase
+        .from('transactions')
+        .select('id, status')
+        .eq('customer_id', beneficiaryId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (fetchError) throw fetchError
+
+      const txData = {
+        office_id: officeId,
+        customer_id: beneficiaryId,
+        car_price: n(form.carPrice),
+        bank_ceiling: n(form.bankCeiling),
+        margin_rate: parseFloat(form.marginRate),
+        down_payment: results?.downPayment || 0,
+        total_installments: TERM_MONTHS,
+        workplace_id: beneficiaryData?.workplace_id || null,
+        guarantors_needed: guarantorsNeeded,
+        purchase_cost: !isStaff && n(form.purchaseCost) > 0 ? n(form.purchaseCost) : null
+      }
+
+      let txId = ''
+      if (existingTx) {
+        const { error: updateError } = await supabase
+          .from('transactions')
+          .update(txData)
+          .eq('id', existingTx.id)
+
+        if (updateError) throw updateError
+        txId = existingTx.id
+      } else {
+        const { data: newTx, error: insertError } = await supabase
+          .from('transactions')
+          .insert({
+            ...txData,
+            status: 'PENDING',
+            is_files_complete: false
+          })
+          .select('id')
+          .single()
+
+        if (insertError) throw insertError
+        txId = newTx.id
+      }
+
+      alert('تم حفظ المعاملة المالية في قاعدة البيانات بنجاح!')
+      if (onSaveSuccess) {
+        onSaveSuccess(txId)
+      }
+    } catch (err: any) {
+      console.error('Error saving transaction:', err)
+      alert(`فشل حفظ المعاملة الحسابية: ${err.message || 'خطأ غير معروف'}`)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const update = (field: keyof CalcState, value: string | boolean) => {
@@ -373,6 +450,39 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId }: Prop
               <div className="term-info">
                 <span>مدة التقسيط: <strong>{TERM_MONTHS} شهر (8 سنوات)</strong></span>
               </div>
+
+              {beneficiaryId && (
+                <button
+                  type="button"
+                  className="btn btn-primary btn-lg w-full flex items-center justify-center gap-2 mt-4"
+                  onClick={handleSaveTransaction}
+                  disabled={saving}
+                  style={{
+                    background: 'linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%)',
+                    color: '#0f172a',
+                    border: 'none',
+                    fontWeight: 'bold',
+                    boxShadow: '0 4px 15px rgba(186, 147, 61, 0.4)',
+                    padding: '0.85rem',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    marginTop: '1.25rem'
+                  }}
+                >
+                  {saving ? (
+                    <>
+                      <span className="animate-spin inline-block w-4.5 h-4.5 border-2 border-current border-t-transparent rounded-full"></span>
+                      جاري حفظ المعاملة...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={18} />
+                      حفظ المعاملة ومتابعة المستندات
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           ) : (
             <div className="results-empty">
