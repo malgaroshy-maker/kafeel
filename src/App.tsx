@@ -11,6 +11,7 @@ import MonitorLayout from './layouts/MonitorLayout';
 
 import { SecurityErrorBoundary } from './components/SecurityErrorBoundary';
 import { TermsOverlay } from './components/TermsOverlay';
+import SupportWidget from './components/SupportWidget';
 
 function App() {
   useEffect(() => {
@@ -24,6 +25,7 @@ function App() {
       <AuthProvider>
         <Router>
           <TermsOverlay />
+          <SupportWidget />
           <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />

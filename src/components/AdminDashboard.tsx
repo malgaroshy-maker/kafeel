@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { LayoutDashboard, Building2, Plus, Users, Key, ToggleLeft, ToggleRight, Copy, RefreshCw, ShieldCheck, ShieldOff, Trash2, ChevronDown, Search, TrendingUp, Megaphone, Activity, Coins, CheckCircle, Clock, Edit, Settings, Sun, Moon, ShieldAlert, UserX } from 'lucide-react'
+import { LayoutDashboard, Building2, Plus, Users, Key, ToggleLeft, ToggleRight, Copy, RefreshCw, ShieldCheck, ShieldOff, Trash2, ChevronDown, Search, TrendingUp, Megaphone, Activity, Coins, CheckCircle, Clock, Edit, Settings, Sun, Moon, ShieldAlert, UserX, MessageCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -34,6 +34,7 @@ interface UserProfile {
 interface Workplace {
   id: string
   name: string
+  tax_rate?: 16 | 24 | null
 }
 
 interface Bank {
@@ -70,6 +71,7 @@ export default function AdminDashboard() {
   const [selectedBankId, setSelectedBankId] = useState<string>('')
   const [activeTab, setActiveTab] = useState<Tab>('offices')
   const [newWorkplaceName, setNewWorkplaceName] = useState('')
+  const [newWorkplaceTaxRate, setNewWorkplaceTaxRate] = useState<16 | 24 | null>(null)
   const [newBankName, setNewBankName] = useState('')
   const [newBranchName, setNewBranchName] = useState('')
   const [newBranchRegion, setNewBranchRegion] = useState('')
@@ -95,6 +97,9 @@ export default function AdminDashboard() {
   const [tickets, setTickets] = useState<any[]>([])
   const [selectedTicket, setSelectedTicket] = useState<any | null>(null)
   const [ticketReplyText, setTicketReplyText] = useState('')
+  const [supportMessages, setSupportMessages] = useState<any[]>([])
+  const [selectedSupportMsg, setSelectedSupportMsg] = useState<any | null>(null)
+  const [supportReplyText, setSupportReplyText] = useState('')
 
   const [healthLogs, setHealthLogs] = useState<any[]>([])
   const [dbLatency] = useState<number>(12)
@@ -371,6 +376,14 @@ export default function AdminDashboard() {
         const { data } = await supabase.from('support_tickets').select('*').order('created_at', { ascending: false })
         if (data) ticketsData = data
       } catch (e) { console.error('Error fetching tickets:', e) }
+
+      try {
+        const { data } = await supabase
+          .from('support_messages')
+          .select('*, replies:support_replies(*)')
+          .order('created_at', { ascending: false })
+        if (data) setSupportMessages(data)
+      } catch (e) { console.error('Error fetching support messages:', e) }
 
       try {
         const { data } = await supabase.from('admin_activity_logs').select('*').order('created_at', { ascending: false }).limit(30)
@@ -787,9 +800,29 @@ export default function AdminDashboard() {
   const addWorkplace = async () => {
     if (!newWorkplaceName.trim()) return
     try {
-      const { data, error } = await supabase.from('workplaces').insert({ name: newWorkplaceName.trim() }).select().single()
+      const { data, error } = await supabase.from('workplaces').insert({ 
+        name: newWorkplaceName.trim(),
+        tax_rate: newWorkplaceTaxRate 
+      }).select().single()
       if (error) throw error
-      if (data) { setWorkplaces(prev => [...prev, data]); setNewWorkplaceName('') }
+      if (data) { setWorkplaces(prev => [...prev, data]); setNewWorkplaceName(''); setNewWorkplaceTaxRate(null) }
+    } catch (err) { console.error(err) }
+  }
+
+  const updateWorkplaceTaxRate = async (id: string, rate: 16 | 24 | null) => {
+    try {
+      const { error } = await supabase.from('workplaces').update({ tax_rate: rate }).eq('id', id)
+      if (error) throw error
+      setWorkplaces(prev => prev.map(wp => wp.id === id ? { ...wp, tax_rate: rate } : wp))
+    } catch (err) { console.error(err) }
+  }
+
+  const deleteWorkplace = async (id: string) => {
+    if (!confirm('هل أنت متأكد من حذف جهة العمل هذه؟')) return
+    try {
+      const { error } = await supabase.from('workplaces').delete().eq('id', id)
+      if (error) throw error
+      setWorkplaces(prev => prev.filter(wp => wp.id !== id))
     } catch (err) { console.error(err) }
   }
 
@@ -1145,14 +1178,14 @@ export default function AdminDashboard() {
       {activeTab === 'offices' && (
         <div>
           {/* Create Office */}
-          <div className="add-workplace-row" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', background: 'var(--bg-secondary)', padding: '1.25rem', borderRadius: '16px', border: '1px solid var(--border-color)', marginBottom: '2rem' }}>
+          <div className="add-workplace-row" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'nowrap', alignItems: 'center', background: 'var(--bg-secondary)', padding: '0.85rem 1.25rem', borderRadius: '16px', border: '1px solid var(--border-color)', marginBottom: '2rem' }}>
             <input 
               type="text" 
               placeholder="اسم المكتب الجديد..." 
               value={newOfficeName} 
               onChange={e => setNewOfficeName(e.target.value)} 
               className="workplace-input" 
-              style={{ flex: '2 1 200px' }} 
+              style={{ flex: '2 1 0', minWidth: '140px' }} 
             />
             <input 
               type="number" 
@@ -1160,7 +1193,7 @@ export default function AdminDashboard() {
               value={newOfficeMaxUsers} 
               onChange={e => setNewOfficeMaxUsers(e.target.value)} 
               className="workplace-input" 
-              style={{ flex: '0 0 120px', textAlign: 'center' }} 
+              style={{ flex: '0 0 70px', textAlign: 'center' }} 
               min={1} 
               max={20} 
             />
@@ -1168,23 +1201,23 @@ export default function AdminDashboard() {
               value={newOfficePlanType}
               onChange={e => setNewOfficePlanType(e.target.value as any)}
               className="workplace-input"
-              style={{ flex: '1 1 150px' }}
+              style={{ flex: '1 1 0', minWidth: '130px' }}
             >
               <option value="BASIC">باقة أساسية (BASIC)</option>
               <option value="PREMIUM">باقة ممتازة (PREMIUM)</option>
               <option value="UNLIMITED">باقة غير محدودة (UNLIMITED)</option>
             </select>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1 1 220px' }}>
-              <span style={{ fontSize: '0.8rem', whiteSpace: 'nowrap', fontWeight: 'bold', color: 'var(--text-secondary)' }}>انتهاء الصلاحية:</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flex: '0 0 auto' }}>
+              <span style={{ fontSize: '0.75rem', whiteSpace: 'nowrap', fontWeight: 'bold', color: 'var(--text-secondary)' }}>انتهاء الصلاحية:</span>
               <input 
                 type="date" 
                 value={newOfficeSubEndDate} 
                 onChange={e => setNewOfficeSubEndDate(e.target.value)} 
                 className="workplace-input" 
-                style={{ width: '100%' }} 
+                style={{ width: 'auto' }} 
               />
             </div>
-            <button className="btn btn-primary" onClick={createOffice} disabled={!newOfficeName.trim() || actionLoading === 'create-office'}>
+            <button className="btn btn-primary" onClick={createOffice} disabled={!newOfficeName.trim() || actionLoading === 'create-office'} style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
               <Plus size={18} /> إنشاء مكتب
             </button>
           </div>
@@ -1455,7 +1488,7 @@ export default function AdminDashboard() {
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '2rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             
             {/* 1. Active System Owners Table */}
             <div style={{
@@ -1472,7 +1505,7 @@ export default function AdminDashboard() {
                 </h4>
               </div>
 
-              <div className="admin-table-wrap" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              <div className="admin-table-wrap">
                 <table className="monitor-table">
                   <thead>
                     <tr>
@@ -1553,7 +1586,7 @@ export default function AdminDashboard() {
                 </button>
               </div>
 
-              <div className="admin-table-wrap" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              <div className="admin-table-wrap">
                 {auditLogs.length === 0 ? (
                   <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-tertiary)' }}>
                     <ShieldAlert size={36} style={{ color: 'var(--text-tertiary)', marginBottom: '1rem', opacity: 0.5 }} />
@@ -1606,8 +1639,9 @@ export default function AdminDashboard() {
       {/* ===================== WORKPLACES TAB ===================== */}
       {activeTab === 'workplaces' && (
         <div className="workplaces-section">
-          <div className="add-workplace-row" style={{ marginBottom: '1.5rem' }}>
-            <div style={{ position: 'relative', flex: 1 }}>
+          {/* Add Workplace Row */}
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'nowrap', alignItems: 'center', marginBottom: '1.5rem', background: 'var(--bg-secondary)', padding: '0.85rem 1.25rem', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+            <div style={{ position: 'relative', flex: 2, minWidth: '140px' }}>
               <Search size={16} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
               <input 
                 type="text" 
@@ -1615,21 +1649,75 @@ export default function AdminDashboard() {
                 value={workplaceSearch} 
                 onChange={e => setWorkplaceSearch(e.target.value)} 
                 className="workplace-input"
-                style={{ paddingRight: '35px' }}
+                style={{ paddingRight: '35px', width: '100%' }}
               />
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem', flex: 1 }}>
-              <input type="text" placeholder="أضف جهة عمل جديدة..." value={newWorkplaceName} onChange={e => setNewWorkplaceName(e.target.value)} onKeyDown={e => e.key === 'Enter' && addWorkplace()} className="workplace-input" />
-              <button className="btn btn-primary btn-sm" onClick={addWorkplace} disabled={!newWorkplaceName.trim()}>
-                <Plus size={14} /> إضافة
-              </button>
-            </div>
+            <input
+              type="text"
+              placeholder="أضف جهة عمل جديدة..."
+              value={newWorkplaceName}
+              onChange={e => setNewWorkplaceName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addWorkplace()}
+              className="workplace-input"
+              style={{ flex: 2, minWidth: '140px' }}
+            />
+            <select
+              value={newWorkplaceTaxRate === null ? '' : String(newWorkplaceTaxRate)}
+              onChange={e => setNewWorkplaceTaxRate(e.target.value === '' ? null : Number(e.target.value) as 16 | 24)}
+              className="workplace-input"
+              style={{ flex: '0 0 150px' }}
+            >
+              <option value="">بدون استقطاع</option>
+              <option value="16">استقطاع 16%</option>
+              <option value="24">استقطاع 24%</option>
+            </select>
+            <button className="btn btn-primary btn-sm" onClick={addWorkplace} disabled={!newWorkplaceName.trim()} style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
+              <Plus size={14} /> إضافة
+            </button>
           </div>
+
+          {/* Workplaces Grid */}
           <div className="workplace-list">
             {workplaces
               .filter(wp => wp.name.toLowerCase().includes(workplaceSearch.toLowerCase()))
               .map(wp => (
-                <div key={wp.id} className="workplace-chip"><Building2 size={14} />{wp.name}</div>
+                <div key={wp.id} className="workplace-chip" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'space-between', paddingLeft: '0.5rem' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flex: 1, minWidth: 0 }}>
+                    <Building2 size={14} style={{ flexShrink: 0 }} />
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{wp.name}</span>
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexShrink: 0 }}>
+                    {/* Tax Rate Badge / Selector */}
+                    <select
+                      value={wp.tax_rate === null || wp.tax_rate === undefined ? '' : String(wp.tax_rate)}
+                      onChange={e => updateWorkplaceTaxRate(wp.id, e.target.value === '' ? null : Number(e.target.value) as 16 | 24)}
+                      onClick={e => e.stopPropagation()}
+                      style={{
+                        fontSize: '0.7rem',
+                        fontWeight: 'bold',
+                        padding: '0.15rem 0.3rem',
+                        borderRadius: '6px',
+                        border: '1.5px solid',
+                        cursor: 'pointer',
+                        background: wp.tax_rate === 24 ? 'rgba(239,68,68,0.12)' : wp.tax_rate === 16 ? 'rgba(245,158,11,0.12)' : 'var(--bg-primary)',
+                        color: wp.tax_rate === 24 ? '#dc2626' : wp.tax_rate === 16 ? '#d97706' : 'var(--text-tertiary)',
+                        borderColor: wp.tax_rate === 24 ? 'rgba(239,68,68,0.4)' : wp.tax_rate === 16 ? 'rgba(245,158,11,0.4)' : 'var(--border-color)',
+                        outline: 'none',
+                      }}
+                    >
+                      <option value="">بدون</option>
+                      <option value="16">16%</option>
+                      <option value="24">24%</option>
+                    </select>
+                    <button
+                      onClick={e => { e.stopPropagation(); deleteWorkplace(wp.id) }}
+                      style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', color: 'var(--error)', display: 'flex', alignItems: 'center', opacity: 0.7 }}
+                      title="حذف جهة العمل"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                </div>
               ))}
             {workplaces.filter(wp => wp.name.toLowerCase().includes(workplaceSearch.toLowerCase())).length === 0 && (
               <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', color: 'var(--text-tertiary)' }}>
@@ -1642,15 +1730,15 @@ export default function AdminDashboard() {
 
       {/* ===================== BANKS TAB ===================== */}
       {activeTab === 'banks' && (
-        <div className="banks-section">
-          <div className="bank-management-grid">
-            {/* Banks List */}
-            <div className="glass" style={{ padding: '1.5rem', borderRadius: '16px' }}>
-              <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Building2 size={20} /> المصارف
-              </h3>
-              
-              <div className="search-bar" style={{ marginBottom: '1rem', position: 'relative' }}>
+        <div className="banks-section" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
+          {/* ---- BANKS PANEL ---- */}
+          <div className="glass" style={{ padding: '1.5rem', borderRadius: '16px' }}>
+            <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Building2 size={20} /> المصارف
+            </h3>
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'nowrap' }}>
+              <div style={{ position: 'relative', flex: 1 }}>
                 <Search size={16} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
                 <input 
                   type="text" 
@@ -1658,134 +1746,135 @@ export default function AdminDashboard() {
                   value={bankSearch} 
                   onChange={e => setBankSearch(e.target.value)} 
                   className="workplace-input"
-                  style={{ paddingRight: '35px', fontSize: '0.85rem' }}
+                  style={{ paddingRight: '35px', width: '100%' }}
                 />
               </div>
-
-              <div className="add-workplace-row" style={{ marginBottom: '1rem' }}>
-                <input 
-                  type="text" 
-                  placeholder="اسم المصرف..." 
-                  value={newBankName} 
-                  onChange={e => setNewBankName(e.target.value)} 
-                  className="workplace-input" 
-                />
-                <button className="btn btn-primary btn-sm" onClick={addBank} disabled={!newBankName.trim()}>
-                  <Plus size={14} />
-                </button>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {banks
-                  .filter(b => b.name.toLowerCase().includes(bankSearch.toLowerCase()))
-                  .map(bank => (
-                  <div 
-                    key={bank.id} 
-                    className={`workplace-chip ${selectedBankId === bank.id ? 'active' : ''}`}
-                    onClick={() => setSelectedBankId(bank.id)}
-                    style={{ 
-                      justifyContent: 'space-between', 
-                      cursor: 'pointer',
-                      background: selectedBankId === bank.id ? 'var(--primary)' : 'var(--bg-secondary)',
-                      color: selectedBankId === bank.id ? '#fff' : 'var(--text-primary)'
-                    }}
-                  >
-                    <span>{bank.name}</span>
-                    <button 
-                      className="btn-icon" 
-                      onClick={(e) => { e.stopPropagation(); deleteBank(bank.id, bank.name) }}
-                      style={{ color: selectedBankId === bank.id ? '#fff' : 'var(--error)', padding: '2px' }}
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
-                ))}
-              </div>
+              <input 
+                type="text" 
+                placeholder="اسم المصرف الجديد..." 
+                value={newBankName} 
+                onChange={e => setNewBankName(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addBank()}
+                className="workplace-input"
+                style={{ flex: 1 }}
+              />
+              <button className="btn btn-primary btn-sm" onClick={addBank} disabled={!newBankName.trim()} style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
+                <Plus size={14} /> إضافة
+              </button>
             </div>
-
-            {/* Branches List */}
-            <div className="glass" style={{ padding: '1.5rem', borderRadius: '16px' }}>
-              <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <LayoutDashboard size={20} /> فروع {banks.find(b => b.id === selectedBankId)?.name || 'المصرف'}
-              </h3>
-              {selectedBankId ? (
-                <>
-                  <div className="branch-controls" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1rem' }}>
-                    {/* Search Branch */}
-                    <div className="search-bar" style={{ position: 'relative' }}>
-                      <Search size={16} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
-                      <input 
-                        type="text" 
-                        placeholder="بحث عن فرع..." 
-                        value={branchSearch} 
-                        onChange={e => setBranchSearch(e.target.value)} 
-                        className="workplace-input"
-                        style={{ paddingRight: '35px', fontSize: '0.85rem' }}
-                      />
-                    </div>
-
-                    {/* Add Branch */}
-                    <div className="add-workplace-row">
-                    <input 
-                      type="text" 
-                      placeholder="اسم الفرع..." 
-                      value={newBranchName} 
-                      onChange={e => setNewBranchName(e.target.value)} 
-                      className="workplace-input" 
-                      style={{ flex: 2 }}
-                    />
-                    <input 
-                      type="text" 
-                      placeholder="المنطقة (اختياري)" 
-                      value={newBranchRegion} 
-                      onChange={e => setNewBranchRegion(e.target.value)} 
-                      className="workplace-input" 
-                      style={{ flex: 1 }}
-                    />
-                    <button className="btn btn-primary btn-sm" onClick={addBranch} disabled={!newBranchName.trim()}>
-                      <Plus size={14} /> إضافة فرع
-                    </button>
-                  </div>
+            <div className="workplace-list">
+              {banks
+                .filter(b => b.name.toLowerCase().includes(bankSearch.toLowerCase()))
+                .map(bank => (
+                <div 
+                  key={bank.id} 
+                  className={`workplace-chip ${selectedBankId === bank.id ? 'active' : ''}`}
+                  onClick={() => setSelectedBankId(bank.id)}
+                  style={{ 
+                    justifyContent: 'space-between', 
+                    cursor: 'pointer',
+                    background: selectedBankId === bank.id ? 'var(--primary)' : 'var(--bg-secondary)',
+                    color: selectedBankId === bank.id ? '#fff' : 'var(--text-primary)',
+                    border: selectedBankId === bank.id ? '2px solid var(--primary)' : '1px solid var(--border-color)',
+                  }}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <Building2 size={14} />{bank.name}
+                  </span>
+                  <button 
+                    className="btn-icon" 
+                    onClick={(e) => { e.stopPropagation(); deleteBank(bank.id, bank.name) }}
+                    style={{ color: selectedBankId === bank.id ? '#fff' : 'var(--error)', padding: '2px' }}
+                  >
+                    <Trash2 size={12} />
+                  </button>
                 </div>
-                <div className="admin-table-wrap" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                    <table className="monitor-table">
-                      <thead>
-                        <tr>
-                          <th>الفرع</th>
-                          <th>المنطقة</th>
-                          <th style={{ width: '50px' }}></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {branches
-                          .filter(br => br.bank_id === selectedBankId && br.name.toLowerCase().includes(branchSearch.toLowerCase()))
-                          .map(branch => (
-                            <tr key={branch.id}>
-                              <td>{branch.name}</td>
-                              <td>{branch.region || '—'}</td>
-                              <td>
-                                <button className="btn-icon" onClick={() => deleteBranch(branch.id)} style={{ color: 'var(--error)' }}>
-                                  <Trash2 size={14} />
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                        {branches.filter(br => br.bank_id === selectedBankId).length === 0 && (
-                          <tr>
-                            <td colSpan={3} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-tertiary)' }}>
-                              لا توجد فروع مضافة لهذا المصرف
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </>
-              ) : (
-                <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>
-                  اختر مصرفاً لعرض وإدارة فروعه
-                </div>
+              ))}
+              {banks.length === 0 && (
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', color: 'var(--text-tertiary)' }}>لا توجد مصارف مضافة</div>
               )}
             </div>
+          </div>
+
+          {/* ---- BRANCHES PANEL ---- */}
+          <div className="glass" style={{ padding: '1.5rem', borderRadius: '16px' }}>
+            <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <LayoutDashboard size={20} /> فروع {banks.find(b => b.id === selectedBankId)?.name || 'المصرف'}
+            </h3>
+            {selectedBankId ? (
+              <>
+                <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'nowrap' }}>
+                  <div style={{ position: 'relative', flex: 1 }}>
+                    <Search size={16} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
+                    <input 
+                      type="text" 
+                      placeholder="بحث عن فرع..." 
+                      value={branchSearch} 
+                      onChange={e => setBranchSearch(e.target.value)} 
+                      className="workplace-input"
+                      style={{ paddingRight: '35px', width: '100%' }}
+                    />
+                  </div>
+                  <input 
+                    type="text" 
+                    placeholder="اسم الفرع..." 
+                    value={newBranchName} 
+                    onChange={e => setNewBranchName(e.target.value)} 
+                    className="workplace-input" 
+                    style={{ flex: 2 }}
+                  />
+                  <input 
+                    type="text" 
+                    placeholder="المنطقة (اختياري)" 
+                    value={newBranchRegion} 
+                    onChange={e => setNewBranchRegion(e.target.value)} 
+                    className="workplace-input" 
+                    style={{ flex: 1 }}
+                  />
+                  <button className="btn btn-primary btn-sm" onClick={addBranch} disabled={!newBranchName.trim()} style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
+                    <Plus size={14} /> إضافة فرع
+                  </button>
+                </div>
+                <div className="admin-table-wrap">
+                  <table className="monitor-table">
+                    <thead>
+                      <tr>
+                        <th>الفرع</th>
+                        <th>المنطقة</th>
+                        <th style={{ width: '50px' }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {branches
+                        .filter(br => br.bank_id === selectedBankId && br.name.toLowerCase().includes(branchSearch.toLowerCase()))
+                        .map(branch => (
+                          <tr key={branch.id}>
+                            <td>{branch.name}</td>
+                            <td>{branch.region || '—'}</td>
+                            <td>
+                              <button className="btn-icon" onClick={() => deleteBranch(branch.id)} style={{ color: 'var(--error)' }}>
+                                <Trash2 size={14} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      {branches.filter(br => br.bank_id === selectedBankId).length === 0 && (
+                        <tr>
+                          <td colSpan={3} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-tertiary)' }}>
+                            لا توجد فروع مضافة لهذا المصرف. اختر مصرفاً وأضف فروعه من الأعلى.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>
+                <Building2 size={36} style={{ opacity: 0.3, display: 'block', margin: '0 auto 1rem' }} />
+                اختر مصرفاً من الأعلى لعرض وإدارة فروعه
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1822,6 +1911,159 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          <hr style={{ border: '0', borderTop: '1px dashed var(--border-color)', margin: 0 }} />
+
+          {/* ===================== Section: Generate Office Join Codes ===================== */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)' }}>
+                  <Building2 size={20} /> توليد وإصدار رموز انضمام لمكاتب جديدة
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.25rem', marginBottom: 0 }}>
+                  قم بإنشاء مكتب جديد في المنظومة مباشرةً وتوليد كود انضمامه الخاص. سيتم حفظ المكتب في قاعدة البيانات ويمكن لموظفيه التسجيل باستخدام هذا الكود.
+                </p>
+              </div>
+            </div>
+
+            {/* Create Office Code Form */}
+            <div className="glass" style={{ padding: '1.5rem', borderRadius: '16px', display: 'flex', gap: '1rem', flexWrap: 'nowrap', alignItems: 'flex-end' }}>
+              <div style={{ flex: 3, minWidth: '180px' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 'bold', marginBottom: '0.4rem' }}>اسم المكتب:</label>
+                <input
+                  type="text"
+                  placeholder="مثال: مكتب النخبة، مكتب الأمانة للتقسيط..."
+                  value={newOfficeName}
+                  onChange={e => setNewOfficeName(e.target.value)}
+                  className="workplace-input"
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              <div style={{ flex: 1, minWidth: '100px' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 'bold', marginBottom: '0.4rem' }}>الحد الأقصى للمستخدمين:</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={newOfficeMaxUsers}
+                  onChange={e => setNewOfficeMaxUsers(e.target.value)}
+                  className="workplace-input"
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              <div style={{ flex: 1, minWidth: '130px' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 'bold', marginBottom: '0.4rem' }}>خطة الاشتراك:</label>
+                <select
+                  value={newOfficePlanType}
+                  onChange={e => setNewOfficePlanType(e.target.value as any)}
+                  className="workplace-input"
+                  style={{ width: '100%', padding: '0.45rem' }}
+                >
+                  <option value="BASIC">⭐ أساسي</option>
+                  <option value="PREMIUM">🌟 ممتاز</option>
+                  <option value="UNLIMITED">👑 غير محدود</option>
+                </select>
+              </div>
+
+              <div style={{ flexShrink: 0 }}>
+                <button
+                  className="btn btn-primary"
+                  onClick={createOffice}
+                  disabled={!newOfficeName.trim() || actionLoading === 'create-office'}
+                  style={{ whiteSpace: 'nowrap', height: '42px' }}
+                >
+                  {actionLoading === 'create-office' ? 'جاري الإنشاء...' : 'توليد وإصدار كود المكتب'}
+                </button>
+              </div>
+            </div>
+
+            {/* Office Codes Grid */}
+            <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+              {offices.map(o => (
+                <div key={o.id} className="glass" style={{
+                  padding: '1.5rem',
+                  borderRadius: '16px',
+                  border: o.join_code_active && o.is_active
+                    ? '1.5px solid var(--primary)'
+                    : '1px solid var(--border-color)',
+                  opacity: o.is_active ? 1 : 0.55,
+                  position: 'relative',
+                }}>
+                  {/* Plan badge */}
+                  <span style={{
+                    position: 'absolute',
+                    top: '0.75rem',
+                    left: '0.75rem',
+                    fontSize: '0.65rem',
+                    fontWeight: 'bold',
+                    padding: '0.15rem 0.5rem',
+                    borderRadius: '6px',
+                    background: o.plan_type === 'UNLIMITED'
+                      ? 'linear-gradient(135deg,#bf953f,#fcf6ba,#aa771c)'
+                      : o.plan_type === 'PREMIUM' ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.07)',
+                    color: o.plan_type === 'UNLIMITED' ? '#0f172a' : o.plan_type === 'PREMIUM' ? '#3b82f6' : 'var(--text-tertiary)',
+                  }}>
+                    {o.plan_type === 'UNLIMITED' ? '👑 غير محدود' : o.plan_type === 'PREMIUM' ? '🌟 ممتاز' : '⭐ أساسي'}
+                  </span>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.85rem', marginTop: '1.25rem' }}>
+                    <span style={{ fontWeight: 700, fontSize: '1rem' }}>{o.name}</span>
+                    <span style={{ fontSize: '0.78rem', color: o.join_code_active ? 'var(--success)' : 'var(--error)', fontWeight: 'bold' }}>
+                      {o.join_code_active ? '● نشط' : '● معطّل'}
+                    </span>
+                  </div>
+
+                  {/* Code Display */}
+                  <div style={{ textAlign: 'center', padding: '0.85rem', background: 'var(--bg-secondary)', borderRadius: '12px', marginBottom: '1rem', border: '1px dashed var(--border-color)' }}>
+                    <code style={{ fontSize: '1.6rem', letterSpacing: '0.25em', fontWeight: 700, color: 'var(--primary)' }}>
+                      {o.join_code}
+                    </code>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    <span>👥 {o.user_count || 0} / {o.max_users} مستخدم</span>
+                    <div style={{ display: 'flex', gap: '0.35rem' }}>
+                      <button
+                        className="btn-icon"
+                        onClick={() => copyCode(o.join_code)}
+                        title="نسخ الكود"
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', cursor: 'pointer', fontSize: '0.78rem' }}
+                      >
+                        <Copy size={13} /> {copied === o.join_code ? 'تم ✓' : 'نسخ'}
+                      </button>
+                      <button
+                        className="btn-icon"
+                        onClick={() => regenerateCode(o.id)}
+                        title="توليد كود جديد"
+                        disabled={actionLoading === `regen-${o.id}`}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', cursor: 'pointer', fontSize: '0.78rem' }}
+                      >
+                        <RefreshCw size={13} />
+                      </button>
+                      <button
+                        className="btn-icon"
+                        onClick={() => toggleJoinCode(o.id, o.join_code_active)}
+                        title={o.join_code_active ? 'تعطيل الكود' : 'تفعيل الكود'}
+                        style={{ display: 'flex', alignItems: 'center', padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', cursor: 'pointer' }}
+                      >
+                        {o.join_code_active
+                          ? <ShieldCheck size={13} style={{ color: 'var(--success)' }} />
+                          : <ShieldOff size={13} style={{ color: 'var(--text-tertiary)' }} />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {offices.length === 0 && (
+                <div className="glass" style={{ gridColumn: '1 / -1', padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                  لا توجد مكاتب مسجلة حالياً. قم بإنشاء أول مكتب باستخدام النموذج بالأعلى!
+                </div>
+              )}
             </div>
           </div>
 
@@ -2848,6 +3090,130 @@ export default function AdminDashboard() {
                   <button className="btn btn-secondary" onClick={() => setSelectedTicket(null)}>إلغاء</button>
                   <button className="btn btn-primary" onClick={replyToTicket} disabled={actionLoading === `reply-ticket-${selectedTicket.id}`}>
                     {actionLoading === `reply-ticket-${selectedTicket.id}` ? 'جاري الإرسال...' : 'إرسال الرد واعتماد الحل'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ---- DIRECT SUPPORT MESSAGES FROM USERS ---- */}
+          <div className="glass" style={{ padding: '2rem', borderRadius: '24px' }}>
+            <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <MessageCircle size={20} style={{ color: 'var(--primary)' }} />
+              رسائل الدعم الفني المباشر من المستخدمين
+              {supportMessages.some((m: any) => (m.replies || []).length === 0 && m.status === 'open') && (
+                <span style={{ background: 'var(--error)', color: '#fff', borderRadius: '12px', padding: '0.15rem 0.6rem', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                  {supportMessages.filter((m: any) => m.status === 'open').length} جديدة
+                </span>
+              )}
+            </h3>
+            {supportMessages.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>
+                لا توجد رسائل دعم مباشر واردة حالياً.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {supportMessages.map((msg: any) => {
+                  const replyCount = (msg.replies || []).length
+                  const isOpen = msg.status === 'open'
+                  return (
+                    <div key={msg.id} style={{
+                      background: isOpen ? 'rgba(191,149,63,0.06)' : 'var(--bg-secondary)',
+                      border: isOpen ? '1.5px solid rgba(191,149,63,0.35)' : '1px solid var(--border-color)',
+                      borderRadius: '14px',
+                      padding: '1.25rem',
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                        <div>
+                          <span style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--text-primary)' }}>{msg.subject}</span>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginTop: '0.2rem' }}>
+                            من: <strong>{msg.display_name || 'مستخدم'}</strong> · {new Date(msg.created_at).toLocaleString('ar-LY')}
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{
+                            padding: '0.2rem 0.6rem', borderRadius: '8px', fontSize: '0.72rem', fontWeight: 'bold',
+                            background: isOpen ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)',
+                            color: isOpen ? '#dc2626' : '#059669',
+                          }}>
+                            {isOpen ? '● مفتوحة' : `✓ تم الرد (${replyCount})`}
+                          </span>
+                          <button
+                            className="btn btn-secondary btn-xs"
+                            onClick={() => { setSelectedSupportMsg(msg); setSupportReplyText('') }}
+                            style={{ fontSize: '0.78rem' }}
+                          >
+                            {isOpen ? 'رد على الرسالة' : 'عرض / رد'}
+                          </button>
+                        </div>
+                      </div>
+                      <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                        {msg.message}
+                      </p>
+                      {replyCount > 0 && (
+                        <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'rgba(191,149,63,0.08)', borderRight: '3px solid #bf953f', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                          ↩ آخر رد: {(msg.replies as any[])[replyCount - 1]?.reply_text}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Support Reply Modal */}
+          {selectedSupportMsg && (
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+              <div className="glass" style={{ padding: '2rem', borderRadius: '24px', maxWidth: '520px', width: '100%', border: '2px solid #d4af37', animation: 'dropdownFadeIn 0.25s ease' }}>
+                <h3 style={{ marginBottom: '0.5rem' }}>الرد على: {selectedSupportMsg.subject}</h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-tertiary)', marginBottom: '1.25rem' }}>من: {selectedSupportMsg.display_name}</p>
+                <div style={{ background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '10px', marginBottom: '1.25rem', fontSize: '0.875rem', lineHeight: 1.6, color: 'var(--text-primary)' }}>
+                  {selectedSupportMsg.message}
+                </div>
+                {(selectedSupportMsg.replies || []).length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-secondary)' }}>الردود السابقة:</span>
+                    {(selectedSupportMsg.replies as any[]).map((r: any) => (
+                      <div key={r.id} style={{ padding: '0.75rem', background: 'rgba(191,149,63,0.08)', borderRight: '3px solid #bf953f', borderRadius: '8px', fontSize: '0.82rem' }}>
+                        {r.reply_text}
+                        <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>
+                          {new Date(r.created_at).toLocaleString('ar-LY')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <textarea
+                  placeholder="اكتب ردك على المستخدم هنا..."
+                  value={supportReplyText}
+                  onChange={e => setSupportReplyText(e.target.value)}
+                  className="workplace-input"
+                  style={{ width: '100%', minHeight: '110px', resize: 'vertical', marginBottom: '1.25rem' }}
+                />
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                  <button className="btn btn-secondary" onClick={() => setSelectedSupportMsg(null)}>إلغاء</button>
+                  <button
+                    className="btn btn-primary"
+                    disabled={!supportReplyText.trim() || actionLoading === `support-reply-${selectedSupportMsg.id}`}
+                    onClick={async () => {
+                      setActionLoading(`support-reply-${selectedSupportMsg.id}`)
+                      try {
+                        await supabase.from('support_replies').insert({
+                          message_id: selectedSupportMsg.id,
+                          admin_id: session?.user?.id,
+                          reply_text: supportReplyText.trim(),
+                          read_by_user: false,
+                        })
+                        await supabase.from('support_messages').update({ status: 'replied' }).eq('id', selectedSupportMsg.id)
+                        setSupportReplyText('')
+                        setSelectedSupportMsg(null)
+                        await loadData()
+                      } catch (e) { alert('حدث خطأ أثناء إرسال الرد') }
+                      setActionLoading(null)
+                    }}
+                  >
+                    {actionLoading === `support-reply-${selectedSupportMsg.id}` ? 'جاري الإرسال...' : 'إرسال الرد للمستخدم'}
                   </button>
                 </div>
               </div>
