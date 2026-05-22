@@ -9,6 +9,27 @@ DROP POLICY IF EXISTS "Offices can only access their own transactions" ON public
 DROP POLICY IF EXISTS "Offices can only access guarantors of their transactions" ON public.transaction_guarantors;
 DROP POLICY IF EXISTS "Offices can access their own settlements" ON public.settlements;
 
+-- Drop SELECT, INSERT, UPDATE, DELETE policies if they already exist
+DROP POLICY IF EXISTS "Offices can SELECT own customers" ON public.customers;
+DROP POLICY IF EXISTS "Offices can INSERT own customers" ON public.customers;
+DROP POLICY IF EXISTS "Offices can UPDATE own customers" ON public.customers;
+DROP POLICY IF EXISTS "Only managers can DELETE own customers" ON public.customers;
+
+DROP POLICY IF EXISTS "Offices can SELECT own transactions" ON public.transactions_raw;
+DROP POLICY IF EXISTS "Offices can INSERT own transactions" ON public.transactions_raw;
+DROP POLICY IF EXISTS "Offices can UPDATE own transactions" ON public.transactions_raw;
+DROP POLICY IF EXISTS "Only managers can DELETE own transactions" ON public.transactions_raw;
+
+DROP POLICY IF EXISTS "Offices can SELECT own guarantors" ON public.transaction_guarantors;
+DROP POLICY IF EXISTS "Offices can INSERT own guarantors" ON public.transaction_guarantors;
+DROP POLICY IF EXISTS "Offices can UPDATE own guarantors" ON public.transaction_guarantors;
+DROP POLICY IF EXISTS "Only managers can DELETE own guarantors" ON public.transaction_guarantors;
+
+DROP POLICY IF EXISTS "Offices can SELECT own settlements" ON public.settlements;
+DROP POLICY IF EXISTS "Offices can INSERT own settlements" ON public.settlements;
+DROP POLICY IF EXISTS "Offices can UPDATE own settlements" ON public.settlements;
+DROP POLICY IF EXISTS "Only managers can DELETE own settlements" ON public.settlements;
+
 -- 1. CUSTOMERS POLICIES
 CREATE POLICY "Offices can SELECT own customers"
     ON public.customers FOR SELECT
@@ -36,23 +57,23 @@ CREATE POLICY "Only managers can DELETE own customers"
 
 -- 2. TRANSACTIONS POLICIES
 CREATE POLICY "Offices can SELECT own transactions"
-    ON public.transactions FOR SELECT
+    ON public.transactions_raw FOR SELECT
     TO public
     USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
 
 CREATE POLICY "Offices can INSERT own transactions"
-    ON public.transactions FOR INSERT
+    ON public.transactions_raw FOR INSERT
     TO public
     WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
 
 CREATE POLICY "Offices can UPDATE own transactions"
-    ON public.transactions FOR UPDATE
+    ON public.transactions_raw FOR UPDATE
     TO public
     USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid))
     WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
 
 CREATE POLICY "Only managers can DELETE own transactions"
-    ON public.transactions FOR DELETE
+    ON public.transactions_raw FOR DELETE
     TO public
     USING (
         office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid)

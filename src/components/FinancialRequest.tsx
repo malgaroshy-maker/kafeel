@@ -140,6 +140,7 @@ CREATE POLICY "Only managers can DELETE own financial requests"
           customer:customer_id(name, phone, salary),
           transaction:transaction_id(car_model, car_price)
         `)
+        .eq('office_id', officeId)
         .order('created_at', { ascending: false });
 
       if (error) {

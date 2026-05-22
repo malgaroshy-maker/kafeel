@@ -24,6 +24,16 @@ CREATE TABLE IF NOT EXISTS support_replies (
 ALTER TABLE support_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE support_replies ENABLE ROW LEVEL SECURITY;
 
+-- Drop policies if they exist
+DROP POLICY IF EXISTS "users_insert_own_messages" ON support_messages;
+DROP POLICY IF EXISTS "users_read_own_messages" ON support_messages;
+DROP POLICY IF EXISTS "admins_read_all_messages" ON support_messages;
+DROP POLICY IF EXISTS "admins_update_messages" ON support_messages;
+DROP POLICY IF EXISTS "admins_insert_replies" ON support_replies;
+DROP POLICY IF EXISTS "users_read_own_replies" ON support_replies;
+DROP POLICY IF EXISTS "users_update_reply_read" ON support_replies;
+DROP POLICY IF EXISTS "admins_read_all_replies" ON support_replies;
+
 -- Users can insert & read their own messages
 CREATE POLICY "users_insert_own_messages" ON support_messages
   FOR INSERT WITH CHECK (auth.uid() = user_id);

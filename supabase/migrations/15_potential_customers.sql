@@ -15,22 +15,26 @@ CREATE TABLE IF NOT EXISTS public.potential_customers (
 ALTER TABLE public.potential_customers ENABLE ROW LEVEL SECURITY;
 
 -- Policies
+DROP POLICY IF EXISTS "Users can SELECT own office potential customers" ON public.potential_customers;
 CREATE POLICY "Users can SELECT own office potential customers"
     ON public.potential_customers FOR SELECT
     TO authenticated
     USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
 
+DROP POLICY IF EXISTS "Users can INSERT own office potential customers" ON public.potential_customers;
 CREATE POLICY "Users can INSERT own office potential customers"
     ON public.potential_customers FOR INSERT
     TO authenticated
     WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
 
+DROP POLICY IF EXISTS "Users can UPDATE own office potential customers" ON public.potential_customers;
 CREATE POLICY "Users can UPDATE own office potential customers"
     ON public.potential_customers FOR UPDATE
     TO authenticated
     USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid))
     WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
 
+DROP POLICY IF EXISTS "Users can DELETE own office potential customers" ON public.potential_customers;
 CREATE POLICY "Users can DELETE own office potential customers"
     ON public.potential_customers FOR DELETE
     TO authenticated
@@ -50,11 +54,13 @@ CREATE TABLE IF NOT EXISTS public.potential_customer_logs (
 ALTER TABLE public.potential_customer_logs ENABLE ROW LEVEL SECURITY;
 
 -- Policies
+DROP POLICY IF EXISTS "Users can SELECT own office potential logs" ON public.potential_customer_logs;
 CREATE POLICY "Users can SELECT own office potential logs"
     ON public.potential_customer_logs FOR SELECT
     TO authenticated
     USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
 
+DROP POLICY IF EXISTS "Users can INSERT own office potential logs" ON public.potential_customer_logs;
 CREATE POLICY "Users can INSERT own office potential logs"
     ON public.potential_customer_logs FOR INSERT
     TO authenticated

@@ -167,6 +167,12 @@ Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Mura
 - **Phase 23 (Potential Customers Hub & Financial Requests System)**: Complete ✅ — Deployed `potential_customers` and `financial_requests` database tables, and developed interactive `PotentialCustomers.tsx` (with converter wizard and audit trails) and `FinancialRequest.tsx` (supporting cash advances, extra funds, and bills). Added full offline `localStorage` fallback simulations and SQL migration wizards for operational resilience.
 - **Phase 24 (Realistic Murabaha Calculations & Multi-Factor Down Payments)**: Complete ✅ — Overhauled the mathematical core in `src/lib/financialEngine.ts` and `src/components/Calculator.tsx` to realistically scale down installments for low-cost vehicles. Upgraded calculations to compute down payments via two independent factors: vehicle excess value over ceiling ($V_{murabaha} - B_{cap}$) and salary capacity gap ($I_{gap} \times 96$), and verified the model with comprehensive unit tests (`test/financialEngine.test.ts`).
 - **Phase 25 (E2E QA Audit Completion & Showcase Generation)**: Complete ✅ — Refactored the Playwright E2E automation flow in `run_qa_flow.js` to bypass database trigger positional limitations, automatically pre-approve terms of service for all roles (Super Admin, Office Manager, Staff, Accountant, and Monitor) to ensure smooth browser navigation, and successfully executed the end-to-end audit lifecycle (saving 12 premium showcase screenshots to `public/showcase/`).
+- **E2E Bug Resolution & Database Synchronization (v1.4.2)**: Complete ✅ — Conducted rigorous post-audit fixes:
+  - Resolved **BUG-01** by enforcing strict tenant isolation (`office_id`) on the `financial_requests` table queries in `FinancialRequest.tsx` to prevent cross-tenant leakages.
+  - Resolved **BUG-02** by fixing customer name metadata binding (`customer?.name` mapping) in the Operations Monitor dashboard.
+  - Completed DB sync: Modified SQL policies for safe, idempotent deployments, pushed outstanding migrations `13` through `17` to production Supabase cloud database instance (`gwpesjsnwsdjerxfuqio`), and verified all 17 migrations match 100% on both Local and Remote.
+  - Verified full test coverage with zero Vitest failures and compiled error-free production bundler.
+
 
 
 

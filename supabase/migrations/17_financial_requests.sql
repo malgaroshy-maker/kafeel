@@ -15,22 +15,26 @@ CREATE TABLE IF NOT EXISTS public.financial_requests (
 ALTER TABLE public.financial_requests ENABLE ROW LEVEL SECURITY;
 
 -- Create Policies
+DROP POLICY IF EXISTS "Offices can SELECT own financial requests" ON public.financial_requests;
 CREATE POLICY "Offices can SELECT own financial requests"
     ON public.financial_requests FOR SELECT
     TO public
     USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
 
+DROP POLICY IF EXISTS "Offices can INSERT own financial requests" ON public.financial_requests;
 CREATE POLICY "Offices can INSERT own financial requests"
     ON public.financial_requests FOR INSERT
     TO public
     WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
 
+DROP POLICY IF EXISTS "Offices can UPDATE own financial requests" ON public.financial_requests;
 CREATE POLICY "Offices can UPDATE own financial requests"
     ON public.financial_requests FOR UPDATE
     TO public
     USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid))
     WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
 
+DROP POLICY IF EXISTS "Only managers can DELETE own financial requests" ON public.financial_requests;
 CREATE POLICY "Only managers can DELETE own financial requests"
     ON public.financial_requests FOR DELETE
     TO public
