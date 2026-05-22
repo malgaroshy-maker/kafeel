@@ -77,6 +77,22 @@ Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Mura
 - **Logic**: Send automated alerts to customers and guarantors when a match is found.
 - **Integration**: Configurable Twilio, BulkSMS, and Local SMS gateways inside the Admin Dashboard.
 
+### I. Car Dealer Logistics & Appraisal Hub ✅
+- **Logistics Delivery Pipeline**: Interactive vehicle delivery staging tracker (`🔧 قيد التجهيز الفني`, `📍 جاهزة بالمعرض للزبون`, `🚛 جاري الشحن والتوصيل`, `🔑 تم التسليم النهائي للزبون`) within `MonitorDashboard.tsx` with dynamic tab filters.
+- **Incoming Fleets Pre-Booking Board**: Ocean cargo shipping estimator allowing early customer reservations before arrival.
+- **Auto-Calculated Model Heatmap**: Aggregated queue-counter scanning customer requests to dynamically render a vehicle model demand heatmap.
+- **Technical Appraisal Cards**: Data sheets for vehicle mileage, engine health, body diagnostics, and inspection notes.
+- **Aging Urgency Alerts**: Automated color-coded indicators for transactions stuck in the waiting queue over 48 hours, highlighting them in pulsing red with `متأخر ⚠️` to trigger dealer action.
+
+### J. Advanced System Announcements Banners ✅
+- **Side-by-Side Banners (Login)**: Restructured login layout featuring three glassmorphic columns: Right (Admin Alerts), Center (Secure Credentials Form), and Left (Car Dealer/Partner announcements).
+- **Public Guest RLS Bypass**: Updated RLS database policies on `broadcasts` table allowing `anon` guests to read active announcements prior to login.
+- **Sticky Layout Marquee Banner**: Integrated a sleek scrolling marquee directly below the golden header inside the office portal layout (`OfficeLayout.tsx`) for real-time manager/accountant news alerts.
+
+### K. Context-Aware File Selector ✅
+- **Searchable Customer Switcher**: Embedded interactive customer search switcher inside `DocumentUploader.tsx` (searching by Name, Phone, or National ID) to query and toggle active files on-the-fly without context loss.
+- **Verbose Error Logging**: Refactored silent upload failures with clear visual modal dialogs displaying precise backend upload issues (file size, connectivity, bucket restrictions) to the staff.
+
 ## 4. UI/UX Design Approach
 - **RTL Support**: Built inherently for Arabic (dir="rtl", Cairo font). ✅
 - **Aesthetics**: Premium feel with HSL color system, dark mode auto-detection, lunar/solar switches, glassmorphism header, smooth transitions. ✅
@@ -131,5 +147,7 @@ Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Mura
 - **Phase 19 (Unified Workflow Integration & Core Module Interlinking)**: Complete ✅ — Removed Data Entry Staff lockout, enabled "Save Calculation & Link to DB" directly from Calculator.tsx to replace loose browser local drafts, adapted DocumentUploader.tsx to read existing transactions, fixed the silent matchmaking UI bug in WaitingQueue.tsx, integrated SMS/WhatsApp matchmaking alerts via notificationService.sendMatchAlert, and fully repaired the Settlements.tsx post-delivery database mismatch by mapping correct columns and adding active transactions dropdown.
 - **Phase 20 (Document Verification Workflow & Transaction State Machine)**: Complete ✅ — Propagated `activeTransactionId` through OfficeLayout from Calculator to DocumentUploader. Implemented a premium, color-coded, animated status badge system (PENDING, WAITING_MATCH with pulse, REJECTED, MATCHED, ACTIVE, and COMPLETED) on customer cards in `CustomerList.tsx`. Added a comprehensive document verification/rejection workflow in `WaitingQueue.tsx` with a luxurious glassmorphic rejection modal, a custom database migration for `rejection_reason` addressing security views (`transactions` view/trigger), disabled matching logic, and status badges. Tested and compiled with zero TypeScript errors.
 - **Phase 18 & Phase 11 (Production Deployment & External Gateways Setup)**: Complete ✅ — Prepared complete final production deployment guidelines (`docs/DEPLOYMENT.md`) covering database migration, hosting setups on Vercel, Local Libyan payment gateways configuration (SADAD, Tadawul, Edfa3ly), and SMS providers (Twilio & BulkSMS API) credentials integration, ensuring 100% readiness for production launch.
+- **Phase 21 (Configurable Link Limits for Office Managers)**: Complete ✅ — Added database column `salary_match_limit` (0-50 LYD) to `offices`, updated PostgreSQL function `find_potential_guarantors()` to dynamically read and enforce the office limit, and integrated an HSL slider settings card in the Office Settings portal for managers.
+- **Phase 22 (Premium Visual Upgrades, Logistics Hub & Form Layouts)**: Complete ✅ — Replaced typography with Alexandria/Tajawal fonts, designed the topmost compact gold header (52px height) with consolidated hover-dropdown navigation (Subscriptions, Financials, Connections, Configuration), designed interactive vehicle delivery staged trackers and ocean pre-booking boards for the Car Dealer, integrated queue model heatmaps and 48-hour queuing alerts, embedded searchable customer switcher inside `DocumentUploader`, and restructured the guarantor fields into a clean two-column grid panel layout (Name/Salary/Phone/Bank/Branch/Workplace on right, National ID/Birth Year/Gender on left) matching the beneficiary fields.
 
 

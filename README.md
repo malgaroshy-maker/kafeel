@@ -71,6 +71,20 @@
 - Regional tagging (Tripoli, Western, etc.)
 - Toyota car price presets from official bank rates
 
+### 🚚 Car Dealer Logistics & Vehicle Appraisals
+- **Logistics Delivery Pipeline**: Interactive vehicle delivery staging tracker (`🔧 قيد التجهيز الفني`, `📍 جاهزة بالمعرض للزبون`, `🚛 جاري الشحن والتوصيل`, `🔑 تم التسليم النهائي للزبون`) with dynamic filtering.
+- **Pre-Booking & Cargo Tracking**: Live ocean freight cargo shipment estimation for early customer vehicle reservations.
+- **Real-Time Demand Heatmap**: Real-time counter of queue requests rendering vehicle model demand density.
+- **Technical Health Sheets**: Dedicated input forms for mileage, engine health, and detailed vehicle inspection reports.
+- **Queue Urgency Alerting**: Red-pulsing aging alerts with `متأخر ⚠️` for items delayed in matching queue > 48 hours.
+
+### 📢 Premium Design & Unified Announcements
+- **Luxury Gold Header & Typography**: Sleek sticky topmost golden header (52px height) matching premium Alexandria (geometric headings) and Tajawal (fluid body copy) typography.
+- **Zero-Click Hover Dropdowns**: Combined 10 admin sections into 4 unified hovering capsules (Subscriptions, Financials, Connections, Configuration).
+- **3-Column Login Wrapper**: Split auth screen into Left (Dealer Board), Center (Glassmorphic login form), and Right (System Admin warnings) with RLS guest access bypass.
+- **Portal Marquee Banners**: Live layout-wide sliding notification tickers.
+- **Unified Guarantor Layout**: Restructured guarantor field panel (inputs on right, results/validation flags on left) mirroring the beneficiary fields for a balanced, clean design.
+
 ### 🪪 SaaS Administration & Security Hub
 - **White-Label Configuration**: Dynamic branding updates (Brand name, custom logo, footer copyright)
 - **SaaS Packages Builder**: Real-time package pricing, user limits, and features editor
@@ -296,6 +310,7 @@ The test suite covers:
 - [x] **Phase 19**: Live production API testing & SMS integration
 - [x] **Phase 20**: Document Verification & Transaction State Machine
 - [x] **Phase 21**: Configurable Link Limits (قيمة الربط) for Office Managers (0-50 LYD threshold)
+- [x] **Phase 22**: Premium Visual Upgrades, Logistics Hub & Form Layouts ("Shams" Session)
 
 
 ---

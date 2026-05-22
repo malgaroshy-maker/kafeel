@@ -147,237 +147,236 @@ const CustomerFields = ({
   }, [data.nationalId])
 
   return (
-    <div className="customer-section mb-8 p-6 bg-navy-900/30 rounded-2xl border border-white/5">
-      <div className="flex items-center gap-3 mb-6">
+    <div className="customer-section-wrapper mb-8">
+      {/* Title above the two panels */}
+      <div className="flex items-center gap-3 mb-6 pb-2 border-b border-white/5">
         <div className="p-2 bg-primary/20 rounded-lg text-primary">
           <Icon size={20} />
         </div>
-        <h4 className="text-lg font-bold text-white">{title}</h4>
+        <h4 className="text-xl font-bold text-white">{title}</h4>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="input-group">
-          <label>الرقم الوطني</label>
-          <input
-            type="text"
-            inputMode="numeric"
-            className={showValidation && data.nationalId.length < 12 ? 'input-error' : ''}
-            placeholder="أدخل الرقم الوطني (12 رقم)"
-            value={data.nationalId}
-            onChange={(e) => onChange('nationalId', e.target.value.replace(/\D/g, '').slice(0, 12))}
-            maxLength={12}
-          />
-        </div>
-
-        <div className="input-group">
-          <label>الاسم الرباعي</label>
-          <input
-            type="text"
-            placeholder="الاسم الكامل"
-            value={data.fullName}
-            onChange={(e) => onChange('fullName', e.target.value)}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="input-group">
-            <label>الجنس</label>
-            <div className="toggle-group">
-              <button
-                type="button"
-                className={`toggle-btn ${data.gender === 'male' ? 'active' : ''}`}
-                onClick={() => onChange('gender', 'male')}
-              >ذكر</button>
-              <button
-                type="button"
-                className={`toggle-btn ${data.gender === 'female' ? 'active' : ''}`}
-                onClick={() => onChange('gender', 'female')}
-              >أنثى</button>
+      <div className="calc-grid">
+        
+        {/* Right side panel (Important, required data) */}
+        <div className="calc-panel inputs-panel">
+          <div className="flex items-center gap-3 mb-6 pb-2 border-b border-white/5">
+            <div className="p-2 bg-primary/20 rounded-lg text-primary">
+              <User size={20} />
             </div>
+            <h4 className="text-lg font-bold text-white">البيانات الأساسية (إلزامية)</h4>
           </div>
-          <div className="input-group">
-            <label>سنة الميلاد</label>
-            <input type="text" readOnly value={data.birthYear} placeholder="تلقائي" className="bg-navy-950/50" />
-          </div>
-        </div>
 
-        <div className="input-group">
-          <label>رقم الهاتف</label>
-          <input
-            type="tel"
-            inputMode="tel"
-            className={showValidation && (data.phone.length !== 10 || !data.phone.startsWith('0')) ? 'input-error' : ''}
-            placeholder="09XXXXXXXX"
-            value={data.phone}
-            onChange={(e) => onChange('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
-            maxLength={10}
-            dir="ltr"
-          />
-        </div>
-
-        <div className="input-group">
-          <label>المصرف</label>
-          <div className="searchable-select-container" ref={bankRef}>
-            <div className={`searchable-select-trigger ${showValidation && !data.bankId ? 'input-error' : ''}`} onClick={() => {
-              setIsBankOpen(!isBankOpen)
-              setIsBranchOpen(false)
-              setIsOpen(false)
-            }}>
-              <span>{banks.find(b => b.id === data.bankId)?.name || 'اختر المصرف...'}</span>
-              <ChevronDown size={16} />
+          <div className="form-body gap-4">
+            <div className="input-group">
+              <label>الاسم الرباعي</label>
+              <input
+                type="text"
+                className={showValidation && !data.fullName ? 'input-error' : ''}
+                placeholder="الاسم الكامل للضامن"
+                value={data.fullName}
+                onChange={(e) => onChange('fullName', e.target.value)}
+              />
             </div>
-            {isBankOpen && (
-              <div className="searchable-select-dropdown">
-                <div className="searchable-select-search">
-                  <input
-                    type="text"
-                    placeholder="بحث عن مصرف..."
-                    value={bankSearchTerm}
-                    onChange={(e) => setBankSearchTerm(e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
-                    autoFocus
-                  />
-                </div>
-                <div className="searchable-options">
-                  {banks.filter(b => b.name.toLowerCase().includes(bankSearchTerm.toLowerCase())).map(b => (
-                    <div key={b.id} className="searchable-option" onClick={() => {
-                      onChange('bankId', b.id)
-                      onChange('branchId', '')
-                      setIsBankOpen(false)
-                      setBankSearchTerm('')
-                    }}>{b.name}</div>
-                  ))}
-                  {banks.filter(b => b.name.toLowerCase().includes(bankSearchTerm.toLowerCase())).length === 0 && (
-                    <div className="searchable-no-results">لا توجد نتائج</div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
 
-        <div className="input-group">
-          <label>الفرع</label>
-          <div className="searchable-select-container" ref={branchRef}>
-            <div 
-              className={`searchable-select-trigger ${!data.bankId ? 'opacity-50 cursor-not-allowed' : ''} ${showValidation && !data.branchId ? 'input-error' : ''}`} 
-              onClick={() => {
-                if (data.bankId) {
-                  setIsBranchOpen(!isBranchOpen)
-                  setIsBankOpen(false)
+            <div className="input-group">
+              <label>صافي المرتب (د.ل)</label>
+              <input
+                type="number"
+                className={showValidation && !data.salary ? 'input-error' : ''}
+                placeholder="مثال: 2500"
+                value={data.salary}
+                onChange={(e) => onChange('salary', e.target.value)}
+              />
+            </div>
+
+            <div className="input-group">
+              <label>رقم الهاتف</label>
+              <input
+                type="tel"
+                inputMode="tel"
+                className={showValidation && (data.phone.length !== 10 || !data.phone.startsWith('0')) ? 'input-error' : ''}
+                placeholder="09XXXXXXXX"
+                value={data.phone}
+                onChange={(e) => onChange('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                maxLength={10}
+                dir="ltr"
+              />
+            </div>
+
+            <div className="input-group">
+              <label>المصرف</label>
+              <div className="searchable-select-container" ref={bankRef}>
+                <div className={`searchable-select-trigger ${showValidation && !data.bankId ? 'input-error' : ''}`} onClick={() => {
+                  setIsBankOpen(!isBankOpen)
+                  setIsBranchOpen(false)
                   setIsOpen(false)
-                }
-              }}
-            >
-              <span>{selectedBankBranches.find(br => br.id === data.branchId)?.name || 'اختر الفرع...'}</span>
-              <ChevronDown size={16} />
-            </div>
-            {isBranchOpen && data.bankId && (
-              <div className="searchable-select-dropdown">
-                <div className="searchable-select-search">
-                  <input
-                    type="text"
-                    placeholder="بحث عن فرع..."
-                    value={branchSearchTerm}
-                    onChange={(e) => setBranchSearchTerm(e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
-                    autoFocus
-                  />
+                }}>
+                  <span>{banks.find(b => b.id === data.bankId)?.name || 'اختر المصرف...'}</span>
+                  <ChevronDown size={16} />
                 </div>
-                <div className="searchable-options">
-                  {selectedBankBranches.filter(br => br.name.toLowerCase().includes(branchSearchTerm.toLowerCase())).map(br => (
-                    <div key={br.id} className="searchable-option" onClick={() => {
-                      onChange('branchId', br.id)
-                      setIsBranchOpen(false)
-                      setBranchSearchTerm('')
-                    }}>{br.name} {br.region ? `(${br.region})` : ''}</div>
-                  ))}
-                  {selectedBankBranches.filter(br => br.name.toLowerCase().includes(branchSearchTerm.toLowerCase())).length === 0 && (
-                    <div className="searchable-no-results">لا توجد نتائج</div>
-                  )}
-                </div>
+                {isBankOpen && (
+                  <div className="searchable-select-dropdown">
+                    <div className="searchable-select-search">
+                      <input
+                        type="text"
+                        placeholder="بحث عن مصرف..."
+                        value={bankSearchTerm}
+                        onChange={(e) => setBankSearchTerm(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    </div>
+                    <div className="searchable-options">
+                      {banks.filter(b => b.name.toLowerCase().includes(bankSearchTerm.toLowerCase())).map(b => (
+                        <div key={b.id} className="searchable-option" onClick={() => {
+                          onChange('bankId', b.id)
+                          onChange('branchId', '')
+                          setIsBankOpen(false)
+                          setBankSearchTerm('')
+                        }}>{b.name}</div>
+                      ))}
+                      {banks.filter(b => b.name.toLowerCase().includes(bankSearchTerm.toLowerCase())).length === 0 && (
+                        <div className="searchable-no-results">لا توجد نتائج</div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </div>
-
-        <div className="input-group">
-          <label>جهة العمل</label>
-          <div className="searchable-select-container" ref={workplaceRef}>
-            <div className={`searchable-select-trigger ${showValidation && !data.workplaceId ? 'input-error' : ''}`} onClick={() => {
-              setIsOpen(!isOpen)
-              setIsBankOpen(false)
-              setIsBranchOpen(false)
-            }}>
-              <span>{workplaces.find(w => w.id === data.workplaceId)?.name || 'اختر جهة العمل...'}</span>
-              <ChevronDown size={16} />
             </div>
-            {isOpen && (
-              <div className="searchable-select-dropdown">
-                <div className="searchable-select-search">
-                  <input
-                    type="text"
-                    placeholder="بحث..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
-                    autoFocus
-                  />
-                </div>
-                <div className="searchable-options">
-                  {workplaces.filter(w => w.name.includes(searchTerm)).map(w => (
-                    <div key={w.id} className="searchable-option" onClick={() => {
-                      onChange('workplaceId', w.id)
-                      const normalizedName = w.name.replace(/\s+/g, ' ').trim()
-                      const isSpecial = SPECIAL_ENTITIES_16.some(ent => normalizedName.includes(ent))
-                      if (isBeneficiary) onChange('profitPercentage', isSpecial ? '16' : '24')
+
+            <div className="input-group">
+              <label>الفرع</label>
+              <div className="searchable-select-container" ref={branchRef}>
+                <div 
+                  className={`searchable-select-trigger ${!data.bankId ? 'opacity-50 cursor-not-allowed' : ''} ${showValidation && !data.branchId ? 'input-error' : ''}`} 
+                  onClick={() => {
+                    if (data.bankId) {
+                      setIsBranchOpen(!isBranchOpen)
+                      setIsBankOpen(false)
                       setIsOpen(false)
-                    }}>{w.name}</div>
-                  ))}
+                    }
+                  }}
+                >
+                  <span>{selectedBankBranches.find(br => br.id === data.branchId)?.name || 'اختر الفرع...'}</span>
+                  <ChevronDown size={16} />
                 </div>
+                {isBranchOpen && data.bankId && (
+                  <div className="searchable-select-dropdown">
+                    <div className="searchable-select-search">
+                      <input
+                        type="text"
+                        placeholder="بحث عن فرع..."
+                        value={branchSearchTerm}
+                        onChange={(e) => setBranchSearchTerm(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    </div>
+                    <div className="searchable-options">
+                      {selectedBankBranches.filter(br => br.name.toLowerCase().includes(branchSearchTerm.toLowerCase())).map(br => (
+                        <div key={br.id} className="searchable-option" onClick={() => {
+                          onChange('branchId', br.id)
+                          setIsBranchOpen(false)
+                          setBranchSearchTerm('')
+                        }}>{br.name} {br.region ? `(${br.region})` : ''}</div>
+                      ))}
+                      {selectedBankBranches.filter(br => br.name.toLowerCase().includes(branchSearchTerm.toLowerCase())).length === 0 && (
+                        <div className="searchable-no-results">لا توجد نتائج</div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+
+            <div className="input-group">
+              <label>جهة العمل</label>
+              <div className="searchable-select-container" ref={workplaceRef}>
+                <div className={`searchable-select-trigger ${showValidation && !data.workplaceId ? 'input-error' : ''}`} onClick={() => {
+                  setIsOpen(!isOpen)
+                  setIsBankOpen(false)
+                  setIsBranchOpen(false)
+                }}>
+                  <span>{workplaces.find(w => w.id === data.workplaceId)?.name || 'اختر جهة العمل...'}</span>
+                  <ChevronDown size={16} />
+                </div>
+                {isOpen && (
+                  <div className="searchable-select-dropdown">
+                    <div className="searchable-select-search">
+                      <input
+                        type="text"
+                        placeholder="بحث..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    </div>
+                    <div className="searchable-options">
+                      {workplaces.filter(w => w.name.includes(searchTerm)).map(w => (
+                        <div key={w.id} className="searchable-option" onClick={() => {
+                          onChange('workplaceId', w.id)
+                          const normalizedName = w.name.replace(/\s+/g, ' ').trim()
+                          const isSpecial = SPECIAL_ENTITIES_16.some(ent => normalizedName.includes(ent))
+                          if (isBeneficiary) onChange('profitPercentage', isSpecial ? '16' : '24')
+                          setIsOpen(false)
+                        }}>{w.name}</div>
+                  ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="input-group">
-            <label>صافي المرتب (د.ل)</label>
-            <input
-              type="number"
-              placeholder="2500"
-              value={data.salary}
-              onChange={(e) => onChange('salary', e.target.value)}
-            />
+        {/* Left side panel (Secondary data) */}
+        <div className="calc-panel results-panel" style={{ height: 'fit-content' }}>
+          <div className="flex items-center gap-3 mb-6 pb-2 border-b border-white/5">
+            <div className="p-2 bg-primary/20 text-primary rounded-lg">
+              <ShieldCheck size={20} />
+            </div>
+            <h4 className="text-lg font-bold text-white">معلومات ثانوية تفيد المكتب</h4>
           </div>
-          {isBeneficiary && (
+
+          <div className="form-body gap-4">
             <div className="input-group">
-              <label>نسبة الربح (%)</label>
+              <label>الرقم الوطني</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                className={showValidation && data.nationalId.length < 12 ? 'input-error' : ''}
+                placeholder="أدخل الرقم الوطني (12 رقم)"
+                value={data.nationalId}
+                onChange={(e) => onChange('nationalId', e.target.value.replace(/\D/g, '').slice(0, 12))}
+                maxLength={12}
+              />
+            </div>
+
+            <div className="input-group">
+              <label>سنة الميلاد</label>
+              <input type="text" readOnly value={data.birthYear} placeholder="تلقائي" className="bg-navy-950/50" />
+            </div>
+
+            <div className="input-group">
+              <label>الجنس</label>
               <div className="toggle-group">
-                <button type="button" className={`toggle-btn ${data.profitPercentage === '16' ? 'active' : ''}`} onClick={() => onChange('profitPercentage', '16')}>16%</button>
-                <button type="button" className={`toggle-btn ${data.profitPercentage === '24' ? 'active' : ''}`} onClick={() => onChange('profitPercentage', '24')}>24%</button>
+                <button
+                  type="button"
+                  className={`toggle-btn ${data.gender === 'male' ? 'active' : ''}`}
+                  onClick={() => onChange('gender', 'male')}
+                >ذكر</button>
+                <button
+                  type="button"
+                  className={`toggle-btn ${data.gender === 'female' ? 'active' : ''}`}
+                  onClick={() => onChange('gender', 'female')}
+                >أنثى</button>
               </div>
             </div>
-          )}
+          </div>
         </div>
 
-        {isBeneficiary && (
-          <>
-            <div className="input-group">
-              <label>نوع جهة العمل</label>
-              <div className="toggle-group">
-                <button type="button" className={`toggle-btn ${data.workplaceType === 'public' ? 'active' : ''}`} onClick={() => onChange('workplaceType', 'public')}>تعيين عام</button>
-                <button type="button" className={`toggle-btn ${data.workplaceType === 'classified' ? 'active' : ''}`} onClick={() => onChange('workplaceType', 'classified')}>عقود مصنفة</button>
-              </div>
-            </div>
-            <div className="input-group flex items-center pt-8">
-              <label className="checkbox-label">
-                <input type="checkbox" checked={data.isSalaryContinuous} onChange={(e) => onChange('isSalaryContinuous', e.target.checked)} />
-                <span>إيداع مرتب مستمر</span>
-              </label>
-            </div>
-          </>
-        )}
       </div>
     </div>
   )
