@@ -5,8 +5,8 @@
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\package.json": {
-    "mtime": 1779207527.5432105,
-    "ast_hash": "40c52301b8a44cddf90157b4bae20eeb",
+    "mtime": 1779483027.5686698,
+    "ast_hash": "5a9a2991e873ecccf4f4bb1149aa5903",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\supabase_migration_phase6.sql": {
@@ -40,8 +40,8 @@
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\App.tsx": {
-    "mtime": 1779207527.5476334,
-    "ast_hash": "bf82152352a2370e72bcdc7593c8a309",
+    "mtime": 1779321910.2009583,
+    "ast_hash": "2e17606d851019a4ad0669f1a8e1c98d",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\main.tsx": {
@@ -55,8 +55,8 @@
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\components\\AdminDashboard.tsx": {
-    "mtime": 1779207527.5499513,
-    "ast_hash": "274be2f2333daa2f809a02682f099ad4",
+    "mtime": 1779321910.2035215,
+    "ast_hash": "d002a6048398ba56748c42de9f25c68a",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\components\\BroadcastManager.tsx": {
@@ -65,23 +65,23 @@
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\components\\Calculator.tsx": {
-    "mtime": 1779055728.3121376,
-    "ast_hash": "ee24c4a6fadab2e7675ec0c9ce4433b1",
+    "mtime": 1779483027.6230807,
+    "ast_hash": "b9566d0b1789f8d86f7056bc361bc01b",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\components\\CustomerForm.tsx": {
-    "mtime": 1779207527.5510805,
-    "ast_hash": "01dac788705775059d6bb5a74125a767",
+    "mtime": 1779483027.6270983,
+    "ast_hash": "a0835015aaea049eb48e42b83db4afd6",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\components\\CustomerList.tsx": {
-    "mtime": 1779207527.5533667,
-    "ast_hash": "637e4b0f375696aee666e0c63ced66cf",
+    "mtime": 1779439591.1011312,
+    "ast_hash": "2a1cf68eaf63650173395c2efec27fd9",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\components\\DocumentUploader.tsx": {
-    "mtime": 1779207527.5549448,
-    "ast_hash": "dfd1d5412bba1742c311d100526788e7",
+    "mtime": 1779483027.6331236,
+    "ast_hash": "4bc4130bbf10056a8abdeec35a591119",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\components\\ErrorBoundary.tsx": {
@@ -90,8 +90,8 @@
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\components\\MonitorDashboard.tsx": {
-    "mtime": 1779207527.5580673,
-    "ast_hash": "e575ff0e1fc04bdc0709ae9f505d6151",
+    "mtime": 1779483027.636628,
+    "ast_hash": "183ac56635b95cb0dee656dd8ad28e9a",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\components\\OfficeSettings.tsx": {
@@ -120,13 +120,13 @@
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\components\\SettingsPanel.tsx": {
-    "mtime": 1779207527.5619197,
-    "ast_hash": "89836303feef0b37d81fdd7c87de9dcd",
+    "mtime": 1779439591.1095486,
+    "ast_hash": "ed6d03f1405596f2fb45f3939b43c3ba",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\components\\Settlements.tsx": {
-    "mtime": 1779207527.5629473,
-    "ast_hash": "17038ec42040db00e51a60a8df66531d",
+    "mtime": 1779483027.6396587,
+    "ast_hash": "2a63a3222666cac21a68484557e8aa84",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\components\\StaffDashboard.tsx": {
@@ -140,13 +140,13 @@
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\components\\WaitingQueue.tsx": {
-    "mtime": 1779207527.566204,
-    "ast_hash": "c3ab632d59fa1f4b1fd734e23ae66630",
+    "mtime": 1779483027.641659,
+    "ast_hash": "0dc3e596a6a86a577e28fd083ec4deda",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\contexts\\AuthContext.tsx": {
-    "mtime": 1779207527.5677283,
-    "ast_hash": "42e4ac81dc57f9a156885af084ef3c7f",
+    "mtime": 1779321910.2063894,
+    "ast_hash": "38e442ac08b651099fde0a19de6850c3",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\hooks\\useLocalStorage.ts": {
@@ -170,13 +170,13 @@
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\layouts\\OfficeLayout.tsx": {
-    "mtime": 1779210367.9283953,
-    "ast_hash": "21cd356564fb66bc6208a4874fd9f526",
+    "mtime": 1779439591.115468,
+    "ast_hash": "e9bd60980c1bbf93eead9210659853a5",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\lib\\financialEngine.ts": {
-    "mtime": 1778611127.3302627,
-    "ast_hash": "bc4430e03c81f190fc7d9e012fe21a84",
+    "mtime": 1779463962.2740006,
+    "ast_hash": "df6982098f127e12a8e43ea805ed5cfe",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\lib\\supabase.ts": {
@@ -185,8 +185,8 @@
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\pages\\JoinPage.tsx": {
-    "mtime": 1779207527.571993,
-    "ast_hash": "90027bccb3b1fc702c9ae45b33575985",
+    "mtime": 1779212977.8119378,
+    "ast_hash": "188db3dda74639367b6ce15c5395e928",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\pages\\LandingPage.tsx": {
@@ -210,8 +210,8 @@
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\supabase\\schema.sql": {
-    "mtime": 1779207527.5778942,
-    "ast_hash": "2d52b77841d0b101ea55ecb1779130e0",
+    "mtime": 1779439591.1231656,
+    "ast_hash": "6fdd41b5bbc4c2299f59cafa82198c91",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\supabase\\functions\\admin-manage-users\\index.ts": {
@@ -220,8 +220,8 @@
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\supabase\\functions\\join-with-code\\index.ts": {
-    "mtime": 1778353330.4215298,
-    "ast_hash": "35bb1269fe7608c9d5dd4b958a73ff9b",
+    "mtime": 1779221532.0635338,
+    "ast_hash": "8c563979ceb77659e81653494d631965",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\supabase\\migrations\\01_super_admin_features.sql": {
@@ -249,34 +249,24 @@
     "ast_hash": "76417b2d2e3b2ad80fd7cdf3ff659007",
     "semantic_hash": ""
   },
-  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\supabase\\migrations\\05_restrict_deletes_to_managers.sql": {
-    "mtime": 1779207527.5778942,
-    "ast_hash": "83b015ca9b74e4339781d935355e9396",
-    "semantic_hash": ""
-  },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\supabase\\migrations\\06_allow_anonymous_broadcast_select.sql": {
     "mtime": 1779210704.656099,
     "ast_hash": "bf1f563bde0e1518c0c923acb0634bb5",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\test\\financialEngine.test.ts": {
-    "mtime": 1778101200.7540529,
-    "ast_hash": "22655cfe4225f03106027808f52db8f1",
+    "mtime": 1779463962.2776945,
+    "ast_hash": "ffeca9f682cd9c7aff8299dd425a4ac7",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\AGENT.md": {
-    "mtime": 1778967516.1606128,
-    "ast_hash": "1d76bf93b4d0caf40a54f074362c40ab",
+    "mtime": 1779464779.3873568,
+    "ast_hash": "b5c572e40bb9423e4ed91b355172d4ea",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\audio_project_comparison.md": {
     "mtime": 1778102958.2752547,
     "ast_hash": "6bbfb6aa62a40ecdd2c4a61e0485a0ee",
-    "semantic_hash": ""
-  },
-  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\calculater.md": {
-    "mtime": 1778100280.5274794,
-    "ast_hash": "0f18afcc4174ef1080bcb3667c40d092",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\CONTRIBUTING.md": {
@@ -285,8 +275,8 @@
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\Design.md": {
-    "mtime": 1779207527.4061232,
-    "ast_hash": "c764eca00fcf85d0e3e487a1f914b64b",
+    "mtime": 1779464775.192122,
+    "ast_hash": "49dbed7d2bf7e1ec182bb82748fe3a8d",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\diff.md": {
@@ -299,34 +289,14 @@
     "ast_hash": "cb511f3dcaeba8efe33f6a56c2da4277",
     "semantic_hash": ""
   },
-  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\Mahamed 18-5.md": {
-    "mtime": 1779207527.408461,
-    "ast_hash": "5e9b105d475c53c7fec48ae055944a3d",
-    "semantic_hash": ""
-  },
-  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\Plan.md": {
-    "mtime": 1779207527.412019,
-    "ast_hash": "6468083c2868ee4f2e4b956ca58012d3",
-    "semantic_hash": ""
-  },
-  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\prd.md": {
-    "mtime": 1779207527.5444963,
-    "ast_hash": "f67a1e4e615f81799e7f1fa13aa5d9d6",
-    "semantic_hash": ""
-  },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\README.md": {
-    "mtime": 1779207527.413566,
-    "ast_hash": "e9ab9355ec8019483323683e29f691f6",
-    "semantic_hash": ""
-  },
-  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\roadmap.md": {
-    "mtime": 1779207527.5465627,
-    "ast_hash": "77aebe465eb64ef231e74c2fe96eb2ef",
+    "mtime": 1779464763.003126,
+    "ast_hash": "6304114d708e54cd39d88cd0175a3c9d",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\\u0634\u0645\u0633.md": {
-    "mtime": 1779207527.5813282,
-    "ast_hash": "f23dd860d29c752eed86da21d2debdaa",
+    "mtime": 1779439591.1270347,
+    "ast_hash": "bc6407c72b70080e0c26b9a73fbbee47",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\.agent\\skills\\ui-ux-pro-max\\SKILL.md": {
@@ -335,23 +305,23 @@
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\docs\\CALCULATOR.md": {
-    "mtime": 1778100280.5274794,
-    "ast_hash": "0f18afcc4174ef1080bcb3667c40d092",
+    "mtime": 1779463962.2691965,
+    "ast_hash": "4e7ef744646eb703f03b553c93f18891",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\docs\\PLAN.md": {
-    "mtime": 1778607217.515324,
-    "ast_hash": "a219f3abf610d47634ee59c019484096",
+    "mtime": 1779484904.375156,
+    "ast_hash": "280adeb1bf0930be75b0250137dfcb0a",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\docs\\PRD.md": {
-    "mtime": 1778607224.9387712,
-    "ast_hash": "4c36fec72747e222cd079f135953a68d",
+    "mtime": 1779484898.8905976,
+    "ast_hash": "b3bf9ced2f4c19aad8724d45f1767230",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\docs\\ROADMAP.md": {
-    "mtime": 1778607246.624299,
-    "ast_hash": "b40e686b5e419b1e520e7d278bec9aa1",
+    "mtime": 1779484910.3423352,
+    "ast_hash": "292039374e037c83532f131cff27fef1",
     "semantic_hash": ""
   },
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\presentation 3.pdf": {
@@ -422,6 +392,281 @@
   "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\04-30-2026 12.40.mp3": {
     "mtime": 1778101597.0863595,
     "ast_hash": "bc072bff37f6cbd896a003cb03178256",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\generate_pdf.py": {
+    "mtime": 1779404346.8309531,
+    "ast_hash": "f5af27f5e759d06c3a3e33c44b3ded65",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\scratch_check.js": {
+    "mtime": 1779483027.6174889,
+    "ast_hash": "80bdbb6dd760eab1370712b9e342cbaa",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\.vscode\\settings.json": {
+    "mtime": 1779219169.7031946,
+    "ast_hash": "99914b932bd37a50b983c5e7c90ae93b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\audio\\analyze_meetings.py": {
+    "mtime": 1779486348.765029,
+    "ast_hash": "2b5976f1d63d46bd6d915da55c97304e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\audio\\check_all_models.py": {
+    "mtime": 1779486323.9260902,
+    "ast_hash": "0970c0d9c5bd36fe50d10e451d6f8f06",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\audio\\check_model.py": {
+    "mtime": 1779486343.759034,
+    "ast_hash": "046686b1814a11922b64161ad53c8405",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\components\\FinancialRequest.tsx": {
+    "mtime": 1779483589.8069544,
+    "ast_hash": "7bf5375938ad5fff1252de3c0d8f70cb",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\components\\PotentialCustomers.tsx": {
+    "mtime": 1779439591.1085358,
+    "ast_hash": "f2dd6757bb93b4b958df41ed4a7c8749",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\components\\SecurityErrorBoundary.tsx": {
+    "mtime": 1779214290.060341,
+    "ast_hash": "b1024b39661d101c5c2b6e24f3b492f9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\components\\SupportWidget.tsx": {
+    "mtime": 1779321910.204521,
+    "ast_hash": "af73fcc98d189a35833186919fc6c900",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\src\\components\\TermsOverlay.tsx": {
+    "mtime": 1779221255.6406088,
+    "ast_hash": "0e3460857949d1e94b2ddaf3fbea16be",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\supabase\\.temp\\linked-project.json": {
+    "mtime": 1779318868.6130319,
+    "ast_hash": "bf09e5a15556d66d5814789cbbfca1d7",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\supabase\\migrations\\07_security_hardening.sql": {
+    "mtime": 1779232341.8088028,
+    "ast_hash": "906f42c35fc1190ff2be64fb0067b743",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\supabase\\migrations\\08_add_accepted_terms_to_user_profiles.sql": {
+    "mtime": 1779221542.8091223,
+    "ast_hash": "3b507399c062926206b030a50b803deb",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\supabase\\migrations\\09_setup_storage_buckets.sql": {
+    "mtime": 1779224109.3252592,
+    "ast_hash": "19a3062c3cc49b1ff7bb8d5461c90877",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\supabase\\migrations\\10_add_rejection_reason.sql": {
+    "mtime": 1779483027.6451836,
+    "ast_hash": "c8e579c5e627a232dd8b6d7d469b67d3",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\supabase\\migrations\\11_restrict_deletes_to_managers.sql": {
+    "mtime": 1779483711.0789409,
+    "ast_hash": "02cbf94a4a4283f09d055e6524fcb5c2",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\supabase\\migrations\\12_add_tax_rate_to_workplaces.sql": {
+    "mtime": 1779321910.2073977,
+    "ast_hash": "972328f5abbf14c98633c5c2a3b4d2a4",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\supabase\\migrations\\13_support_messages.sql": {
+    "mtime": 1779483730.9838781,
+    "ast_hash": "a83bfef2c2ea86a61e0095bf0e296595",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\supabase\\migrations\\14_add_customer_fields.sql": {
+    "mtime": 1779439591.1177583,
+    "ast_hash": "c331a31a10deb168ca78d7512a7faef7",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\supabase\\migrations\\15_potential_customers.sql": {
+    "mtime": 1779483803.0827098,
+    "ast_hash": "2eb7011ce1ac31576c9a5512504cc0d7",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\supabase\\migrations\\16_add_salary_match_limit_to_offices.sql": {
+    "mtime": 1779439591.12068,
+    "ast_hash": "92800bc7ab11c56a51d70dda22e9a997",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\supabase\\migrations\\17_financial_requests.sql": {
+    "mtime": 1779483810.2859266,
+    "ast_hash": "0de6a397f21819ded72ea3d97e98bcab",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\test\\check_users.js": {
+    "mtime": 1779483027.6482315,
+    "ast_hash": "ca862c46134839b69c51649da6aee7ca",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\test\\fetch_data.js": {
+    "mtime": 1779483027.6497495,
+    "ast_hash": "79a6fa5d9cc9709bd1de1ad4b12212f8",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\test\\fix_manager.js": {
+    "mtime": 1779483027.6509955,
+    "ast_hash": "d4f0c18709221864a7db2d0a5b215844",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\test\\launch_test.js": {
+    "mtime": 1779483027.653128,
+    "ast_hash": "b5421082da2e9cc7f4b1b39ea1892fb1",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\test\\list_users.js": {
+    "mtime": 1779483027.6541255,
+    "ast_hash": "d008765df98aacf01f8720b514b1bec1",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\test\\run_qa_flow.js": {
+    "mtime": 1779483027.658697,
+    "ast_hash": "bea1e0911b9685630bb886a8f2b3c64f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\kafeel_brochure.html": {
+    "mtime": 1779404712.5671554,
+    "ast_hash": "3bee268bd29a7b43d57139d6d03e5578",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\SECURITY.md": {
+    "mtime": 1779233196.219018,
+    "ast_hash": "412d02c2c21aa48ebae3b47271113cfd",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\test-results.md": {
+    "mtime": 1779484600.2798352,
+    "ast_hash": "7ee68e7f935a1a5ec7f7ffa771d493a9",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\test_plan.md": {
+    "mtime": 1779484607.7663014,
+    "ast_hash": "4278d52b92c8a7a65484000eaf9c374a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\audio\\mariam.md": {
+    "mtime": 1779488375.1329844,
+    "ast_hash": "da746d860038b9be59bc6ed677d537a5",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\audio\\taha.md": {
+    "mtime": 1779488363.1280642,
+    "ast_hash": "1e99f5e159f6ced3f62813bb49475f14",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\audio\\what_we_need_to_do.md": {
+    "mtime": 1779488353.0130458,
+    "ast_hash": "52f3add77af3a3fec97a901e71d78d5e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\docs\\DEPLOYMENT.md": {
+    "mtime": 1779319368.4735389,
+    "ast_hash": "919138715d4ee725b6392469af5c060d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\kafeel_brochure.pdf": {
+    "mtime": 1779404726.8071861,
+    "ast_hash": "e8f9fcbab78239aa84b40781d4219960",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\public\\showcase\\01_premium_login_screen.png": {
+    "mtime": 1779466601.5737543,
+    "ast_hash": "8114d143798bcf43e04a2acca981d871",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\public\\showcase\\02a_super_admin_office_list.png": {
+    "mtime": 1779467249.3551912,
+    "ast_hash": "646ef5a9aa1e6e899f812f453d1ee5dc",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\public\\showcase\\02_super_admin_dashboard.png": {
+    "mtime": 1779466685.5436337,
+    "ast_hash": "0471f3ae79cacb02ef6ab40ec6346485",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\public\\showcase\\03_cybersecurity_console.png": {
+    "mtime": 1779466724.9931102,
+    "ast_hash": "116d5e4a5b95d52550dabb7cc9a677c6",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\public\\showcase\\04_monitor_dashboard.png": {
+    "mtime": 1779483027.5739965,
+    "ast_hash": "c4fe183328a1e7d84aac98d8eb3dce0e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\public\\showcase\\05_manager_office_settings.png": {
+    "mtime": 1779468041.1289163,
+    "ast_hash": "1409c7b8e15a5e64ef966390ce6ef1c5",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\public\\showcase\\06_golden_padlock_gate.png": {
+    "mtime": 1779483027.5790641,
+    "ast_hash": "a5fab0f0b5e0b92a403f5f846ec7af18",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\public\\showcase\\07_leads_potential_customers.png": {
+    "mtime": 1779483027.5866795,
+    "ast_hash": "d671bb9f30577136ab5464969e82e9be",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\public\\showcase\\08_unified_registration_form.png": {
+    "mtime": 1779483027.5922768,
+    "ast_hash": "44cb23acf9a97c84186174513f79765c",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\public\\showcase\\09_reactive_financial_calculator.png": {
+    "mtime": 1779483027.5993476,
+    "ast_hash": "b1fc8f18c79d82b85f6d05df7c130715",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\public\\showcase\\10_document_approval_widget.png": {
+    "mtime": 1779483027.6035085,
+    "ast_hash": "ac7ad748bbe08cbd8f508ad2cc792f69",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\public\\showcase\\11_logistics_cargo_freight.png": {
+    "mtime": 1779483027.6082263,
+    "ast_hash": "4870c19644c9ffb3704ad30ec24eacad",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\public\\showcase\\12_post_delivery_settlements.png": {
+    "mtime": 1779483027.6144543,
+    "ast_hash": "9a252cb1f2493f1c63b4736d2cdff80e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\audio\\mariam.m4a": {
+    "mtime": 1779456319.7123961,
+    "ast_hash": "95bb5087f3babd8aa4a733841104ae4d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\audio\\mariam.mp3": {
+    "mtime": 1779486097.1800036,
+    "ast_hash": "d32de05dc79ae324bdfabc19b8889784",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\audio\\taha.m4a": {
+    "mtime": 1779485198.7582889,
+    "ast_hash": "1f8434d3d36321626f3cbf3545369b6e",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\masal\\OneDrive\\Documents\\opencode\\kafeel\\audio\\taha.mp3": {
+    "mtime": 1779486071.8104074,
+    "ast_hash": "2aa8fac81c193ba08df70e26d5f68401",
     "semantic_hash": ""
   }
 }
