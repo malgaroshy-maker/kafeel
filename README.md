@@ -35,8 +35,9 @@
 
 ### 🧮 Reactive Financial Calculator
 - Real-time Murabaha calculations (16% / 24% margins)
-- Bank ceiling enforcement (120,000 LYD max)
-- Notary pledge toggle (35% → 50% deduction)
+- Bank ceiling enforcement (120,000 LYD max) with scaled down installments for lower priced vehicles
+- Capped deduction rate at 50% for all calculations (Notary pledge toggle is reminder only)
+- Granular down payment breakdown (Excess vehicle value + capacity gap) and aggregated sum card
 - No submit button — instant results on input change
 
 ### 🔗 Intelligent Matchmaking Engine

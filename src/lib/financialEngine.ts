@@ -21,6 +21,8 @@ export interface CalcResult {
   bankPrincipal: number         // actualBankRepayment / (1 + M)
   salaryGap: number             // max(0, IDEAL_INSTALLMENT - (S * D))
   isOverCeiling: boolean        // totalMurabahaValue > BANK_CEILING
+  excessValue: number           // max(0, totalMurabahaValue - BANK_CEILING)
+  salaryGapTotal: number        // salaryGap * 96
 
   // Compatibility aliases for Vitest suite and Equation-level assertions
   maxInstallment: number        // S * D
@@ -39,28 +41,40 @@ export function calculateMurabaha(input: CalcInput): CalcResult | null {
 
   if (P <= 0 || S <= 0 || ceiling <= 0) return null
 
-  // 1. Imax = S * D (Max monthly installment capacity)
+  // 1. Max monthly installment capacity based on salary and deduction rate (e.g. 50% or 35%)
   const maxInstallment = S * D
-  const maxBankCapacity = maxInstallment * TERM_MONTHS // This is Fmax (Max funding capacity)
+  const rawMaxBankCapacity = maxInstallment * TERM_MONTHS // Fmax
+  const maxBankCapacity = Math.min(ceiling, rawMaxBankCapacity) // Capped at ceiling (120,000 => 1250 limit)
 
-  // 2. Iactual = S * D (Actual monthly installment is exactly 50% of net salary, i.e., S * D)
-  const actualInstallment = S * D
-  const totalRepayment = actualInstallment * TERM_MONTHS
-
-  // 3. Bactual = min(Bcap, totalRepayment / (1 + M)) (Actual financed principal)
-  const actualFinancedAmount = Math.min(ceiling, totalRepayment / (1 + M))
-
-  // 4. Debt = P - Bactual (Down payment / difference paid in cash)
-  const debt = P - actualFinancedAmount
-
-  // 5. Bank profit (Total repayment minus financed principal)
-  const profitAmount = totalRepayment - actualFinancedAmount
-
-  // 6. Total Murabaha Value (P * (1 + M))
+  // 2. Total Murabaha Value (P * (1 + M))
   const totalMurabahaValue = P * (1 + M)
 
-  // 7. Over capacity check (if max capacity is less than the ceiling * (1+M))
-  const isOverCapacity = maxBankCapacity / (1 + M) < ceiling
+  // 3. Ideal monthly installment and total ceiling repayment for this transaction
+  const idealInstallment = Math.min(ceiling / TERM_MONTHS, totalMurabahaValue / TERM_MONTHS)
+
+  // 4. Salary gap: difference between ideal installment and customer's capacity
+  const salaryGapInstallment = Math.max(0, idealInstallment - maxInstallment)
+  const salaryGapTotal = salaryGapInstallment * TERM_MONTHS
+
+  // 5. Excess value over the bank ceiling repayment
+  const excessValue = Math.max(0, totalMurabahaValue - ceiling)
+
+  // 6. Down Payment = Excess over ceiling + Salary gap total (capped at total value)
+  const rawDownPayment = excessValue + salaryGapTotal
+  const debt = Math.min(totalMurabahaValue, rawDownPayment)
+
+  // 7. Actual bank repayment (total repayment including profit)
+  const totalRepayment = totalMurabahaValue - debt
+
+  // 8. Actual monthly installment
+  const actualInstallment = totalRepayment / TERM_MONTHS
+
+  // 9. Financed principal and profit breakdown
+  const actualFinancedAmount = totalRepayment / (1 + M)
+  const profitAmount = totalRepayment - actualFinancedAmount
+
+  // 10. Over capacity check (customer's capacity is less than the bank ceiling or total deal value)
+  const isOverCapacity = rawMaxBankCapacity < Math.min(totalMurabahaValue, ceiling)
 
   return {
     // Calculator.tsx fields
@@ -71,12 +85,14 @@ export function calculateMurabaha(input: CalcInput): CalcResult | null {
     monthlyInstallment: actualInstallment,
     bankProfit: profitAmount,
     bankPrincipal: actualFinancedAmount,
-    salaryGap: Math.max(0, IDEAL_INSTALLMENT - maxInstallment),
-    isOverCeiling: P > ceiling,
+    salaryGap: salaryGapInstallment,
+    isOverCeiling: totalMurabahaValue > ceiling,
+    excessValue,
+    salaryGapTotal,
 
     // Vitest suite compatibility aliases
     maxInstallment,
-    maxFundingCapacity: maxBankCapacity,
+    maxFundingCapacity: rawMaxBankCapacity,
     actualFinancedAmount,
     actualInstallment,
     debt,

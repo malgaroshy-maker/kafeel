@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import { Calculator as CalcIcon, TrendingUp, Banknote, CreditCard, AlertTriangle, User, ShieldCheck, Save } from 'lucide-react'
+import { Calculator as CalcIcon, TrendingUp, Banknote, CreditCard, User, ShieldCheck, Save } from 'lucide-react'
 import { calculateMurabaha, TERM_MONTHS } from '../lib/financialEngine'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
@@ -182,7 +182,7 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, showSa
       bankCeiling: n(form.bankCeiling),
       netSalary: n(form.netSalary),
       marginRate: parseFloat(form.marginRate),
-      deductionRate: 0.50, // Always 50% as requested by the user
+      deductionRate: 0.50, // Always 50% limit as requested
     })
   }, [form])
 
@@ -332,7 +332,15 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, showSa
           </div>
 
           <div className="deduction-badge">
-            نسبة الخصم: <strong>50%</strong>
+            نسبة الخصم الفعلية: <strong>
+              {results && n(form.netSalary) > 0
+                ? `${((results.monthlyInstallment / n(form.netSalary)) * 100).toFixed(1)}%`
+                : '50%'
+              }
+            </strong>
+            <span style={{ fontSize: '0.8rem', opacity: 0.8, marginRight: '0.5rem' }}>
+              (الحد الأقصى المسموح به: 50%)
+            </span>
           </div>
         </div>
 
@@ -353,42 +361,14 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, showSa
               </div>
 
               <div className="result-card">
-                <div className="result-icon" style={{ background: 'var(--success)' }}>
-                  <TrendingUp size={20} />
+                <div className="result-icon" style={{ background: 'var(--primary)' }}>
+                  <User size={20} />
                 </div>
                 <div className="result-info">
-                  <span className="result-label">إجمالي قيمة القسط خلال 8 سنوات</span>
-                  <span className="result-value">{fmt(results.actualBankRepayment)} د.ل</span>
+                  <span className="result-label">نقص القدرة (عن الـ 1250 المثالي)</span>
+                  <span className="result-value">الفارق الشهري: {fmt(results.salaryGap)} د.ل</span>
                 </div>
               </div>
-
-              {results.isOverCeiling && (
-                <div className="result-card warning-card">
-                  <div className="result-icon" style={{ background: 'var(--warning)' }}>
-                    <AlertTriangle size={20} />
-                  </div>
-                  <div className="result-info">
-                    <span className="result-label">تنبيه: تم تجاوز سقف المرابحة (120 ألف)</span>
-                    <span className="result-value secondary">
-                      الزيادة: {fmt(results.totalMurabahaValue - 120000)} د.ل
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {results.salaryGap > 0 && (
-                <div className="result-card warning-card" style={{ borderLeftColor: 'var(--primary)' }}>
-                  <div className="result-icon" style={{ background: 'var(--primary)' }}>
-                    <User size={20} />
-                  </div>
-                  <div className="result-info">
-                    <span className="result-label">نقص القدرة (عن الـ 1250 المثالي)</span>
-                    <span className="result-value secondary">
-                      الفارق الشهري: {fmt(results.salaryGap)} د.ل
-                    </span>
-                  </div>
-                </div>
-              )}
 
               <div className="result-card highlight-card">
                 <div className="result-icon" style={{ background: 'var(--primary-dark)' }}>
@@ -400,12 +380,31 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, showSa
                 </div>
               </div>
 
-              <div className={`result-card ${results.downPayment > 0 ? 'debt-card' : ''}`}>
+              <div className="result-card">
                 <div className="result-info full">
-                  <span className="result-label">الدفعة الأولى / الفرق المستحق</span>
-                  <span className={`result-value ${results.downPayment > 0 ? 'debt' : 'success'}`}>
-                    {results.downPayment > 0 ? fmt(results.downPayment) + ' د.ل' : 'لا توجد دفعة أولى'}
+                  <span className="result-label">الدفعة الأولى (تجاوز سقف السيارة)</span>
+                  <span className={`result-value ${results.excessValue > 0 ? 'debt' : 'success'}`}>
+                    {results.excessValue > 0 ? `${fmt(results.excessValue)} د.ل` : '0.00 د.ل'}
                   </span>
+                </div>
+              </div>
+
+              <div className="result-card">
+                <div className="result-info full">
+                  <span className="result-label">الدفعة الأولى (عجز استقطاع المرتب)</span>
+                  <span className={`result-value ${results.salaryGapTotal > 0 ? 'debt' : 'success'}`}>
+                    {results.salaryGapTotal > 0 ? `${fmt(results.salaryGapTotal)} د.ل` : '0.00 د.ل'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="result-card">
+                <div className="result-icon" style={{ background: 'var(--success)' }}>
+                  <TrendingUp size={20} />
+                </div>
+                <div className="result-info">
+                  <span className="result-label">إجمالي قيمة القسط (8 سنوات)</span>
+                  <span className="result-value">{fmt(results.actualBankRepayment)} د.ل</span>
                 </div>
               </div>
 
@@ -421,22 +420,33 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, showSa
                 </div>
               </div>
 
-              <div className="result-card">
-                <div className="result-info full">
-                  <span className="result-label">قيمة التمويل من المصرف (أصل المبلغ)</span>
-                  <span className="result-value">{fmt(results.bankPrincipal)} د.ل</span>
-                </div>
-              </div>
-
-              <div className="result-card">
-                <div className="result-info full">
-                  <span className="result-label">أرباح المرابحة (للمصرف)</span>
-                  <span className="result-value">{fmt(results.bankProfit)} د.ل</span>
+              <div className={`result-card highlight-card ${results.downPayment > 0 ? 'debt-card' : ''}`} style={{
+                gridColumn: '1 / -1',
+                background: results.downPayment > 0 ? 'rgba(239, 68, 68, 0.08)' : 'rgba(16, 185, 129, 0.08)',
+                border: results.downPayment > 0 ? '2px solid rgba(239, 68, 68, 0.4)' : '2px solid rgba(16, 185, 129, 0.4)',
+                padding: '1.2rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+                borderRadius: '12px'
+              }}>
+                <div className="result-info full" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
+                  <span className="result-label" style={{ fontWeight: 'bold', fontSize: '1.05rem', color: 'var(--text)' }}>
+                    إجمالي الدفعة الأولى المستحقة
+                  </span>
+                  <span className="result-value" style={{ 
+                    fontSize: '1.8rem', 
+                    fontWeight: '800', 
+                    color: results.downPayment > 0 ? 'var(--error-color, #ef4444)' : 'var(--success-color, #10b981)' 
+                  }}>
+                    {results.downPayment > 0 ? `${fmt(results.downPayment)} د.ل` : 'لا توجد دفعة أولى'}
+                  </span>
                 </div>
               </div>
 
               {!isStaff && n(form.purchaseCost) > 0 && n(form.carPrice) >= n(form.purchaseCost) && (
-                <div className="result-card" style={{ border: '1px solid var(--success-color)', background: 'rgba(16, 185, 129, 0.05)' }}>
+                <div className="result-card" style={{ gridColumn: '1 / -1', border: '1px solid var(--success-color)', background: 'rgba(16, 185, 129, 0.05)' }}>
                   <div className="result-info full">
                     <span className="result-label" style={{ color: 'var(--success-color)' }}>الربح المبدئي للمكتب (الفرق)</span>
                     <span className="result-value" style={{ color: 'var(--success-color)' }}>{fmt(n(form.carPrice) - n(form.purchaseCost))} د.ل</span>
