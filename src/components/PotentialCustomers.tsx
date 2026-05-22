@@ -17,6 +17,7 @@ interface PotentialCustomer {
   workplace_id: string | null
   workplace?: { name: string } | null
   notes: string
+  callback_date?: string | null
   created_at: string
 }
 
@@ -41,6 +42,7 @@ CREATE TABLE IF NOT EXISTS public.potential_customers (
     salary NUMERIC,
     workplace_id UUID REFERENCES public.workplaces(id) ON DELETE SET NULL,
     notes TEXT,
+    callback_date TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT now(),
     created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL
 );
@@ -111,7 +113,9 @@ export default function PotentialCustomers({ onConvert }: Props) {
   const [salary, setSalary] = useState('')
   const [workplaceId, setWorkplaceId] = useState('')
   const [notes, setNotes] = useState('')
+  const [callbackDate, setCallbackDate] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [filterTab, setFilterTab] = useState<'all' | 'overdue' | 'today' | 'scheduled'>('all')
 
   // Use localStorage fallback if tables do not exist in database yet
   const [useFallback, setUseFallback] = useState(false)
@@ -253,6 +257,7 @@ export default function PotentialCustomers({ onConvert }: Props) {
       salary: parseFloat(salary) || null,
       workplace_id: workplaceId || null,
       notes: notes.trim() || '',
+      callback_date: callbackDate || null,
     }
 
     if (useFallback) {
@@ -340,6 +345,41 @@ export default function PotentialCustomers({ onConvert }: Props) {
     setSalary('')
     setWorkplaceId('')
     setNotes('')
+    setCallbackDate('')
+  }
+
+  const getLocalDateString = () => {
+    const d = new Date()
+    const year = d.getFullYear()
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  const getNormalizedDate = (dateStr?: string | null) => {
+    if (!dateStr) return ''
+    return dateStr.substring(0, 10)
+  }
+
+  const isToday = (dateStr?: string | null) => {
+    if (!dateStr) return false
+    const normalized = getNormalizedDate(dateStr)
+    const localToday = getLocalDateString()
+    return normalized === localToday
+  }
+
+  const isOverdue = (dateStr?: string | null) => {
+    if (!dateStr) return false
+    const normalized = getNormalizedDate(dateStr)
+    const localToday = getLocalDateString()
+    return normalized < localToday
+  }
+
+  const isScheduled = (dateStr?: string | null) => {
+    if (!dateStr) return false
+    const normalized = getNormalizedDate(dateStr)
+    const localToday = getLocalDateString()
+    return normalized > localToday
   }
 
   const copyMigrationSQL = () => {
@@ -348,11 +388,18 @@ export default function PotentialCustomers({ onConvert }: Props) {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const filtered = customers.filter(c =>
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.phone?.includes(searchTerm) ||
-    c.notes?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filtered = customers
+    .filter(c => {
+      if (filterTab === 'overdue') return isOverdue(c.callback_date)
+      if (filterTab === 'today') return isToday(c.callback_date)
+      if (filterTab === 'scheduled') return isScheduled(c.callback_date)
+      return true
+    })
+    .filter(c =>
+      c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.phone?.includes(searchTerm) ||
+      c.notes?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
 
   return (
     <div className="potential-customers-container glass" style={{ padding: '2rem', borderRadius: '20px', border: '1px solid rgba(191, 149, 63, 0.22)', background: 'var(--surface-card)', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)' }}>
@@ -508,6 +555,16 @@ export default function PotentialCustomers({ onConvert }: Props) {
                 ))}
               </select>
             </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>تاريخ المراجعة / الاتصال القادم</label>
+              <input
+                type="date"
+                value={callbackDate}
+                onChange={(e) => setCallbackDate(e.target.value)}
+                style={{ padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid rgba(191,149,63,0.3)', background: 'var(--surface-card)', color: 'var(--text-primary)', outline: 'none', height: '40px' }}
+              />
+            </div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '1rem' }}>
@@ -588,6 +645,46 @@ export default function PotentialCustomers({ onConvert }: Props) {
         </div>
       )}
 
+      {/* Smart Calendar Filters Tabs */}
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', borderBottom: '1px solid rgba(191, 149, 63, 0.1)', paddingBottom: '0.75rem', flexWrap: 'wrap' }}>
+        {[
+          { id: 'all', label: 'الكل', count: customers.length, color: 'var(--text-primary)' },
+          { id: 'overdue', label: 'مراجعة متأخرة ⚠️', count: customers.filter(c => isOverdue(c.callback_date)).length, color: '#f87171' },
+          { id: 'today', label: 'مراجعة اليوم 📅', count: customers.filter(c => isToday(c.callback_date)).length, color: '#34d399' },
+          { id: 'scheduled', label: 'مراجعة مجدولة ⏳', count: customers.filter(c => isScheduled(c.callback_date)).length, color: '#60a5fa' }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setFilterTab(tab.id as any)}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
+              border: filterTab === tab.id ? '1px solid var(--primary)' : '1px solid rgba(255, 255, 255, 0.05)',
+              background: filterTab === tab.id ? 'linear-gradient(135deg, rgba(191, 149, 63, 0.15) 0%, rgba(170, 119, 28, 0.05) 100%)' : 'var(--surface-hover)',
+              color: filterTab === tab.id ? 'var(--primary)' : 'var(--text-secondary)',
+              fontWeight: filterTab === tab.id ? 'bold' : 'normal',
+              cursor: 'pointer',
+              fontSize: '0.82rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              transition: 'all 0.2s ease-in-out',
+            }}
+          >
+            <span style={{ color: filterTab === tab.id ? 'var(--primary)' : tab.color }}>{tab.label}</span>
+            <span style={{ 
+              background: filterTab === tab.id ? 'rgba(191, 149, 63, 0.2)' : 'rgba(255, 255, 255, 0.05)', 
+              padding: '0.1rem 0.4rem', 
+              borderRadius: '6px', 
+              fontSize: '0.72rem',
+              color: filterTab === tab.id ? 'var(--primary)' : 'var(--text-tertiary)',
+              fontWeight: 'bold'
+            }}>{tab.count}</span>
+          </button>
+        ))}
+      </div>
+
       {/* Main List */}
       <div style={{ marginBottom: '1rem', position: 'relative' }}>
         <Search size={18} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)', pointerEvents: 'none' }} />
@@ -620,61 +717,131 @@ export default function PotentialCustomers({ onConvert }: Props) {
         </div>
       ) : (
         <div style={{ display: 'grid', gap: '1rem' }}>
-          {filtered.map(customer => (
-            <div 
-              key={customer.id} 
-              className="customer-card-premium"
-              style={{
-                background: 'var(--surface-hover)',
-                border: '1px solid var(--glass-border)',
-                borderRadius: '14px',
-                padding: '1.25rem 1.5rem',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: '1rem',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, minWidth: '280px' }}>
-                <div style={{ 
-                  background: 'linear-gradient(135deg, rgba(191,149,63,0.1) 0%, rgba(170,119,28,0.03) 100%)', 
-                  width: '46px', 
-                  height: '46px', 
-                  borderRadius: '50%', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  color: 'var(--primary)',
-                  border: '1px solid rgba(191,149,63,0.2)',
-                  flexShrink: 0
-                }}>
-                  <User size={20} />
-                </div>
-                
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-primary)' }}>{customer.name}</span>
-                    <span style={{ background: 'rgba(191, 149, 63, 0.08)', color: 'var(--primary)', border: '1px solid rgba(191, 149, 63, 0.2)', fontSize: '0.7rem', padding: '0.15rem 0.5rem', borderRadius: '8px', fontWeight: 'bold' }}>زبون محتمل</span>
+          {filtered.map(customer => {
+            const overdue = isOverdue(customer.callback_date)
+            const today = isToday(customer.callback_date)
+            const scheduled = isScheduled(customer.callback_date)
+
+            let cardStyle: React.CSSProperties = {
+              background: 'var(--surface-hover)',
+              border: '1px solid var(--glass-border)',
+              borderRadius: '14px',
+              padding: '1.25rem 1.5rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '1rem',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+            }
+
+            if (overdue) {
+              cardStyle = {
+                ...cardStyle,
+                border: '1px solid rgba(239, 68, 68, 0.35)',
+                background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.07) 0%, var(--surface-hover) 100%)',
+                boxShadow: '0 8px 24px rgba(239, 68, 68, 0.05)'
+              }
+            } else if (today) {
+              cardStyle = {
+                ...cardStyle,
+                border: '1px solid rgba(16, 185, 129, 0.35)',
+                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.07) 0%, var(--surface-hover) 100%)',
+                boxShadow: '0 8px 24px rgba(16, 185, 129, 0.05)'
+              }
+            } else if (scheduled) {
+              cardStyle = {
+                ...cardStyle,
+                border: '1px solid rgba(96, 165, 250, 0.25)',
+                background: 'linear-gradient(135deg, rgba(96, 165, 250, 0.04) 0%, var(--surface-hover) 100%)'
+              }
+            }
+
+            return (
+              <div 
+                key={customer.id} 
+                className="customer-card-premium"
+                style={cardStyle}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, minWidth: '280px' }}>
+                  <div style={{ 
+                    background: overdue
+                      ? 'linear-gradient(135deg, rgba(239,68,68,0.1) 0%, rgba(239,68,68,0.03) 100%)'
+                      : today
+                      ? 'linear-gradient(135deg, rgba(16,185,129,0.1) 0%, rgba(16,185,129,0.03) 100%)'
+                      : 'linear-gradient(135deg, rgba(191,149,63,0.1) 0%, rgba(170,119,28,0.03) 100%)', 
+                    width: '46px', 
+                    height: '46px', 
+                    borderRadius: '50%', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    color: overdue ? '#f87171' : today ? '#34d399' : 'var(--primary)',
+                    border: overdue 
+                      ? '1px solid rgba(239,68,68,0.2)' 
+                      : today 
+                      ? '1px solid rgba(16,185,129,0.2)' 
+                      : '1px solid rgba(191,149,63,0.2)',
+                    flexShrink: 0
+                  }}>
+                    <User size={20} />
                   </div>
                   
-                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', color: 'var(--text-secondary)', background: 'var(--surface-card)', padding: '0.25rem 0.6rem', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
-                      <Phone size={11} style={{ color: 'var(--primary)', flexShrink: 0 }} />
-                      <span>{customer.phone || '—'}</span>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-primary)' }}>{customer.name}</span>
+                      <span style={{ background: 'rgba(191, 149, 63, 0.08)', color: 'var(--primary)', border: '1px solid rgba(191, 149, 63, 0.2)', fontSize: '0.7rem', padding: '0.15rem 0.5rem', borderRadius: '8px', fontWeight: 'bold' }}>زبون محتمل</span>
+                      
+                      {overdue && (
+                        <span style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.25)', fontSize: '0.7rem', padding: '0.15rem 0.5rem', borderRadius: '8px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                          <span>⚠️ مراجعة متأخرة</span>
+                        </span>
+                      )}
+                      {today && (
+                        <span style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.25)', fontSize: '0.7rem', padding: '0.15rem 0.5rem', borderRadius: '8px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                          <span>📅 مراجعة اليوم</span>
+                        </span>
+                      )}
+                      {scheduled && (
+                        <span style={{ background: 'rgba(96, 165, 250, 0.1)', color: '#60a5fa', border: '1px solid rgba(96, 165, 250, 0.2)', fontSize: '0.7rem', padding: '0.15rem 0.5rem', borderRadius: '8px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                          <span>⏳ مراجعة مجدولة</span>
+                        </span>
+                      )}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', color: 'var(--text-secondary)', background: 'var(--surface-card)', padding: '0.25rem 0.6rem', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
-                      <Building2 size={11} style={{ color: 'var(--primary)', flexShrink: 0 }} />
-                      <span style={{ fontWeight: '500' }}>{customer.workplace?.name || '—'}</span>
-                    </div>
-                    {customer.salary && (
+                    
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', color: 'var(--text-secondary)', background: 'var(--surface-card)', padding: '0.25rem 0.6rem', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
-                        <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>المرتب:</span>
-                        <span>{customer.salary} د.ل</span>
+                        <Phone size={11} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                        <span>{customer.phone || '—'}</span>
                       </div>
-                    )}
-                  </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', color: 'var(--text-secondary)', background: 'var(--surface-card)', padding: '0.25rem 0.6rem', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+                        <Building2 size={11} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                        <span style={{ fontWeight: '500' }}>{customer.workplace?.name || '—'}</span>
+                      </div>
+                      {customer.salary && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', color: 'var(--text-secondary)', background: 'var(--surface-card)', padding: '0.25rem 0.6rem', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+                          <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>المرتب:</span>
+                          <span>{customer.salary} د.ل</span>
+                        </div>
+                      )}
+                      {customer.callback_date && (
+                        <div style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '0.35rem', 
+                          fontSize: '0.78rem', 
+                          color: overdue ? '#f87171' : today ? '#34d399' : '#60a5fa', 
+                          background: overdue ? 'rgba(239, 68, 68, 0.05)' : today ? 'rgba(16, 185, 129, 0.05)' : 'rgba(96, 165, 250, 0.05)', 
+                          padding: '0.25rem 0.6rem', 
+                          borderRadius: '8px', 
+                          border: overdue ? '1px solid rgba(239, 68, 68, 0.2)' : today ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(96, 165, 250, 0.2)' 
+                        }}>
+                          <Clock size={11} style={{ color: overdue ? '#f87171' : today ? '#34d399' : '#60a5fa', flexShrink: 0 }} />
+                          <span style={{ fontWeight: 'bold' }}>المراجعة:</span>
+                          <span>{getNormalizedDate(customer.callback_date)}</span>
+                        </div>
+                      )}
+                    </div>
 
                   {customer.notes && (
                     <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--text-tertiary)', background: 'rgba(255,255,255,0.02)', padding: '0.5rem 0.75rem', borderRadius: '8px', borderLeft: '3px solid var(--primary)', display: 'inline-block' }}>
@@ -728,7 +895,8 @@ export default function PotentialCustomers({ onConvert }: Props) {
                 </button>
               </div>
             </div>
-          ))}
+          )
+        })}
         </div>
       )}
     </div>
