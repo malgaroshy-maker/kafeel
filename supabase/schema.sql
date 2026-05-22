@@ -46,11 +46,17 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
         CHECK (role IN ('admin', 'monitor', 'manager', 'accountant', 'staff')),
     display_name TEXT DEFAULT '',
     phone TEXT,
+    email TEXT,
     is_active BOOLEAN DEFAULT true,
+    accepted_terms BOOLEAN NOT NULL DEFAULT false,
+    accepted_terms_at TIMESTAMPTZ DEFAULT NULL,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
 COMMENT ON TABLE public.user_profiles IS 'Maps auth.users to offices with role assignments.';
+COMMENT ON COLUMN public.user_profiles.accepted_terms IS 'True if the user has read and accepted terms and conditions';
+COMMENT ON COLUMN public.user_profiles.accepted_terms_at IS 'The date and time when the user accepted terms and conditions';
+COMMENT ON COLUMN public.user_profiles.email IS 'User login email address for display in admin dashboard';
 
 -- ---- BANKS ----
 CREATE TABLE IF NOT EXISTS public.banks (
@@ -76,7 +82,7 @@ COMMENT ON TABLE public.branches IS 'Bank branch registry with regional tagging.
 CREATE TABLE IF NOT EXISTS public.customers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     office_id UUID NOT NULL REFERENCES public.offices(id),
-    national_id TEXT NOT NULL UNIQUE,
+    national_id TEXT UNIQUE,
     name TEXT NOT NULL,
     phone TEXT,
     salary NUMERIC,
@@ -85,6 +91,8 @@ CREATE TABLE IF NOT EXISTS public.customers (
     birth_year INTEGER,
     bank_id UUID REFERENCES public.banks(id),
     branch_id UUID REFERENCES public.branches(id),
+    account_number TEXT,
+    phone_private TEXT,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -106,12 +114,16 @@ CREATE TABLE IF NOT EXISTS public.transactions (
     purchase_cost NUMERIC,
     is_files_complete BOOLEAN DEFAULT false,
     status TEXT NOT NULL DEFAULT 'PENDING',
+    verification_status TEXT DEFAULT 'pending' CHECK (verification_status IN ('pending', 'verified', 'rejected')),
+    rejection_reason TEXT,
     guarantors_needed INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
 COMMENT ON TABLE public.transactions IS 'Murabaha transaction lifecycle. Status: PENDING → WAITING_MATCH → MATCHED → ACTIVE → COMPLETED.';
 COMMENT ON COLUMN public.transactions.purchase_cost IS 'Actual car cost for the office. Hidden from staff/monitors for profit calculation.';
+COMMENT ON COLUMN public.transactions.verification_status IS 'Status of the document verification process by manager/accountant';
+COMMENT ON COLUMN public.transactions.rejection_reason IS 'Reason for document rejection by manager/accountant';
 
 -- ---- TRANSACTION GUARANTORS ----
 CREATE TABLE IF NOT EXISTS public.transaction_guarantors (
@@ -196,6 +208,12 @@ CREATE POLICY "users_read_own_profile"
     TO public
     USING (id = auth.uid());
 
+CREATE POLICY "users_update_own_profile"
+    ON public.user_profiles FOR UPDATE
+    TO authenticated
+    USING (id = auth.uid())
+    WITH CHECK (id = auth.uid());
+
 CREATE POLICY "admin_full_access_profiles"
     ON public.user_profiles FOR ALL
     TO authenticated
@@ -238,10 +256,29 @@ CREATE POLICY "Enable full access for admins"
     ));
 
 -- ---- CUSTOMERS ----
-CREATE POLICY "Offices can only access their own customers"
-    ON public.customers FOR ALL
+CREATE POLICY "Offices can SELECT own customers"
+    ON public.customers FOR SELECT
     TO public
     USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Offices can INSERT own customers"
+    ON public.customers FOR INSERT
+    TO public
+    WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Offices can UPDATE own customers"
+    ON public.customers FOR UPDATE
+    TO public
+    USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid))
+    WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Only managers can DELETE own customers"
+    ON public.customers FOR DELETE
+    TO public
+    USING (
+        office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid)
+        AND ((auth.jwt() -> 'app_metadata' ->> 'role') = 'manager')
+    );
 
 CREATE POLICY "Admins have full access to customers"
     ON public.customers FOR ALL
@@ -254,10 +291,29 @@ CREATE POLICY "Monitors can read customers"
     USING (((auth.jwt() -> 'app_metadata' ->> 'role') = 'monitor'));
 
 -- ---- TRANSACTIONS ----
-CREATE POLICY "Offices can only access their own transactions"
-    ON public.transactions FOR ALL
+CREATE POLICY "Offices can SELECT own transactions"
+    ON public.transactions FOR SELECT
     TO public
     USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Offices can INSERT own transactions"
+    ON public.transactions FOR INSERT
+    TO public
+    WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Offices can UPDATE own transactions"
+    ON public.transactions FOR UPDATE
+    TO public
+    USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid))
+    WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Only managers can DELETE own transactions"
+    ON public.transactions FOR DELETE
+    TO public
+    USING (
+        office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid)
+        AND ((auth.jwt() -> 'app_metadata' ->> 'role') = 'manager')
+    );
 
 CREATE POLICY "Admins have full access to transactions"
     ON public.transactions FOR ALL
@@ -270,13 +326,44 @@ CREATE POLICY "Monitors can read transactions"
     USING (((auth.jwt() -> 'app_metadata' ->> 'role') = 'monitor'));
 
 -- ---- TRANSACTION GUARANTORS ----
-CREATE POLICY "Offices can only access guarantors of their transactions"
-    ON public.transaction_guarantors FOR ALL
+CREATE POLICY "Offices can SELECT own guarantors"
+    ON public.transaction_guarantors FOR SELECT
     TO public
     USING (transaction_id IN (
         SELECT id FROM transactions
         WHERE office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid)
     ));
+
+CREATE POLICY "Offices can INSERT own guarantors"
+    ON public.transaction_guarantors FOR INSERT
+    TO public
+    WITH CHECK (transaction_id IN (
+        SELECT id FROM transactions
+        WHERE office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid)
+    ));
+
+CREATE POLICY "Offices can UPDATE own guarantors"
+    ON public.transaction_guarantors FOR UPDATE
+    TO public
+    USING (transaction_id IN (
+        SELECT id FROM transactions
+        WHERE office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid)
+    ))
+    WITH CHECK (transaction_id IN (
+        SELECT id FROM transactions
+        WHERE office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid)
+    ));
+
+CREATE POLICY "Only managers can DELETE own guarantors"
+    ON public.transaction_guarantors FOR DELETE
+    TO public
+    USING (
+        transaction_id IN (
+            SELECT id FROM transactions
+            WHERE office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid)
+        )
+        AND ((auth.jwt() -> 'app_metadata' ->> 'role') = 'manager')
+    );
 
 CREATE POLICY "Admins have full access to transaction_guarantors"
     ON public.transaction_guarantors FOR ALL
@@ -289,11 +376,29 @@ CREATE POLICY "Monitors can read transaction_guarantors"
     USING (((auth.jwt() -> 'app_metadata' ->> 'role') = 'monitor'));
 
 -- ---- SETTLEMENTS ----
-CREATE POLICY "Offices can access their own settlements"
-    ON public.settlements FOR ALL
+CREATE POLICY "Offices can SELECT own settlements"
+    ON public.settlements FOR SELECT
+    TO authenticated
+    USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Offices can INSERT own settlements"
+    ON public.settlements FOR INSERT
+    TO authenticated
+    WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Offices can UPDATE own settlements"
+    ON public.settlements FOR UPDATE
     TO authenticated
     USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid))
     WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Only managers can DELETE own settlements"
+    ON public.settlements FOR DELETE
+    TO authenticated
+    USING (
+        office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid)
+        AND ((auth.jwt() -> 'app_metadata' ->> 'role') = 'manager')
+    );
 
 CREATE POLICY "Admins have full access to settlements"
     ON public.settlements FOR ALL
@@ -472,3 +577,46 @@ END;
 $$;
 
 COMMENT ON FUNCTION public.attempt_auto_match IS 'Auto-matches guarantors to a WAITING_MATCH transaction and updates status to MATCHED when fulfilled.';
+
+-- ---- FINANCIAL REQUESTS ----
+CREATE TABLE IF NOT EXISTS public.financial_requests (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    office_id UUID NOT NULL REFERENCES public.offices(id) ON DELETE CASCADE,
+    transaction_id UUID NOT NULL REFERENCES public.transactions(id) ON DELETE CASCADE,
+    customer_id UUID NOT NULL REFERENCES public.customers(id) ON DELETE CASCADE,
+    request_type TEXT NOT NULL CHECK (request_type IN ('LOAN', 'FINANCIAL_VALUE', 'BILLS')),
+    amount NUMERIC NOT NULL DEFAULT 0,
+    notes TEXT,
+    status TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+COMMENT ON TABLE public.financial_requests IS 'Requests for financial advances, values, or bills of exchange submitted by staff to the office manager.';
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE public.financial_requests ENABLE ROW LEVEL SECURITY;
+
+-- Create Policies
+CREATE POLICY "Offices can SELECT own financial requests"
+    ON public.financial_requests FOR SELECT
+    TO public
+    USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Offices can INSERT own financial requests"
+    ON public.financial_requests FOR INSERT
+    TO public
+    WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Offices can UPDATE own financial requests"
+    ON public.financial_requests FOR UPDATE
+    TO public
+    USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid))
+    WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Only managers can DELETE own financial requests"
+    ON public.financial_requests FOR DELETE
+    TO public
+    USING (
+        office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid)
+        AND ((auth.jwt() -> 'app_metadata' ->> 'role') = 'manager')
+    );

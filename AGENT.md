@@ -51,20 +51,20 @@ PERSONAL_USE | CASH_OUT | EXTERNAL_SALE
 - Fixed term: **96 months** (hardcoded, not user-configurable)
 - Margins: **16%** or **24%** only (toggle buttons)
 - Bank ceiling max: **120,000 LYD**
-- Deduction: **35%** standard, **50%** with notary pledge
+- Deduction Limit: Fixed at **50%** (0.50) of net salary for all calculations (Notary pledge toggle is a reminder flag only and does not alter mathematical execution)
 - Pure functions in `src/lib/financialEngine.ts` — zero side effects
 - **Always run `npm test` after modifying financial logic**
-- 23 unit tests in `test/financialEngine.test.ts`
+- 24 unit tests in `test/financialEngine.test.ts`
 
 ---
 
 ## 🔗 Matchmaking Engine
 
-- Auto-match criteria: **same workplace** + **salary diff ≤ 50 LYD**
+- Auto-match criteria: **same workplace** + **salary diff ≤ office salary_match_limit (configured by manager, default 50 LYD, max 50 LYD)**
 - Matching is **deferred** — saving a customer does NOT trigger matching
 - User clicks "Send to Queue" → creates `WAITING_MATCH` transaction
 - `attempt_auto_match()` RPC is called from Waiting Queue UI only
-- Monitor can override via `override_validation = true`
+- Operations Monitor can override via `override_validation = true`
 
 ---
 

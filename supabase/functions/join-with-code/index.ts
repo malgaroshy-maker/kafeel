@@ -66,7 +66,10 @@ serve(async (req) => {
         display_name: display_name,
         role: role,
         phone: phone,
-        is_active: true
+        email: email,
+        is_active: true,
+        accepted_terms: true,
+        accepted_terms_at: new Date().toISOString()
       })
 
     if (profileError) {

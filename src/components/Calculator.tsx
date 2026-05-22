@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import { Calculator as CalcIcon, TrendingUp, Banknote, CreditCard, AlertTriangle, User, ShieldCheck } from 'lucide-react'
+import { Calculator as CalcIcon, TrendingUp, Banknote, CreditCard, User, ShieldCheck, Save } from 'lucide-react'
 import { calculateMurabaha, TERM_MONTHS } from '../lib/financialEngine'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../contexts/AuthContext'
 
 interface CalcState {
   purchaseCost: string
@@ -20,8 +21,8 @@ const defaultState: CalcState = {
   bankCeiling: '120000',
   netSalary: '',
   marginRate: '0.16',
-  deductionRate: '0.35',
-  hasNotaryPledge: false,
+  deductionRate: '0.50',
+  hasNotaryPledge: true,
 }
 
 const CAR_PRESETS = [
@@ -36,13 +37,17 @@ const CAR_PRESETS = [
 interface Props {
   beneficiaryId?: string | null
   guarantorId?: string | null
+  showSaveButton?: boolean
+  onSaveSuccess?: (txId: string) => void
 }
 
-export default function FinancialCalculator({ beneficiaryId, guarantorId }: Props) {
+export default function FinancialCalculator({ beneficiaryId, guarantorId, showSaveButton = true, onSaveSuccess }: Props) {
+  const { isStaff, officeId } = useAuth()
   const [form, setForm] = useLocalStorage<CalcState>('kafeel_calc_draft', defaultState)
   const [beneficiaryData, setBeneficiaryData] = useState<any>(null)
   const [guarantorData, setGuarantorData] = useState<any>(null)
   const [selectedCar, setSelectedCar] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (beneficiaryId) {
@@ -59,7 +64,7 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId }: Prop
   const fetchBeneficiary = async (id: string) => {
     const { data } = await supabase
       .from('customers')
-      .select('*, workplace:workplace_id(name)')
+      .select('*, workplace:workplace_id(name, required_guarantors)')
       .eq('id', id)
       .single()
     
@@ -79,13 +84,84 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId }: Prop
     if (data) setGuarantorData(data)
   }
 
+  const handleSaveTransaction = async () => {
+    if (!beneficiaryId) {
+      alert('يرجى اختيار مستفيد أو زبون أولاً.')
+      return
+    }
+    if (!officeId) {
+      alert('يرجى تسجيل الدخول بشكل صحيح كعضو في مكتب.')
+      return
+    }
+    setSaving(true)
+    try {
+      let guarantorsNeeded = 1
+      if (beneficiaryData?.workplace?.required_guarantors) {
+        guarantorsNeeded = beneficiaryData.workplace.required_guarantors
+      }
+
+      const { data: existingTx, error: fetchError } = await supabase
+        .from('transactions')
+        .select('id, status')
+        .eq('customer_id', beneficiaryId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (fetchError) throw fetchError
+
+      const txData = {
+        office_id: officeId,
+        customer_id: beneficiaryId,
+        car_price: n(form.carPrice),
+        bank_ceiling: n(form.bankCeiling),
+        margin_rate: parseFloat(form.marginRate),
+        down_payment: results?.downPayment || 0,
+        total_installments: TERM_MONTHS,
+        workplace_id: beneficiaryData?.workplace_id || null,
+        guarantors_needed: guarantorsNeeded,
+        purchase_cost: !isStaff && n(form.purchaseCost) > 0 ? n(form.purchaseCost) : null
+      }
+
+      let txId = ''
+      if (existingTx) {
+        const { error: updateError } = await supabase
+          .from('transactions_raw')
+          .update(txData)
+          .eq('id', existingTx.id)
+
+        if (updateError) throw updateError
+        txId = existingTx.id
+      } else {
+        const { data: newTx, error: insertError } = await supabase
+          .from('transactions_raw')
+          .insert({
+            ...txData,
+            status: 'PENDING',
+            is_files_complete: false
+          })
+          .select('id')
+          .single()
+
+        if (insertError) throw insertError
+        txId = newTx.id
+      }
+
+      alert('تم حفظ المعاملة المالية في قاعدة البيانات بنجاح!')
+      if (onSaveSuccess) {
+        onSaveSuccess(txId)
+      }
+    } catch (err: any) {
+      console.error('Error saving transaction:', err)
+      alert(`فشل حفظ المعاملة الحسابية: ${err.message || 'خطأ غير معروف'}`)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const update = (field: keyof CalcState, value: string | boolean) => {
     setForm((prev) => {
       const next = { ...prev, [field]: value }
-      // Sync deduction rate with notary pledge
-      if (field === 'hasNotaryPledge') {
-        next.deductionRate = value ? '0.50' : '0.35'
-      }
       return next
     })
   }
@@ -106,7 +182,7 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId }: Prop
       bankCeiling: n(form.bankCeiling),
       netSalary: n(form.netSalary),
       marginRate: parseFloat(form.marginRate),
-      deductionRate: parseFloat(form.deductionRate),
+      deductionRate: 0.50, // Always 50% limit as requested
     })
   }, [form])
 
@@ -227,18 +303,20 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId }: Prop
             />
           </div>
 
-          <div className="input-group">
-            <label htmlFor="purchaseCost">سعر شراء السيارة بالكاش التقريبي وقت المعاملة</label>
-            <input
-              id="purchaseCost"
-              type="number"
-              inputMode="decimal"
-              placeholder="مثال: 90,000 (اختياري)"
-              value={form.purchaseCost}
-              onChange={(e) => update('purchaseCost', e.target.value)}
-              tabIndex={5}
-            />
-          </div>
+          {!isStaff && (
+            <div className="input-group">
+              <label htmlFor="purchaseCost">سعر شراء السيارة بالكاش التقريبي وقت المعاملة</label>
+              <input
+                id="purchaseCost"
+                type="number"
+                inputMode="decimal"
+                placeholder="مثال: 90,000 (اختياري)"
+                value={form.purchaseCost}
+                onChange={(e) => update('purchaseCost', e.target.value)}
+                tabIndex={5}
+              />
+            </div>
+          )}
 
           <div className="input-group checkbox-group">
             <label htmlFor="notaryPledge" className="checkbox-label">
@@ -254,7 +332,15 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId }: Prop
           </div>
 
           <div className="deduction-badge">
-            نسبة الخصم: <strong>{form.hasNotaryPledge ? '50%' : '35%'}</strong>
+            نسبة الخصم الفعلية: <strong>
+              {results && n(form.netSalary) > 0
+                ? `${((results.monthlyInstallment / n(form.netSalary)) * 100).toFixed(1)}%`
+                : '50%'
+              }
+            </strong>
+            <span style={{ fontSize: '0.8rem', opacity: 0.8, marginRight: '0.5rem' }}>
+              (الحد الأقصى المسموح به: 50%)
+            </span>
           </div>
         </div>
 
@@ -275,42 +361,14 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId }: Prop
               </div>
 
               <div className="result-card">
-                <div className="result-icon" style={{ background: 'var(--success)' }}>
-                  <TrendingUp size={20} />
+                <div className="result-icon" style={{ background: 'var(--primary)' }}>
+                  <User size={20} />
                 </div>
                 <div className="result-info">
-                  <span className="result-label">إجمالي قيمة القسط خلال 8 سنوات</span>
-                  <span className="result-value">{fmt(results.actualBankRepayment)} د.ل</span>
+                  <span className="result-label">نقص القدرة (عن الـ 1250 المثالي)</span>
+                  <span className="result-value">الفارق الشهري: {fmt(results.salaryGap)} د.ل</span>
                 </div>
               </div>
-
-              {results.isOverCeiling && (
-                <div className="result-card warning-card">
-                  <div className="result-icon" style={{ background: 'var(--warning)' }}>
-                    <AlertTriangle size={20} />
-                  </div>
-                  <div className="result-info">
-                    <span className="result-label">تنبيه: تم تجاوز سقف المرابحة (120 ألف)</span>
-                    <span className="result-value secondary">
-                      الزيادة: {fmt(results.totalMurabahaValue - 120000)} د.ل
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {results.salaryGap > 0 && (
-                <div className="result-card warning-card" style={{ borderLeftColor: 'var(--primary)' }}>
-                  <div className="result-icon" style={{ background: 'var(--primary)' }}>
-                    <User size={20} />
-                  </div>
-                  <div className="result-info">
-                    <span className="result-label">نقص القدرة (عن الـ 1250 المثالي)</span>
-                    <span className="result-value secondary">
-                      الفارق الشهري: {fmt(results.salaryGap)} د.ل
-                    </span>
-                  </div>
-                </div>
-              )}
 
               <div className="result-card highlight-card">
                 <div className="result-icon" style={{ background: 'var(--primary-dark)' }}>
@@ -322,12 +380,31 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId }: Prop
                 </div>
               </div>
 
-              <div className={`result-card ${results.downPayment > 0 ? 'debt-card' : ''}`}>
+              <div className="result-card">
                 <div className="result-info full">
-                  <span className="result-label">الدفعة الأولى / الفرق المستحق</span>
-                  <span className={`result-value ${results.downPayment > 0 ? 'debt' : 'success'}`}>
-                    {results.downPayment > 0 ? fmt(results.downPayment) + ' د.ل' : 'لا توجد دفعة أولى'}
+                  <span className="result-label">الدفعة الأولى (تجاوز سقف السيارة)</span>
+                  <span className={`result-value ${results.excessValue > 0 ? 'debt' : 'success'}`}>
+                    {results.excessValue > 0 ? `${fmt(results.excessValue)} د.ل` : '0.00 د.ل'}
                   </span>
+                </div>
+              </div>
+
+              <div className="result-card">
+                <div className="result-info full">
+                  <span className="result-label">الدفعة الأولى (عجز استقطاع المرتب)</span>
+                  <span className={`result-value ${results.salaryGapTotal > 0 ? 'debt' : 'success'}`}>
+                    {results.salaryGapTotal > 0 ? `${fmt(results.salaryGapTotal)} د.ل` : '0.00 د.ل'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="result-card">
+                <div className="result-icon" style={{ background: 'var(--success)' }}>
+                  <TrendingUp size={20} />
+                </div>
+                <div className="result-info">
+                  <span className="result-label">إجمالي قيمة القسط (8 سنوات)</span>
+                  <span className="result-value">{fmt(results.actualBankRepayment)} د.ل</span>
                 </div>
               </div>
 
@@ -343,22 +420,33 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId }: Prop
                 </div>
               </div>
 
-              <div className="result-card">
-                <div className="result-info full">
-                  <span className="result-label">قيمة التمويل من المصرف (أصل المبلغ)</span>
-                  <span className="result-value">{fmt(results.bankPrincipal)} د.ل</span>
+              <div className={`result-card highlight-card ${results.downPayment > 0 ? 'debt-card' : ''}`} style={{
+                gridColumn: '1 / -1',
+                background: results.downPayment > 0 ? 'rgba(239, 68, 68, 0.08)' : 'rgba(16, 185, 129, 0.08)',
+                border: results.downPayment > 0 ? '2px solid rgba(239, 68, 68, 0.4)' : '2px solid rgba(16, 185, 129, 0.4)',
+                padding: '1.2rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+                borderRadius: '12px'
+              }}>
+                <div className="result-info full" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
+                  <span className="result-label" style={{ fontWeight: 'bold', fontSize: '1.05rem', color: 'var(--text)' }}>
+                    إجمالي الدفعة الأولى المستحقة
+                  </span>
+                  <span className="result-value" style={{ 
+                    fontSize: '1.8rem', 
+                    fontWeight: '800', 
+                    color: results.downPayment > 0 ? 'var(--error-color, #ef4444)' : 'var(--success-color, #10b981)' 
+                  }}>
+                    {results.downPayment > 0 ? `${fmt(results.downPayment)} د.ل` : 'لا توجد دفعة أولى'}
+                  </span>
                 </div>
               </div>
 
-              <div className="result-card">
-                <div className="result-info full">
-                  <span className="result-label">أرباح المرابحة (للمصرف)</span>
-                  <span className="result-value">{fmt(results.bankProfit)} د.ل</span>
-                </div>
-              </div>
-
-              {n(form.purchaseCost) > 0 && n(form.carPrice) >= n(form.purchaseCost) && (
-                <div className="result-card" style={{ border: '1px solid var(--success-color)', background: 'rgba(16, 185, 129, 0.05)' }}>
+              {!isStaff && n(form.purchaseCost) > 0 && n(form.carPrice) >= n(form.purchaseCost) && (
+                <div className="result-card" style={{ gridColumn: '1 / -1', border: '1px solid var(--success-color)', background: 'rgba(16, 185, 129, 0.05)' }}>
                   <div className="result-info full">
                     <span className="result-label" style={{ color: 'var(--success-color)' }}>الربح المبدئي للمكتب (الفرق)</span>
                     <span className="result-value" style={{ color: 'var(--success-color)' }}>{fmt(n(form.carPrice) - n(form.purchaseCost))} د.ل</span>
@@ -369,6 +457,39 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId }: Prop
               <div className="term-info">
                 <span>مدة التقسيط: <strong>{TERM_MONTHS} شهر (8 سنوات)</strong></span>
               </div>
+
+              {beneficiaryId && showSaveButton && (
+                <button
+                  type="button"
+                  className="btn btn-primary btn-lg w-full flex items-center justify-center gap-2 mt-4"
+                  onClick={handleSaveTransaction}
+                  disabled={saving}
+                  style={{
+                    background: 'linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%)',
+                    color: '#0f172a',
+                    border: 'none',
+                    fontWeight: 'bold',
+                    boxShadow: '0 4px 15px rgba(186, 147, 61, 0.4)',
+                    padding: '0.85rem',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    marginTop: '1.25rem'
+                  }}
+                >
+                  {saving ? (
+                    <>
+                      <span className="animate-spin inline-block w-4.5 h-4.5 border-2 border-current border-t-transparent rounded-full"></span>
+                      جاري حفظ المعاملة...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={18} />
+                      حفظ المعاملة ومتابعة المستندات
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           ) : (
             <div className="results-empty">
