@@ -72,6 +72,21 @@
 - Regional tagging (Tripoli, Western, etc.)
 - Toyota car price presets from official bank rates
 
+### 📊 Potential Customers Hub & Conversion Wizard
+- Full CRUD operations for leads and inquiries in a dedicated workspace tab.
+- Workplace integrations linking leads directly to employers/companies.
+- Complete history logs tracking lead events (creation, updates, deletions).
+- One-click "Convert to Active Customer" wizard that exports data straight into registration forms.
+- Live SQL migrations copying panel for easy database schema setup.
+- Fully simulated client-side `localStorage` fallbacks when database tables are not fully migrated yet.
+
+### 💸 Financial Requests System & Management Board
+- Separate trackable financial categories: `LOAN`, `FINANCIAL_VALUE`, and `BILLS`.
+- Color-coded workflow states: Gold for `PENDING`, Emerald for `APPROVED`, Red for `REJECTED`.
+- Built-in Manager approval/rejection widgets directly inside the unified portal.
+- Smart search customer selectors to automatically match requests to registered profiles.
+- RLS schema instruction banners to guide developers on configuring Row-Level Security.
+
 ### 🚚 Car Dealer Logistics & Vehicle Appraisals
 - **Logistics Delivery Pipeline**: Interactive vehicle delivery staging tracker (`🔧 قيد التجهيز الفني`, `📍 جاهزة بالمعرض للزبون`, `🚛 جاري الشحن والتوصيل`, `🔑 تم التسليم النهائي للزبون`) with dynamic filtering.
 - **Pre-Booking & Cargo Tracking**: Live ocean freight cargo shipment estimation for early customer vehicle reservations.
@@ -197,7 +212,9 @@ kafeel/
 │   │   ├── CustomerForm.tsx      # Unified beneficiary + guarantor registration
 │   │   ├── CustomerList.tsx      # Customer browser with queue actions
 │   │   ├── DocumentUploader.tsx  # Document management with compression
+│   │   ├── FinancialRequest.tsx  # Financial requests tracking & manager approval
 │   │   ├── MonitorDashboard.tsx  # Operations monitor (data-masked)
+│   │   ├── PotentialCustomers.tsx # Potential Customers CRUD & conversion wizard
 │   │   ├── ReportsDashboard.tsx  # Financial reporting
 │   │   ├── Settlements.tsx       # Post-delivery settlements
 │   │   └── WaitingQueue.tsx      # Guarantor matching queue
@@ -227,7 +244,7 @@ kafeel/
 │       ├── join-with-code/       # Public self-registration
 │       └── admin-manage-users/   # Admin user management
 ├── test/
-│   └── financialEngine.test.ts   # 23 unit tests
+│   └── financialEngine.test.ts   # 24 unit tests
 ├── docs/
 │   ├── PRD.md                    # Product Requirements (Arabic)
 │   ├── PLAN.md                   # Technical Architecture
@@ -255,6 +272,9 @@ kafeel/
 | `settlements` | Post-delivery financial settlements | ✅ |
 | `banks` | Bank registry | ✅ |
 | `branches` | Branch registry with regional tags | ✅ |
+| `potential_customers` | Leads tracking & workplace links | ✅ |
+| `potential_customer_logs` | Event history logs for leads | ✅ |
+| `financial_requests` | Loans, financial values & bills requests | ✅ |
 
 ### Key PostgreSQL Functions
 
@@ -312,6 +332,8 @@ The test suite covers:
 - [x] **Phase 20**: Document Verification & Transaction State Machine
 - [x] **Phase 21**: Configurable Link Limits (قيمة الربط) for Office Managers (0-50 LYD threshold)
 - [x] **Phase 22**: Premium Visual Upgrades, Logistics Hub & Form Layouts ("Shams" Session)
+- [x] **Phase 23**: Potential Customers Hub & Financial Requests System (Leads tracking, logs, conversions, loans/bills management, approval widgets)
+- [x] **Phase 24**: Advanced Murabaha Calculations & Multi-Factor Down Payments (Realistic bank ceiling formulas, salary deduction rules, automatic excess & gap down payment splits)
 
 
 ---

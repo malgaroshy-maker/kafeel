@@ -158,7 +158,7 @@
 - [x] Settings Panel: Implement a settings configuration card for managers to adjust the salary match limit (قيمة الربط) between 0 and 50 Dinars using a premium HSL slider control.
 
 ## Phase 22: Premium Visual Upgrades, Logistics Hub & Form Layouts ("Shams" Session) ✅
-- [x] **Topmost Compact Gold Header**: Removed double margins, created a sleek sticky topmost gold header with a compact logo (52px height).
+- [x] **Topmost Gold Header**: Removed double margins, created a sleek sticky topmost gold header with a compact logo (52px height).
 - [x] **Arabic Premium Typography**: Integrated Alexandria geometric font for headings and Tajawal for high-readability body copy.
 - [x] **High-Contrast Inputs**: Overhauled standard text inputs to use a crisp white background, black text, and 1.5px gold borders to guarantee perfect readability.
 - [x] **Hover Dropdowns Navigation (Admin)**: Consolidated 10 separate sections into 4 logical hovering dropdown capsules (Subscriptions, Financials, Connections, Configuration) with zero-click CSS transitions.
@@ -171,4 +171,21 @@
 - [x] **Appraisal Technical Cards**: Added input sheets for vehicle health, mileage parameters, engine diagnostics, and inspection notes.
 - [x] **Context-Aware Document Selector**: Integrated real-time customer search switcher inside `DocumentUploader` to view, compress, and upload files without tab-switching.
 - [x] **Guarantor Form Layout Restructuring**: Reorganized the guarantor inputs within `CustomerFields` to match the beneficiary two-column panel layout (primary required data on the right, secondary metadata on the left) with full validation error indicators.
+
+## Phase 23: Potential Customers Hub & Financial Requests System ✅
+- [x] **Database Migration (Potential Customers)**: Created table `potential_customers` and `potential_customer_logs` with row-level security (RLS) policies.
+- [x] **Database Migration (Financial Requests)**: Created table `financial_requests` supporting types (`LOAN`, `FINANCIAL_VALUE`, `BILLS`) and statuses (`PENDING`, `APPROVED`, `REJECTED`).
+- [x] **Interactive Potential Customers Component**: Built `PotentialCustomers.tsx` supporting complete CRUD and custom follow-up notes for prospective buyers.
+- [x] **Convert-to-Active Customer Wizard**: Programmed a seamless "Convert to Active Customer" wizard that passes draft info directly into the active registration forms.
+- [x] **Interactive Financial Request Component**: Built `FinancialRequest.tsx` enabling data entry staff to request cash advances or submit guarantees/bills contextually linked to active transactions.
+- [x] **Simulated Offline Fallbacks**: Designed automated `localStorage` fallbacks for both components, displaying an operational reminder box and live SQL schema code generators to assist deployment.
+- [x] **Manager Approval Workflow**: Implemented real-time request review tables with instant accept/reject buttons for managers.
+- [x] **Unified Workflow Redirections**: Configured active transitions: successful Calculator save redirects users directly to Financial Requests, which then guides them to the Document Uploader.
+
+## Phase 24: Realistic Murabaha Calculations & Multi-Factor Down Payments ✅
+- [x] **Mathematical Core Redesign**: Re-engineered `src/lib/financialEngine.ts` to scale down actual monthly installments for lower-priced cars rather than hardcoding them to full net salary capacity.
+- [x] **Multi-Factor Down Payment Engine**: Redesigned calculator to compute down payments dynamically based on two distinct factors: vehicle value exceeding bank ceiling ($V_{murabaha} - B_{cap}$) and salary capacity gap ($I_{ideal} - I_{capacity}$).
+- [x] **Real-Time Financial Dashboard**: Updated `Calculator.tsx` to display separate cards detailing the excess value and salary gap breakdown, culminating in a beautiful premium gold/red aggregated down payment card.
+- [x] **Robust Vitest Integration**: Rewrote `test/financialEngine.test.ts` to assert against realistic bank behaviors, including edge cases like zero down payment for cheap vehicles and perfect profit calculations.
+- [x] **Calculator Documentation Update**: Updated `docs/CALCULATOR.md` to reflect the formal mathematical formulas and Libyan banking rules implemented in the project.
 

@@ -93,6 +93,18 @@ Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Mura
 - **Searchable Customer Switcher**: Embedded interactive customer search switcher inside `DocumentUploader.tsx` (searching by Name, Phone, or National ID) to query and toggle active files on-the-fly without context loss.
 - **Verbose Error Logging**: Refactored silent upload failures with clear visual modal dialogs displaying precise backend upload issues (file size, connectivity, bucket restrictions) to the staff.
 
+### L. Potential Customers Hub ✅
+- **Logic**: Tracks prospective buyers who are visiting the office and requesting custom calculations or quotes but haven't yet submitted official documents.
+- **Database**: `potential_customers` table for details, and `potential_customer_logs` for tracking additions and deletions by users.
+- **Features**: Complete CRUD, interactive search, and manager audit logs. Includes automatic "Convert to Active Customer" wizard, pre-populating registration forms with pre-drafted info.
+- **Resilience**: Full simulated local storage fallback and SQL code generation panel, allowing office deployment without waiting for schema migrations.
+
+### M. Financial Requests Management ✅
+- **Logic**: Enables data entry staff to request custom office advances (`LOAN`), additional funding (`FINANCIAL_VALUE`), or process deferred guarantees/bills (`BILLS`) linked directly to active customer transactions.
+- **Database**: `financial_requests` table with role-based RLS controls.
+- **Features**: Searchable customer context selectors, automatic transaction value matching, detailed notes for managers, and real-time review tables with manager approve/reject actions.
+- **Resilience**: Simulated local storage fallback and real-time SQL execution assistant directly in the UI.
+
 ## 4. UI/UX Design Approach
 - **RTL Support**: Built inherently for Arabic (dir="rtl", Cairo font). ✅
 - **Aesthetics**: Premium feel with HSL color system, dark mode auto-detection, lunar/solar switches, glassmorphism header, smooth transitions. ✅
@@ -128,6 +140,9 @@ Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Mura
 | `banks` | Bank registry (name) | ✅ | ✅ |
 | `branches` | Branch registry (name, region, bank_id) | ✅ | ✅ |
 | `admin_activity_logs` | Executive staff activity tracking and security audit logs | ✅ | ✅ |
+| `potential_customers` | Prospective buyers registration hub | ✅ | ✅ |
+| `potential_customer_logs` | Audit trail of potential customer edits/deletions | ✅ | ✅ |
+| `financial_requests` | Custom cash advances and bill requests (LOAN, FINANCIAL_VALUE, BILLS) | ✅ | ✅ |
 
 ## 7. Edge Functions
 | Function | Purpose | Auth |
@@ -149,5 +164,7 @@ Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Mura
 - **Phase 18 & Phase 11 (Production Deployment & External Gateways Setup)**: Complete ✅ — Prepared complete final production deployment guidelines (`docs/DEPLOYMENT.md`) covering database migration, hosting setups on Vercel, Local Libyan payment gateways configuration (SADAD, Tadawul, Edfa3ly), and SMS providers (Twilio & BulkSMS API) credentials integration, ensuring 100% readiness for production launch.
 - **Phase 21 (Configurable Link Limits for Office Managers)**: Complete ✅ — Added database column `salary_match_limit` (0-50 LYD) to `offices`, updated PostgreSQL function `find_potential_guarantors()` to dynamically read and enforce the office limit, and integrated an HSL slider settings card in the Office Settings portal for managers.
 - **Phase 22 (Premium Visual Upgrades, Logistics Hub & Form Layouts)**: Complete ✅ — Replaced typography with Alexandria/Tajawal fonts, designed the topmost compact gold header (52px height) with consolidated hover-dropdown navigation (Subscriptions, Financials, Connections, Configuration), designed interactive vehicle delivery staged trackers and ocean pre-booking boards for the Car Dealer, integrated queue model heatmaps and 48-hour queuing alerts, embedded searchable customer switcher inside `DocumentUploader`, and restructured the guarantor fields into a clean two-column grid panel layout (Name/Salary/Phone/Bank/Branch/Workplace on right, National ID/Birth Year/Gender on left) matching the beneficiary fields.
+- **Phase 23 (Potential Customers Hub & Financial Requests System)**: Complete ✅ — Deployed `potential_customers` and `financial_requests` database tables, and developed interactive `PotentialCustomers.tsx` (with converter wizard and audit trails) and `FinancialRequest.tsx` (supporting cash advances, extra funds, and bills). Added full offline `localStorage` fallback simulations and SQL migration wizards for operational resilience.
+- **Phase 24 (Realistic Murabaha Calculations & Multi-Factor Down Payments)**: Complete ✅ — Overhauled the mathematical core in `src/lib/financialEngine.ts` and `src/components/Calculator.tsx` to realistically scale down installments for low-cost vehicles. Upgraded calculations to compute down payments via two independent factors: vehicle excess value over ceiling ($V_{murabaha} - B_{cap}$) and salary capacity gap ($I_{gap} \times 96$), and verified the model with comprehensive unit tests (`test/financialEngine.test.ts`).
 
 
