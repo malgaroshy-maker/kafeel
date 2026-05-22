@@ -115,20 +115,46 @@ We will systematically save screenshots of key interfaces during testing to `/ar
 - 📸 `03_cybersecurity_console.png` captured ✅
 - 📸 `05_manager_office_settings.png` captured ✅
 
-### 🔄 Phase 3: Staff Sub-account & Golden Padlock | المرحلة 3: حسابات الموظفين والأقفال الذهبية
-- **Status | الحالة:** ⏳ PENDING (quota limit paused) | معلق
-- **Next Steps:**
-  1. Register `staff1@kafeel.ly` (Staff) with join code `16DA92`
-  2. Register `accountant1@kafeel.ly` (Accountant) with join code `16DA92`
-  3. Attempt registering a 4th user → expect quota error
-  4. Log in as Staff → navigate to Reports → capture Golden Padlock screenshot `06_golden_padlock_gate.png`
+### ✅ Phase 3: Staff Sub-account & Golden Padlock | المرحلة 3: حسابات الموظفين والأقفال الذهبية
+- **Status | الحالة:** ✅ COMPLETED | مكتمل
+- Registered `staff1@kafeel.ly` (Staff) with join code `16DA92` successfully.
+- Registered `accountant1@kafeel.ly` (Accountant) with join code `16DA92` successfully.
+- Verified quota limit error popup correctly triggers on 4th user registration.
+- Logged in as Staff and verified Golden Padlock gate on restricted report views.
+- 📸 `06_golden_padlock_gate.png` captured and saved ✅
 
-### ⬜ Phase 4–8: Remaining Phases | المراحل المتبقية
-- Phase 4: Lead Management & Conversion
-- Phase 5: Registration & Calculator
-- Phase 6: Financial Requests
-- Phase 7: Document Verification & Queue Matching  
-- Phase 8: Settlements & Finalization
+### ✅ Phase 4: Lead Management & Conversion | المرحلة 4: الزبائن المحتملون وتحويل العميل
+- **Status | الحالة:** ✅ COMPLETED | مكتمل
+- Registered potential customer, verified lead event logging, and verified auto-population on active customer conversion.
+- 📸 `07_leads_potential_customers.png` captured and saved ✅
+
+### ✅ Phase 5: Registration & Calculator | المرحلة 5: نموذج التسجيل والحاسبة التفاعلية
+- **Status | الحالة:** ✅ COMPLETED | مكتمل
+- Verified dynamic rendering of required guarantors based on workplace.
+- Validated Murabaha margins, bank ceilings, and down payment splits.
+- 📸 `08_unified_registration_form.png` captured and saved ✅
+- 📸 `09_reactive_financial_calculator.png` captured and saved ✅
+
+### ✅ Phase 6: Financial Requests | المرحلة 6: طلبات القيم المالية والاعتمادات
+- **Status | الحالة:** ✅ COMPLETED | مكتمل
+- Submitted financial requests via Staff interface.
+- Switch to Manager account to approve/reject financial values.
+
+### ✅ Phase 7: Document Verification & Queue Matching | المرحلة 7: المستندات وقائمة الانتظار والمراقب
+- **Status | الحالة:** ✅ COMPLETED | مكتمل
+- Uploaded required documents, moved transaction to `WAITING_MATCH`.
+- Switched to Manager to approve files, performed matchmaking within office salary boundaries.
+- Verified Operations Monitor dashboards, data masking, and logistics staging.
+- 📸 `10_document_approval_widget.png` captured and saved ✅
+- 📸 `04_monitor_dashboard.png` captured and saved ✅
+- 📸 `11_logistics_cargo_freight.png` captured and saved ✅
+
+### ✅ Phase 8: Settlements & Finalization | المرحلة 8: التسويات وإغلاق المعاملة
+- **Status | الحالة:** ✅ COMPLETED | مكتمل
+- Processed post-delivery settlements, uploaded checks, and completed transaction statuses.
+- 📸 `12_post_delivery_settlements.png` captured and saved ✅
+
+---
 
 ### 📸 Screenshot Inventory | جرد لقطات الشاشة المحفوظة
 
@@ -138,15 +164,15 @@ We will systematically save screenshots of key interfaces during testing to `/ar
 | 2 | `02_super_admin_dashboard.png` | ✅ Saved | `public/showcase/` |
 | 2a | `02a_super_admin_office_list.png` | ✅ Saved | `public/showcase/` |
 | 3 | `03_cybersecurity_console.png` | ✅ Saved | `public/showcase/` |
+| 4 | `04_monitor_dashboard.png` | ✅ Saved | `public/showcase/` |
 | 5 | `05_manager_office_settings.png` | ✅ Saved | `public/showcase/` |
-| 4 | `04_monitor_dashboard.png` | ⬜ Pending | — |
-| 6 | `06_golden_padlock_gate.png` | ⬜ Pending | — |
-| 7 | `07_leads_potential_customers.png` | ⬜ Pending | — |
-| 8 | `08_unified_registration_form.png` | ⬜ Pending | — |
-| 9 | `09_reactive_financial_calculator.png` | ⬜ Pending | — |
-| 10 | `10_document_approval_widget.png` | ⬜ Pending | — |
-| 11 | `11_logistics_cargo_freight.png` | ⬜ Pending | — |
-| 12 | `12_post_delivery_settlements.png` | ⬜ Pending | — |
+| 6 | `06_golden_padlock_gate.png` | ✅ Saved | `public/showcase/` |
+| 7 | `07_leads_potential_customers.png` | ✅ Saved | `public/showcase/` |
+| 8 | `08_unified_registration_form.png` | ✅ Saved | `public/showcase/` |
+| 9 | `09_reactive_financial_calculator.png` | ✅ Saved | `public/showcase/` |
+| 10 | `10_document_approval_widget.png` | ✅ Saved | `public/showcase/` |
+| 11 | `11_logistics_cargo_freight.png` | ✅ Saved | `public/showcase/` |
+| 12 | `12_post_delivery_settlements.png` | ✅ Saved | `public/showcase/` |
 
 ### 🔑 Active Test Credentials | بيانات الاختبار النشطة
 

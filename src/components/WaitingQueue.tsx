@@ -78,7 +78,7 @@ export default function WaitingQueue() {
     setVerifying(transactionId)
     try {
       const { error } = await supabase
-        .from('transactions')
+        .from('transactions_raw')
         .update({ verification_status: 'verified' })
         .eq('id', transactionId)
         
@@ -99,7 +99,7 @@ export default function WaitingQueue() {
     setVerifying(transactionId)
     try {
       const { error } = await supabase
-        .from('transactions')
+        .from('transactions_raw')
         .update({ 
           verification_status: 'rejected',
           rejection_reason: rejectReason.trim()

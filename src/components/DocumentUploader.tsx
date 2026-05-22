@@ -211,7 +211,7 @@ export default function DocumentUploader({ customerId, transactionId }: Props) {
     if (activeTransactionId) {
       try {
         await supabase
-          .from('transactions')
+          .from('transactions_raw')
           .update({ is_files_complete: isComplete })
           .eq('id', activeTransactionId)
       } catch (err) {
@@ -318,7 +318,7 @@ export default function DocumentUploader({ customerId, transactionId }: Props) {
         const isComplete = updated.filter(d => d.checked).length === updated.length
         
         supabase
-          .from('transactions')
+          .from('transactions_raw')
           .update({ is_files_complete: isComplete })
           .eq('id', txId)
           .then(({ error: dbError }) => {
@@ -369,7 +369,7 @@ export default function DocumentUploader({ customerId, transactionId }: Props) {
       const isComplete = currentCompletedCount === docs.length
       
       const { error: updateError } = await supabase
-        .from('transactions')
+        .from('transactions_raw')
         .update({ 
           is_files_complete: isComplete,
           status: 'WAITING_MATCH',

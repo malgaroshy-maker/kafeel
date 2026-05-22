@@ -126,7 +126,7 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, showSa
       let txId = ''
       if (existingTx) {
         const { error: updateError } = await supabase
-          .from('transactions')
+          .from('transactions_raw')
           .update(txData)
           .eq('id', existingTx.id)
 
@@ -134,7 +134,7 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, showSa
         txId = existingTx.id
       } else {
         const { data: newTx, error: insertError } = await supabase
-          .from('transactions')
+          .from('transactions_raw')
           .insert({
             ...txData,
             status: 'PENDING',

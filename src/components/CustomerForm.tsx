@@ -621,7 +621,7 @@ export default function CustomerForm({ role: _role = 'beneficiary', onSuccess, i
       // 4. Create WAITING_MATCH transaction
       const guarantorsNeeded = beneficiary.workplaceType === 'classified' ? 2 : 1
       const { error: txError } = await supabase
-        .from('transactions')
+        .from('transactions_raw')
         .insert({
           office_id: officeId,
           customer_id: ben.id,

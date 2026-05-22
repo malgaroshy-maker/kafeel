@@ -6,24 +6,20 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 async function check() {
-  console.log('Testing custom column insert...');
-  const { data, error } = await supabase
-    .from('customers')
-    .insert({
-      office_id: 'd9b9a244-df44-4dbc-b77d-e0f6af227f26', // dummy or valid uuid
-      national_id: '123456789012',
-      name: 'Test Customer',
-      phone: '0912345678',
-      salary: 1000,
-      account_number: '123456789',
-      phone_private: '0922345678'
-    })
-    .select();
-
-  if (error) {
-    console.error('Error inserting customer:', error);
+  console.log('Querying offices...');
+  const { data: offices, error: errOffices } = await supabase.from('offices').select('*');
+  if (errOffices) {
+    console.error('Error fetching offices:', errOffices);
   } else {
-    console.log('Successfully inserted customer:', data);
+    console.log('Offices:', offices);
+  }
+
+  console.log('Querying user profiles...');
+  const { data: profiles, error: errProfiles } = await supabase.from('user_profiles').select('*');
+  if (errProfiles) {
+    console.error('Error fetching profiles:', errProfiles);
+  } else {
+    console.log('Profiles:', profiles);
   }
 }
 

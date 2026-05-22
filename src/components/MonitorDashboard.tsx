@@ -134,7 +134,7 @@ export default function MonitorDashboard({ activeSubTab }: MonitorDashboardProps
           offices (name),
           customers (
             id,
-            full_name,
+            name,
             salary,
             phone,
             workplaces (name, required_guarantors)
@@ -152,7 +152,7 @@ export default function MonitorDashboard({ activeSubTab }: MonitorDashboardProps
 
           return {
             id: item.id,
-            customerName: customer?.full_name || 'غير معروف',
+            customerName: customer?.name || 'غير معروف',
             officeName: office?.name || 'غير معروف',
             workplaceName: workplace?.name || 'غير معروف',
             submittedDate: new Date(item.created_at).toLocaleDateString('ar-LY'),

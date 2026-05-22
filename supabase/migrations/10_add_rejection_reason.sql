@@ -59,7 +59,26 @@ BEGIN
             COALESCE(NEW.verification_status, 'pending'),
             COALESCE(NEW.created_at, now()),
             NEW.rejection_reason
-        ) RETURNING * INTO NEW;
+        ) RETURNING 
+            id,
+            office_id,
+            customer_id,
+            workplace_id,
+            car_price,
+            bank_ceiling,
+            margin_rate,
+            down_payment,
+            total_installments,
+            office_loan,
+            car_model,
+            purchase_cost,
+            is_files_complete,
+            status,
+            guarantors_needed,
+            verification_status,
+            created_at,
+            rejection_reason
+        INTO NEW;
         
         -- Make sure we dynamically evaluate purchase_cost visibility for return
         IF (auth.jwt() -> 'app_metadata' ->> 'role') NOT IN ('admin', 'manager', 'accountant') THEN

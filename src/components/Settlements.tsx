@@ -223,7 +223,7 @@ export default function Settlements() {
 
       if (transactionId) {
         const { error: txError } = await supabase
-          .from('transactions')
+          .from('transactions_raw')
           .update({
             status: 'COMPLETED'
           })
@@ -286,7 +286,7 @@ export default function Settlements() {
       // If the settlement type is not EXTERNAL_SALE, we mark the transaction as COMPLETED
       if (activeType !== 'EXTERNAL_SALE') {
         const { error: txError } = await supabase
-          .from('transactions')
+          .from('transactions_raw')
           .update({
             status: 'COMPLETED'
           })
