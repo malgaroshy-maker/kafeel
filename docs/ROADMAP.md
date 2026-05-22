@@ -203,5 +203,17 @@
 - [x] **Production Database Sync**: Successfully executed `npx supabase db push` to push and apply migrations `13` through `17` to the remote Supabase cloud backend instance, aligning local and remote environments.
 - [x] **Quality Assurance Validation**: Verified all `24/24` Vitest mathematical tests passed and Vite compiled an error-free bundle.
 
+## Phase 27: CRM Leads Calendar, Callback Dates & Color-Coding Alert System (v1.4.3) ✅
+- [x] **Database Migration (`18_add_callback_date_to_potential_customers.sql`)**: Added `callback_date` column (`TIMESTAMPTZ`) to the `potential_customers` table in cloud Supabase with a safe `IF NOT EXISTS` guard. Pushed and applied via `npx supabase db push`.
+- [x] **Timezone-Safe Date Normalization (`getNormalizedDate`)**: Implemented `substring(0, 10)` normalizer in `PotentialCustomers.tsx` to crop full Supabase TIMESTAMPTZ strings (`"2026-05-23T00:00:00+00:00"`) into pure `"YYYY-MM-DD"` local strings, preventing false misclassification of today's callbacks as future events.
+- [x] **Smart Lead Classification Functions**: Implemented pure date-comparison functions `isOverdue()`, `isToday()`, and `isScheduled()` using normalized dates against the local `new Date()` for reliable, timezone-independent alerting.
+- [x] **Premium Color-Coded Card System**: Upgraded CRM lead cards with three distinct visual states:
+  - 🔴 **Crimson/Red glow** for overdue callbacks (متأخرة ⚠️)
+  - 🟢 **Emerald/Green glow** for today's callbacks (اليوم 📅)
+  - 🔵 **Blue/Indigo glow** for scheduled future callbacks (مجدولة ⏳)
+- [x] **Glassmorphic Filter Tabs**: Integrated four real-time filtering tabs at the top of the CRM panel (الكل, متأخرة ⚠️, اليوم 📅, مجدولة ⏳) with live record counts updating dynamically.
+- [x] **LocalStorage Fallback Namespacing**: Extended `localStorage` fallback mode to segment potential customer data by `officeId` for proper multi-office isolation when the Supabase table is unavailable.
+- [x] **Git Commit**: All changes committed to branch `shams` with message: `feat: crm leads calendar, callback dates & color-coding alert system`.
+
 
 

@@ -72,8 +72,13 @@
 - Regional tagging (Tripoli, Western, etc.)
 - Toyota car price presets from official bank rates
 
-### 📊 Potential Customers Hub & Conversion Wizard
+### 📊 Potential Customers Hub, CRM Calendar & Conversion Wizard
 - Full CRUD operations for leads and inquiries in a dedicated workspace tab.
+- **CRM Leads Calendar & Color-Coded Alerts**: Schedule callback dates per lead stored as `TIMESTAMPTZ` in Supabase. Cards automatically color-code in real-time:
+  - 🔴 Crimson glow for **overdue** callbacks (متأخرة ⚠️)
+  - 🟢 Emerald glow for **today's** callbacks (اليوم 📅)
+  - 🔵 Blue/Indigo glow for **future** scheduled callbacks (مجدولة ⏳)
+- **Glassmorphic Filter Tabs**: Four tabs (الكل, متأخرة, اليوم, مجدولة) with live record counts.
 - Workplace integrations linking leads directly to employers/companies.
 - Complete history logs tracking lead events (creation, updates, deletions).
 - One-click "Convert to Active Customer" wizard that exports data straight into registration forms.
@@ -272,7 +277,7 @@ kafeel/
 | `settlements` | Post-delivery financial settlements | ✅ |
 | `banks` | Bank registry | ✅ |
 | `branches` | Branch registry with regional tags | ✅ |
-| `potential_customers` | Leads tracking & workplace links | ✅ |
+| `potential_customers` | Leads tracking, workplace links, `callback_date` scheduling & color-coded CRM alerts | ✅ |
 | `potential_customer_logs` | Event history logs for leads | ✅ |
 | `financial_requests` | Loans, financial values & bills requests | ✅ |
 
@@ -334,6 +339,9 @@ The test suite covers:
 - [x] **Phase 22**: Premium Visual Upgrades, Logistics Hub & Form Layouts ("Shams" Session)
 - [x] **Phase 23**: Potential Customers Hub & Financial Requests System (Leads tracking, logs, conversions, loans/bills management, approval widgets)
 - [x] **Phase 24**: Advanced Murabaha Calculations & Multi-Factor Down Payments (Realistic bank ceiling formulas, salary deduction rules, automatic excess & gap down payment splits)
+- [x] **Phase 25**: E2E QA Audit Completion & Showcase Generation (Playwright automation, visual screenshot gallery, 24/24 Vitest tests passed)
+- [x] **Phase 26**: E2E QA Bug Fixes & Production Database Sync (v1.4.2) — Tenant isolation fix, Monitor name mapping fix, idempotent migrations, remote DB push
+- [x] **Phase 27**: CRM Leads Calendar, Callback Dates & Color-Coding Alert System (v1.4.3) — Glassmorphic tabs, timezone-safe date normalization, crimson/emerald/blue card states, `callback_date` TIMESTAMPTZ migration
 
 
 ---
