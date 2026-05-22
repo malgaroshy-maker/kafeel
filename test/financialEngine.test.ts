@@ -62,12 +62,12 @@ describe('Financial Engine — calculateMurabaha', () => {
     })
   })
 
-  // ===== Equation 4: Iactual = (Bactual × (1+M)) / 96 =====
+  // ===== Equation 4: Iactual = S × D =====
   describe('Equation 4 — Actual Monthly Installment', () => {
     it('calculates correctly', () => {
       const result = calculateMurabaha({ carPrice: 95000, bankCeiling: 80000, netSalary: 3000, marginRate: 0.16, deductionRate: 0.35 })
-      const expected = (80000 * 1.16) / 96
-      expect(result!.actualInstallment).toBeCloseTo(expected, 2)
+      const expected = 3000 * 0.35
+      expect(result!.actualInstallment).toBe(expected)
     })
   })
 
@@ -95,27 +95,26 @@ describe('Financial Engine — calculateMurabaha', () => {
     const base: Omit<CalcInput, 'marginRate'> = {
       carPrice: 100000,
       bankCeiling: 80000,
-      netSalary: 3000,
+      netSalary: 1500,
       deductionRate: 0.35,
     }
 
-    it('24% margin yields higher total repayment than 16%', () => {
+    it('24% margin yields same total repayment (capacity limited) but lower financed amount', () => {
       const r16 = calculateMurabaha({ ...base, marginRate: 0.16 })!
       const r24 = calculateMurabaha({ ...base, marginRate: 0.24 })!
-      expect(r24.totalRepayment).toBeGreaterThan(r16.totalRepayment)
+      expect(r24.totalRepayment).toBeCloseTo(r16.totalRepayment, 2)
+      expect(r24.actualFinancedAmount).toBeLessThan(r16.actualFinancedAmount)
     })
 
-    it('24% margin yields higher profit amount', () => {
+    it('24% margin yields higher profit amount than 16% for capacity-limited', () => {
       const r16 = calculateMurabaha({ ...base, marginRate: 0.16 })!
       const r24 = calculateMurabaha({ ...base, marginRate: 0.24 })!
       expect(r24.profitAmount).toBeGreaterThan(r16.profitAmount)
     })
 
     it('24% margin with same ceiling gives lower Bactual when capacity-limited', () => {
-      // Lower salary to trigger capacity limitation
-      const lowSalary = { ...base, netSalary: 1500 }
-      const r16 = calculateMurabaha({ ...lowSalary, marginRate: 0.16 })!
-      const r24 = calculateMurabaha({ ...lowSalary, marginRate: 0.24 })!
+      const r16 = calculateMurabaha({ ...base, marginRate: 0.16 })!
+      const r24 = calculateMurabaha({ ...base, marginRate: 0.24 })!
       expect(r24.actualFinancedAmount).toBeLessThan(r16.actualFinancedAmount)
     })
   })
@@ -137,14 +136,14 @@ describe('Financial Engine — calculateMurabaha', () => {
 
   // ===== Derived values =====
   describe('Derived Values', () => {
-    it('totalRepayment = Bactual × (1+M)', () => {
+    it('totalRepayment = actualInstallment × 96', () => {
       const result = calculateMurabaha({ carPrice: 95000, bankCeiling: 80000, netSalary: 3000, marginRate: 0.16, deductionRate: 0.35 })!
-      expect(result.totalRepayment).toBeCloseTo(result.actualFinancedAmount * 1.16, 2)
+      expect(result.totalRepayment).toBeCloseTo(result.actualInstallment * 96, 2)
     })
 
-    it('profitAmount = Bactual × M', () => {
+    it('profitAmount = totalRepayment - Bactual', () => {
       const result = calculateMurabaha({ carPrice: 95000, bankCeiling: 80000, netSalary: 3000, marginRate: 0.16, deductionRate: 0.35 })!
-      expect(result.profitAmount).toBeCloseTo(result.actualFinancedAmount * 0.16, 2)
+      expect(result.profitAmount).toBeCloseTo(result.totalRepayment - result.actualFinancedAmount, 2)
     })
 
     it('actualInstallment × 96 = totalRepayment', () => {

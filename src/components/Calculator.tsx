@@ -21,8 +21,8 @@ const defaultState: CalcState = {
   bankCeiling: '120000',
   netSalary: '',
   marginRate: '0.16',
-  deductionRate: '0.35',
-  hasNotaryPledge: false,
+  deductionRate: '0.50',
+  hasNotaryPledge: true,
 }
 
 const CAR_PRESETS = [
@@ -37,10 +37,11 @@ const CAR_PRESETS = [
 interface Props {
   beneficiaryId?: string | null
   guarantorId?: string | null
+  showSaveButton?: boolean
   onSaveSuccess?: (txId: string) => void
 }
 
-export default function FinancialCalculator({ beneficiaryId, guarantorId, onSaveSuccess }: Props) {
+export default function FinancialCalculator({ beneficiaryId, guarantorId, showSaveButton = true, onSaveSuccess }: Props) {
   const { isStaff, officeId } = useAuth()
   const [form, setForm] = useLocalStorage<CalcState>('kafeel_calc_draft', defaultState)
   const [beneficiaryData, setBeneficiaryData] = useState<any>(null)
@@ -161,10 +162,6 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, onSave
   const update = (field: keyof CalcState, value: string | boolean) => {
     setForm((prev) => {
       const next = { ...prev, [field]: value }
-      // Sync deduction rate with notary pledge
-      if (field === 'hasNotaryPledge') {
-        next.deductionRate = value ? '0.50' : '0.35'
-      }
       return next
     })
   }
@@ -185,7 +182,7 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, onSave
       bankCeiling: n(form.bankCeiling),
       netSalary: n(form.netSalary),
       marginRate: parseFloat(form.marginRate),
-      deductionRate: parseFloat(form.deductionRate),
+      deductionRate: 0.50, // Always 50% as requested by the user
     })
   }, [form])
 
@@ -335,7 +332,7 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, onSave
           </div>
 
           <div className="deduction-badge">
-            نسبة الخصم: <strong>{form.hasNotaryPledge ? '50%' : '35%'}</strong>
+            نسبة الخصم: <strong>50%</strong>
           </div>
         </div>
 
@@ -451,7 +448,7 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, onSave
                 <span>مدة التقسيط: <strong>{TERM_MONTHS} شهر (8 سنوات)</strong></span>
               </div>
 
-              {beneficiaryId && (
+              {beneficiaryId && showSaveButton && (
                 <button
                   type="button"
                   className="btn btn-primary btn-lg w-full flex items-center justify-center gap-2 mt-4"

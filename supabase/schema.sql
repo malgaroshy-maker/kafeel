@@ -82,7 +82,7 @@ COMMENT ON TABLE public.branches IS 'Bank branch registry with regional tagging.
 CREATE TABLE IF NOT EXISTS public.customers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     office_id UUID NOT NULL REFERENCES public.offices(id),
-    national_id TEXT NOT NULL UNIQUE,
+    national_id TEXT UNIQUE,
     name TEXT NOT NULL,
     phone TEXT,
     salary NUMERIC,
@@ -91,6 +91,8 @@ CREATE TABLE IF NOT EXISTS public.customers (
     birth_year INTEGER,
     bank_id UUID REFERENCES public.banks(id),
     branch_id UUID REFERENCES public.branches(id),
+    account_number TEXT,
+    phone_private TEXT,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -575,3 +577,46 @@ END;
 $$;
 
 COMMENT ON FUNCTION public.attempt_auto_match IS 'Auto-matches guarantors to a WAITING_MATCH transaction and updates status to MATCHED when fulfilled.';
+
+-- ---- FINANCIAL REQUESTS ----
+CREATE TABLE IF NOT EXISTS public.financial_requests (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    office_id UUID NOT NULL REFERENCES public.offices(id) ON DELETE CASCADE,
+    transaction_id UUID NOT NULL REFERENCES public.transactions(id) ON DELETE CASCADE,
+    customer_id UUID NOT NULL REFERENCES public.customers(id) ON DELETE CASCADE,
+    request_type TEXT NOT NULL CHECK (request_type IN ('LOAN', 'FINANCIAL_VALUE', 'BILLS')),
+    amount NUMERIC NOT NULL DEFAULT 0,
+    notes TEXT,
+    status TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+COMMENT ON TABLE public.financial_requests IS 'Requests for financial advances, values, or bills of exchange submitted by staff to the office manager.';
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE public.financial_requests ENABLE ROW LEVEL SECURITY;
+
+-- Create Policies
+CREATE POLICY "Offices can SELECT own financial requests"
+    ON public.financial_requests FOR SELECT
+    TO public
+    USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Offices can INSERT own financial requests"
+    ON public.financial_requests FOR INSERT
+    TO public
+    WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Offices can UPDATE own financial requests"
+    ON public.financial_requests FOR UPDATE
+    TO public
+    USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid))
+    WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
+
+CREATE POLICY "Only managers can DELETE own financial requests"
+    ON public.financial_requests FOR DELETE
+    TO public
+    USING (
+        office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid)
+        AND ((auth.jwt() -> 'app_metadata' ->> 'role') = 'manager')
+    );

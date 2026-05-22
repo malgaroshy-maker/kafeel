@@ -43,12 +43,7 @@ export default function CustomerList({ onSelect, onEdit, onDocuments, onSendToQu
     const { data, error } = await supabase
       .from('customers')
       .select(`
-        id,
-        name,
-        national_id,
-        phone,
-        salary,
-        workplace_id,
+        *,
         workplace:workplace_id (name)
       `)
       .eq('office_id', officeId)
@@ -151,13 +146,13 @@ export default function CustomerList({ onSelect, onEdit, onDocuments, onSendToQu
           </div>
           <div>
             <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              قائمة الزبائن
+              الزبائن الحاليين
               <span style={{ fontSize: '0.8rem', padding: '0.25rem 0.6rem', borderRadius: '6px', border: '1px solid rgba(191, 149, 63, 0.3)', color: 'var(--primary)', fontWeight: 'bold', background: 'var(--surface-hover)', marginRight: '0.5rem' }}>
                 {filtered.length} زبون
               </span>
             </h3>
             <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.82rem', color: 'var(--text-tertiary)' }}>
-              إدارة وتصفح ملفات الزبائن المسجلين بالمكتب وإرسالهم للحاسبة أو الانتظار
+              إدارة وتصفح ملفات الزبائن الحاليين المسجلين بشكل كامل في المنظومة وإرسالهم للحاسبة أو الانتظار
             </p>
           </div>
         </div>

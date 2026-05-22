@@ -40,7 +40,7 @@
 - No submit button — instant results on input change
 
 ### 🔗 Intelligent Matchmaking Engine
-- Auto-matches beneficiaries with guarantors (same workplace + salary diff ≤ 50 LYD)
+- Auto-matches beneficiaries with guarantors (same workplace + salary diff ≤ office salary_match_limit [default 50 LYD, configurable 0-50])
 - Waiting queue with deferred matching
 - Manual override for operations monitors
 - Real-time notifications via Supabase Realtime
@@ -245,7 +245,7 @@ kafeel/
 
 | Function | Purpose |
 |----------|---------|
-| `find_potential_guarantors()` | Finds matching guarantors (same workplace, salary diff ≤ 50 LYD) |
+| `find_potential_guarantors()` | Finds matching guarantors (same workplace, salary diff ≤ office salary_match_limit) |
 | `attempt_auto_match()` | Auto-links guarantors and updates transaction status |
 | `generate_join_code()` | Creates unique 6-char alphanumeric office codes |
 
@@ -293,8 +293,9 @@ The test suite covers:
 - [x] **Phase 14**: Role Separation, Murabaha Compensation Models, and Reusable Gold Padlock SaaS Gates
 - [x] **Phase 15**: Arabic Legal Terms Agreement & Compliance (شروط الاستخدام والامتثال القانوني)
 - [x] **Phase 17**: Security Hardening, Threat Telemetry Logs, Safe Error boundaries, Purchase cost masking views, and Admin Security Control Center 🛡️
-- [x] **Phase 18**: Advanced Documents Hub, Persistent Navigation Context, and Real-time Search Switchers 📁
-- [ ] **Phase 19**: Live production API testing & SMS integration
+- [x] **Phase 19**: Live production API testing & SMS integration
+- [x] **Phase 20**: Document Verification & Transaction State Machine
+- [x] **Phase 21**: Configurable Link Limits (قيمة الربط) for Office Managers (0-50 LYD threshold)
 
 
 ---

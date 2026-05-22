@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Lock, Eye, EyeOff, CheckCircle, AlertTriangle, Moon, Sun, Shield, Palette } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface SettingsPanelProps {
   onThemeChange?: (theme: 'light' | 'dark') => void;
 }
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({ onThemeChange }) => {
+  const { isManager, officeId } = useAuth();
+
   // Theme state
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('theme') as 'light' | 'dark') || 'light';
@@ -21,6 +24,60 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onThemeChange }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Office settings state
+  const [salaryMatchLimit, setSalaryMatchLimit] = useState<number>(50);
+  const [loadingOfficeSettings, setLoadingOfficeSettings] = useState(false);
+  const [savingOfficeSettings, setSavingOfficeSettings] = useState(false);
+  const [officeSettingsError, setOfficeSettingsError] = useState('');
+  const [officeSettingsSuccess, setOfficeSettingsSuccess] = useState('');
+
+  useEffect(() => {
+    if (isManager && officeId) {
+      fetchOfficeSettings();
+    }
+  }, [isManager, officeId]);
+
+  const fetchOfficeSettings = async () => {
+    setLoadingOfficeSettings(true);
+    try {
+      const { data, error } = await supabase
+        .from('offices')
+        .select('salary_match_limit')
+        .eq('id', officeId)
+        .single();
+      
+      if (error) throw error;
+      if (data && data.salary_match_limit !== null) {
+        setSalaryMatchLimit(Number(data.salary_match_limit));
+      }
+    } catch (err: any) {
+      console.error('Error fetching office settings:', err);
+    } finally {
+      setLoadingOfficeSettings(false);
+    }
+  };
+
+  const handleSaveOfficeSettings = async () => {
+    if (!officeId) return;
+    setSavingOfficeSettings(true);
+    setOfficeSettingsError('');
+    setOfficeSettingsSuccess('');
+    try {
+      const { error } = await supabase
+        .from('offices')
+        .update({ salary_match_limit: salaryMatchLimit })
+        .eq('id', officeId);
+      
+      if (error) throw error;
+      setOfficeSettingsSuccess('تم حفظ إعدادات الربط المالي بنجاح!');
+    } catch (err: any) {
+      console.error('Error updating office settings:', err);
+      setOfficeSettingsError('فشل حفظ إعدادات الربط. يرجى التأكد من تطبيق التحديثات على قاعدة البيانات.');
+    } finally {
+      setSavingOfficeSettings(false);
+    }
+  };
 
   // Handle Theme Toggle
   const handleThemeChange = (newTheme: 'light' | 'dark') => {
@@ -307,6 +364,85 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onThemeChange }) => {
             </button>
           </form>
         </div>
+
+        {/* Office Guarantor Match settings (Manager only) */}
+        {isManager && (
+          <div className="glass" style={{ padding: '1.5rem', borderRadius: '16px', border: '1px solid var(--glass-border)', background: 'var(--surface-hover)' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.25rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Shield size={20} style={{ color: 'var(--accent)' }} />
+              إعدادات تطابق الضامن (قيمة الربط)
+            </h3>
+            
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '1.5rem' }}>
+              تحديد الحد الأقصى المسموح به لفارق المرتب بين الزبون والضامن لضمان عدم تأثر الطرف الأقل في المرتب. (الحد المسموح به: من 0 إلى 50 د.ل).
+            </p>
+
+            {loadingOfficeSettings ? (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
+                <span className="animate-spin inline-block w-6 h-6 border-2 border-current border-t-transparent rounded-full text-primary"></span>
+              </div>
+            ) : (
+              <div>
+                <div className="input-group" style={{ marginBottom: '1.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      فارق المرتب الأقصى المقبول للربط
+                    </label>
+                    <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--primary)' }}>
+                      {salaryMatchLimit} د.ل
+                    </span>
+                  </div>
+                  
+                  <input 
+                    type="range"
+                    min="0"
+                    max="50"
+                    step="1"
+                    value={salaryMatchLimit}
+                    onChange={e => setSalaryMatchLimit(Number(e.target.value))}
+                    style={{
+                      width: '100%',
+                      accentColor: 'var(--primary)',
+                      cursor: 'pointer',
+                      background: 'var(--glass-border)',
+                      height: '6px',
+                      borderRadius: '3px',
+                      outline: 'none'
+                    }}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>
+                    <span>0 د.ل (تطابق تام)</span>
+                    <span>50 د.ل (الحد الأقصى)</span>
+                  </div>
+                </div>
+
+                {officeSettingsError && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', fontSize: '0.82rem', marginBottom: '1.25rem' }}>
+                    <AlertTriangle size={16} />
+                    <span>{officeSettingsError}</span>
+                  </div>
+                )}
+
+                {officeSettingsSuccess && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', color: '#10b981', fontSize: '0.82rem', marginBottom: '1.25rem' }}>
+                    <CheckCircle size={16} />
+                    <span>{officeSettingsSuccess}</span>
+                  </div>
+                )}
+
+                <button 
+                  type="button"
+                  onClick={handleSaveOfficeSettings}
+                  className="btn btn-primary"
+                  disabled={savingOfficeSettings}
+                  style={{ width: '100%', padding: '0.85rem', borderRadius: '8px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                >
+                  {savingOfficeSettings ? 'جاري الحفظ...' : 'حفظ إعدادات الربط'}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
       </div>
 

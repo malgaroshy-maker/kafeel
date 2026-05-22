@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calculator, UserPlus, Users, FileCheck, Clock, Receipt, LogOut, BarChart3, Settings, LayoutDashboard, TrendingUp, Sun, Moon, Megaphone } from 'lucide-react';
+import { Calculator, UserPlus, Users, FileCheck, Clock, Receipt, LogOut, BarChart3, Settings, LayoutDashboard, TrendingUp, Sun, Moon, Megaphone, Coins, X } from 'lucide-react';
 import FinancialCalculator from '../components/Calculator';
 import CustomerForm from '../components/CustomerForm';
 import CustomerList from '../components/CustomerList';
@@ -11,18 +11,21 @@ import ReportsDashboard from '../components/ReportsDashboard';
 import StaffDashboard from '../components/StaffDashboard';
 import OfficeSettings from '../components/OfficeSettings';
 import StaffStats from '../components/StaffStats';
+import FinancialRequest from '../components/FinancialRequest';
+import PotentialCustomers from '../components/PotentialCustomers';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 
-type Tab = 'dashboard' | 'calculator' | 'customers' | 'beneficiary' | 'documents' | 'queue' | 'settlements' | 'reports' | 'settings' | 'staff-stats';
+type Tab = 'dashboard' | 'calculator' | 'customers' | 'potential-customers' | 'beneficiary' | 'documents' | 'queue' | 'settlements' | 'reports' | 'settings' | 'staff-stats' | 'financial-request';
 
 const tabs: { id: Tab; label: string; icon: typeof Calculator }[] = [
   { id: 'dashboard', label: 'لوحة التحكم', icon: LayoutDashboard },
   { id: 'customers', label: 'الزبائن', icon: Users },
   { id: 'beneficiary', label: 'تسجيل زبون', icon: UserPlus },
   { id: 'calculator', label: 'الحاسبة', icon: Calculator },
+  { id: 'financial-request', label: 'طلب قيمة مالية', icon: Coins },
   { id: 'documents', label: 'المستندات', icon: FileCheck },
-  { id: 'queue', label: 'الانتظار', icon: Clock },
+  { id: 'queue', label: 'قائمة الانتظار', icon: Clock },
   { id: 'settlements', label: 'التسويات', icon: Receipt },
   { id: 'reports', label: 'التقارير', icon: BarChart3 },
   { id: 'staff-stats', label: 'إحصائيات الموظفين', icon: TrendingUp },
@@ -42,6 +45,7 @@ const OfficeLayout: React.FC = () => {
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
   const [docCustomerId, setDocCustomerId] = useState<any>(null);
   const [activeTransactionId, setActiveTransactionId] = useState<string | null>(null);
+  const [cameFromRegistration, setCameFromRegistration] = useState(false);
   const navigate = useNavigate();
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -57,6 +61,73 @@ const OfficeLayout: React.FC = () => {
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
     localStorage.setItem('landing-theme', newTheme);
+  };
+
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [pwError, setPwError] = useState('');
+  const [pwSuccess, setPwSuccess] = useState('');
+  const [pwLoading, setPwLoading] = useState(false);
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwError('');
+    setPwSuccess('');
+    
+    if (!currentPassword) {
+      setPwError('يرجى إدخال كلمة المرور الحالية');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPwError('كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPwError('كلمة المرور الجديدة غير متطابقة');
+      return;
+    }
+
+    setPwLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) {
+        setPwError('حدث خطأ في جلب بيانات المستخدم');
+        setPwLoading(false);
+        return;
+      }
+
+      // Re-authenticate user to verify current password
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword
+      });
+
+      if (authError) {
+        setPwError('كلمة المرور الحالية غير صحيحة');
+        setPwLoading(false);
+        return;
+      }
+
+      // Update password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (updateError) {
+        setPwError(updateError.message);
+      } else {
+        setPwSuccess('تم تغيير كلمة المرور بنجاح!');
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      }
+    } catch (err: any) {
+      setPwError(err.message || 'حدث خطأ غير متوقع');
+    } finally {
+      setPwLoading(false);
+    }
   };
 
 
@@ -96,7 +167,7 @@ const OfficeLayout: React.FC = () => {
   });
 
   if (isManager) {
-    const managerOrder: Tab[] = ['calculator', 'customers', 'queue', 'reports', 'staff-stats', 'settlements', 'beneficiary', 'documents', 'settings'];
+    const managerOrder: Tab[] = ['calculator', 'financial-request', 'customers', 'queue', 'reports', 'staff-stats', 'settlements', 'beneficiary', 'documents', 'settings'];
     visibleTabs = [...visibleTabs].sort((a, b) => {
       const idxA = managerOrder.indexOf(a.id);
       const idxB = managerOrder.indexOf(b.id);
@@ -105,7 +176,7 @@ const OfficeLayout: React.FC = () => {
   }
 
   if (isAccountant) {
-    const accountantOrder: Tab[] = ['reports', 'customers', 'staff-stats', 'queue', 'settlements', 'calculator', 'documents'];
+    const accountantOrder: Tab[] = ['reports', 'customers', 'staff-stats', 'queue', 'settlements', 'calculator', 'financial-request', 'documents'];
     visibleTabs = [...visibleTabs].sort((a, b) => {
       const idxA = accountantOrder.indexOf(a.id);
       const idxB = accountantOrder.indexOf(b.id);
@@ -113,6 +184,14 @@ const OfficeLayout: React.FC = () => {
     });
   }
 
+  if (isStaff) {
+    const staffOrder: Tab[] = ['dashboard', 'beneficiary', 'calculator', 'financial-request', 'customers', 'queue', 'documents'];
+    visibleTabs = [...visibleTabs].sort((a, b) => {
+      const idxA = staffOrder.indexOf(a.id);
+      const idxB = staffOrder.indexOf(b.id);
+      return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+    });
+  }
   return (
     <div className="app-shell office-theme" style={{ position: 'relative', background: 'var(--bg-primary)', color: 'var(--text-primary)', transition: 'background-color 0.4s ease, color 0.4s ease' }}>
       {/* Subtle Faded Branding Watermark Backdrop */}
@@ -153,33 +232,56 @@ const OfficeLayout: React.FC = () => {
           </div>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            {isAccountant && (
-              <button 
-                onClick={toggleTheme}
-                style={{
-                  background: '#0f172a',
-                  color: theme === 'light' ? '#fbbf24' : '#fef08a',
-                  border: '1px solid #aa771c',
-                  padding: '0.45rem',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-                  transition: 'all 0.2s ease'
-                }}
-                title={theme === 'light' ? 'تفعيل الوضع الداكن' : 'تفعيل الوضع المضيء'}
-              >
-                {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
-              </button>
-            )}
+            {/* Theme Toggle Button (Sun and Moon sign next to settings) */}
+            <button 
+              onClick={toggleTheme}
+              style={{
+                background: '#0f172a',
+                color: theme === 'light' ? '#fbbf24' : '#fef08a',
+                border: '1px solid #aa771c',
+                padding: '0.45rem',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                transition: 'all 0.2s ease'
+              }}
+              title={theme === 'light' ? 'تفعيل الوضع الداكن' : 'تفعيل الوضع المضيء'}
+            >
+              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+            </button>
 
+            {/* Settings Button */}
+            <button 
+              className="btn" 
+              onClick={() => setShowSettingsModal(true)}
+              style={{ 
+                background: '#0f172a', 
+                color: '#fff', 
+                border: '1px solid #aa771c', 
+                padding: '0.45rem 1rem', 
+                borderRadius: '8px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                fontSize: '0.85rem',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+              }}
+            >
+              <Settings size={16} />
+              <span>الإعدادات</span>
+            </button>
+
+            {/* Logout Button */}
             <button 
               className="btn" 
               onClick={handleLogout}
               style={{ 
-                background: '#0f172a', 
+                background: '#7f1d1d', 
                 color: '#fff', 
                 border: 'none', 
                 padding: '0.45rem 1rem', 
@@ -227,14 +329,16 @@ const OfficeLayout: React.FC = () => {
         <div className="tab-nav-inner">
           {visibleTabs.map((tab) => {
             const Icon = tab.icon;
+            const isActive = activeTab === tab.id || (tab.id === 'customers' && activeTab === 'potential-customers');
             return (
               <button
                 key={tab.id}
-                className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}
+                className={`tab-btn ${isActive ? 'active' : ''}`}
                 onClick={() => {
                   if (tab.id === 'documents' && !docCustomerId && selectedBeneficiary) {
                     setDocCustomerId(selectedBeneficiary);
                   }
+                  setCameFromRegistration(false);
                   setActiveTab(tab.id);
                 }}
               >
@@ -245,6 +349,36 @@ const OfficeLayout: React.FC = () => {
           })}
         </div>
       </nav>
+
+      {/* Sub-navigation for Customers */}
+      {(activeTab === 'customers' || activeTab === 'potential-customers') && (
+        <nav className="tab-nav" style={{ position: 'relative', top: 'auto', borderTop: 'none', borderBottom: '1px solid var(--glass-border)', background: 'var(--surface-hover)' }}>
+          <div className="tab-nav-inner" style={{ justifyContent: 'center' }}>
+            <button
+              className={`tab-btn ${activeTab === 'customers' ? 'active' : ''}`}
+              onClick={() => {
+                setCameFromRegistration(false);
+                setActiveTab('customers');
+              }}
+              style={{ flex: '0 1 auto', padding: '0.85rem 2.5rem' }}
+            >
+              <Users size={18} />
+              <span>الزبائن الحاليين</span>
+            </button>
+            <button
+              className={`tab-btn ${activeTab === 'potential-customers' ? 'active' : ''}`}
+              onClick={() => {
+                setCameFromRegistration(false);
+                setActiveTab('potential-customers');
+              }}
+              style={{ flex: '0 1 auto', padding: '0.85rem 2.5rem' }}
+            >
+              <Users size={18} />
+              <span>الزبائن المحتملين</span>
+            </button>
+          </div>
+        </nav>
+      )}
 
       {/* Content */}
       <main className="app-main">
@@ -269,14 +403,30 @@ const OfficeLayout: React.FC = () => {
               }}
             />
           )}
+          {activeTab === 'potential-customers' && (
+            <PotentialCustomers 
+              onConvert={(customer) => {
+                setEditingCustomer({
+                  id: '',
+                  name: customer.name,
+                  phone: customer.phone || '',
+                  salary: customer.salary ? customer.salary.toString() : '',
+                  workplace_id: customer.workplace_id || '',
+                });
+                setCameFromRegistration(true);
+                setActiveTab('beneficiary');
+              }}
+            />
+          )}
           {activeTab === 'calculator' && (
             <FinancialCalculator 
               beneficiaryId={selectedBeneficiary} 
               guarantorId={selectedGuarantor} 
+              showSaveButton={cameFromRegistration}
               onSaveSuccess={(txId) => {
                 setActiveTransactionId(txId);
                 setDocCustomerId(selectedBeneficiary);
-                setActiveTab('documents');
+                setActiveTab('financial-request');
               }}
             />
           )}
@@ -290,7 +440,17 @@ const OfficeLayout: React.FC = () => {
                   setSelectedGuarantor(gIds[0]); // Primary guarantor
                 }
                 setEditingCustomer(null);
+                setCameFromRegistration(true);
                 setActiveTab('calculator');
+              }} 
+            />
+          )}
+          {activeTab === 'financial-request' && (
+            <FinancialRequest 
+              beneficiaryId={selectedBeneficiary} 
+              onProceedToDocs={() => {
+                setDocCustomerId(selectedBeneficiary);
+                setActiveTab('documents');
               }} 
             />
           )}
@@ -303,6 +463,203 @@ const OfficeLayout: React.FC = () => {
           {activeTab === 'settings' && <OfficeSettings />}
         </div>
       </main>
+
+      {/* Settings Modal */}
+      {showSettingsModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.65)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999,
+          padding: '1rem'
+        }}>
+          <div style={{
+            background: 'var(--surface)',
+            border: '2px solid var(--glass-border)',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '500px',
+            padding: '2rem',
+            boxShadow: 'var(--shadow-lg)',
+            position: 'relative',
+            direction: 'rtl'
+          }}>
+            {/* Close Button */}
+            <button 
+              onClick={() => {
+                setShowSettingsModal(false);
+                setPwError('');
+                setPwSuccess('');
+                setCurrentPassword('');
+                setNewPassword('');
+                setConfirmPassword('');
+              }}
+              style={{
+                position: 'absolute',
+                top: '1rem',
+                left: '1rem',
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-tertiary)',
+                cursor: 'pointer',
+                padding: '0.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              title="إغلاق"
+            >
+              <X size={20} />
+            </button>
+
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '1.5rem', borderBottom: '2px solid var(--glass-border)', paddingBottom: '0.5rem' }}>
+              إعدادات الحساب والمظهر
+            </h2>
+
+            {/* Change Password Form */}
+            <form onSubmit={handlePasswordChange}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '0.75rem', color: 'var(--accent)', borderTop: '1px solid var(--glass-border)', paddingTop: '1.25rem' }}>
+                تغيير كلمة المرور
+              </h3>
+
+              {pwError && (
+                <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--error)', border: '1px solid var(--error)', padding: '0.5rem 0.75rem', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '1rem' }}>
+                  {pwError}
+                </div>
+              )}
+
+              {pwSuccess && (
+                <div style={{ background: 'rgba(16, 185, 129, 0.1)', color: 'var(--success)', border: '1px solid var(--success)', padding: '0.5rem 0.75rem', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '1rem' }}>
+                  {pwSuccess}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
+                    كلمة المرور الحالية
+                  </label>
+                  <input 
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="أدخل كلمة المرور الحالية للتحقق"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '8px',
+                      border: '1px solid var(--glass-border)',
+                      background: 'var(--bg-secondary)',
+                      color: 'var(--text-primary)',
+                      fontSize: '0.9rem'
+                    }}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
+                    كلمة المرور الجديدة
+                  </label>
+                  <input 
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="6 أحرف على الأقل"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '8px',
+                      border: '1px solid var(--glass-border)',
+                      background: 'var(--bg-secondary)',
+                      color: 'var(--text-primary)',
+                      fontSize: '0.9rem'
+                    }}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
+                    تأكيد كلمة المرور الجديدة
+                  </label>
+                  <input 
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="أعد إدخال كلمة المرور الجديدة"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '8px',
+                      border: '1px solid var(--glass-border)',
+                      background: 'var(--bg-secondary)',
+                      color: 'var(--text-primary)',
+                      fontSize: '0.9rem'
+                    }}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowSettingsModal(false);
+                    setPwError('');
+                    setPwSuccess('');
+                    setCurrentPassword('');
+                    setNewPassword('');
+                    setConfirmPassword('');
+                  }}
+                  className="btn"
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid var(--glass-border)',
+                    color: 'var(--text-primary)',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '0.85rem'
+                  }}
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  disabled={pwLoading}
+                  className="btn"
+                  style={{
+                    background: '#0f172a',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '0.5rem 1.25rem',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '0.85rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minWidth: '100px'
+                  }}
+                >
+                  {pwLoading ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

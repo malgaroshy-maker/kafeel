@@ -152,3 +152,8 @@
 - [x] Add real-time status indicators on customer cards showing transaction progress.
 - [x] Production deployment preparation and testing.
 
+## Phase 21: Configurable Link Limits (قيمة الربط) for Office Managers ✅
+- [x] Database Migration: Add `salary_match_limit` (0-50 LYD) column to `offices` table.
+- [x] Database Function: Recreate `find_potential_guarantors` to dynamically read and enforce the office's salary match limit.
+- [x] Settings Panel: Implement a settings configuration card for managers to adjust the salary match limit (قيمة الربط) between 0 and 50 Dinars using a premium HSL slider control.
+

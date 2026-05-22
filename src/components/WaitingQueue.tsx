@@ -305,7 +305,7 @@ export default function WaitingQueue() {
 
             <div className="queue-card-details">
               <div className="queue-detail">
-                <span className="queue-detail-label">المرتب</span>
+                <span className="queue-detail-label">صافي المرتب</span>
                 <span className="queue-detail-value">{item.salary.toLocaleString('ar-LY')} د.ل</span>
               </div>
               <div className="queue-detail">

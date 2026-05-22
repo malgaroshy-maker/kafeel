@@ -29,7 +29,7 @@ Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Mura
 - **Admin Powers**: Create offices, create/revoke join codes, promote/demote roles, reset passwords, freeze accounts, deactivate users, and delete accounts permanently.
 
 ### B. Matchmaking Engine & Waiting Queue ✅
-- **Logic**: Matches based on `National ID`, `Workplace`, and `Salary Difference <= 50 LYD`.
+- **Logic**: Matches based on `National ID`, `Workplace`, and `Salary Difference <= office.salary_match_limit` (configured by manager, default 50 LYD, max 50 LYD).
 - **Database Functions**: `find_potential_guarantors()` with `override_validation` parameter for Monitor role. `attempt_auto_match()` for automated linking.
 - **Real-time**: Supabase Realtime channel subscriptions via `useRealtimeMatches` hook.
 - **UI**: `WaitingQueue.tsx` (card-based queue) + `MonitorDashboard.tsx` (table with data masking + manual link mode).
@@ -103,7 +103,7 @@ Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Mura
 | Table | Purpose | RLS | Status |
 |-------|---------|-----|--------|
 | `workplaces` | Workplace registry + `required_guarantors` | ✅ | ✅ |
-| `offices` | Office management: `max_users`, `join_code`, `join_code_active`, `is_active` | ✅ | ✅ |
+| `offices` | Office management: `max_users`, `join_code`, `join_code_active`, `is_active`, `salary_match_limit` | ✅ | ✅ |
 | `user_profiles` | User-to-office mapping: `role`, `display_name`, `is_active`, `is_frozen` | ✅ | ✅ |
 | `customers` | National ID (unique), salary, workplace_id | ✅ | ✅ |
 | `transactions` | Lifecycle + `office_loan`, `car_model`, `is_files_complete`, `purchase_cost` | ✅ | ✅ |

@@ -43,25 +43,23 @@ export function calculateMurabaha(input: CalcInput): CalcResult | null {
   const maxInstallment = S * D
   const maxBankCapacity = maxInstallment * TERM_MONTHS // This is Fmax (Max funding capacity)
 
-  // 2. Bactual = min(Bcap, Fmax / (1 + M)) (Actual financed principal)
-  const actualFinancedAmount = Math.min(ceiling, maxBankCapacity / (1 + M))
+  // 2. Iactual = S * D (Actual monthly installment is exactly 50% of net salary, i.e., S * D)
+  const actualInstallment = S * D
+  const totalRepayment = actualInstallment * TERM_MONTHS
 
-  // 3. Iactual = (Bactual * (1 + M)) / T (Actual monthly installment)
-  const actualInstallment = (actualFinancedAmount * (1 + M)) / TERM_MONTHS
+  // 3. Bactual = min(Bcap, totalRepayment / (1 + M)) (Actual financed principal)
+  const actualFinancedAmount = Math.min(ceiling, totalRepayment / (1 + M))
 
   // 4. Debt = P - Bactual (Down payment / difference paid in cash)
   const debt = P - actualFinancedAmount
 
-  // 5. Total repayment to bank (Bactual * (1 + M))
-  const totalRepayment = actualFinancedAmount * (1 + M)
+  // 5. Bank profit (Total repayment minus financed principal)
+  const profitAmount = totalRepayment - actualFinancedAmount
 
-  // 6. Bank profit (Bactual * M)
-  const profitAmount = actualFinancedAmount * M
-
-  // 7. Total Murabaha Value (P * (1 + M))
+  // 6. Total Murabaha Value (P * (1 + M))
   const totalMurabahaValue = P * (1 + M)
 
-  // 8. Over capacity check (if max capacity is less than the ceiling * (1+M))
+  // 7. Over capacity check (if max capacity is less than the ceiling * (1+M))
   const isOverCapacity = maxBankCapacity / (1 + M) < ceiling
 
   return {

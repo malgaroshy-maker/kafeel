@@ -356,7 +356,7 @@ export default function MonitorDashboard({ activeSubTab }: MonitorDashboardProps
                 <tr>
                   {linkMode && <th></th>}
                   <th>الاسم والطلب</th><th>المكتب</th><th>جهة العمل</th><th>تاريخ التقديم</th>
-                  {showSensitive && <th>المرتب المقدر</th>}
+                  {showSensitive && <th>صافي المرتب</th>}
                   {showSensitive && <th>تلفون الزبون</th>}
                   <th>حالة الطلب</th>
                 </tr>
