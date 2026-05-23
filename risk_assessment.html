@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>كفيل | دراسة المخاطر والقدرة الاستيعابية — Kafeel Risk & Capacity Assessment</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=Tajawal:wght@300;400;500;700;800&family=Fira+Code:wght@400;500;700&display=swap');
+  </style>
+
+  <style>
+    /* Premium Design Tokens & Global CSS (Glassmorphism Dark) */
+    :root {
+      --bg-main: #020617;
+      --bg-card: rgba(15, 23, 42, 0.75);
+      --border-color: rgba(234, 179, 8, 0.15);
+      --border-hover: rgba(234, 179, 8, 0.4);
+      --gold: #eab308;
+      --gold-glow: rgba(234, 179, 8, 0.25);
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.15);
+      --crimson: #ef4444;
+      --crimson-glow: rgba(239, 68, 68, 0.15);
+      --blue-accent: #3b82f6;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-arabic: 'Alexandria', 'Tajawal', sans-serif;
+      --font-english: 'Inter', sans-serif;
+      --font-code: 'Fira Code', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: var(--font-arabic);
+      overflow-x: hidden;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(30, 41, 59, 0.5) 0%, transparent 40%),
+        radial-gradient(circle at 85% 75%, rgba(234, 179, 8, 0.05) 0%, transparent 35%);
+      background-attachment: fixed;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-main);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(234, 179, 8, 0.2);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--gold);
+    }
+
+    /* Utility Styles */
+    .bilingual-header {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .bilingual-header h1, .bilingual-header h2, .bilingual-header h3, .bilingual-header h4 {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .bilingual-header span.en-sub {
+      font-family: var(--font-english);
+      font-size: 0.85em;
+      color: var(--text-muted);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      display: block;
+      margin-top: 2px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      gap: 6px;
+      border: 1px solid transparent;
+    }
+    .badge-gold {
+      background: rgba(234, 179, 8, 0.1);
+      border-color: rgba(234, 179, 8, 0.3);
+      color: var(--gold);
+    }
+    .badge-emerald {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: var(--emerald);
+    }
+    .badge-crimson {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: var(--crimson);
+    }
+    .badge-blue {
+      background: rgba(59, 130, 246, 0.1);
+      border-color: rgba(59, 130, 246, 0.3);
+      color: var(--blue-accent);
+    }
+
+    /* Fixed Top Navigation Bar */
+    header.top-nav {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      height: 70px;
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 1000;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-logo {
+      height: 40px;
+      width: 40px;
+      background: radial-gradient(circle, var(--gold) 0%, transparent 70%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--gold);
+      box-shadow: 0 0 15px var(--gold-glow);
+    }
+    .brand-logo svg {
+      width: 22px;
+      height: 22px;
+      stroke: var(--bg-main);
+      stroke-width: 2.5;
+    }
+    .brand-title h2 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffffff 0%, var(--gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .brand-title span {
+      font-family: var(--font-english);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: block;
+    }
+
+    /* Interactive View Controller Tabs */
+    .view-selector {
+      background: rgba(2, 6, 23, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 4px;
+      display: flex;
+      gap: 4px;
+    }
+    .view-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .view-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+    .view-btn.active {
+      background: var(--gold);
+      color: var(--bg-main);
+      box-shadow: 0 0 10px rgba(234, 179, 8, 0.3);
+    }
+    .view-btn:hover:not(.active) {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Container for Views */
+    main.content-container {
+      margin-top: 105px;
+      padding: 16px;
+      min-height: calc(100vh - 120px);
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ========================================== */
+    /* REPORT VIEW STYLING                        */
+    /* ========================================== */
+    #report-view {
+      max-width: 1280px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      padding-bottom: 60px;
+    }
+
+    /* Search/Filter Bar inside Report */
+    .filter-bar {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .filter-capsules {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .filter-cap {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 6px 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    .filter-cap.active {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(234, 179, 8, 0.05);
+    }
+    .filter-cap:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+    }
+
+    /* Report Card Standard */
+    .report-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .report-card:hover {
+      border-color: var(--border-hover);
+      box-shadow: 0 10px 40px rgba(234, 179, 8, 0.03);
+    }
+
+    .card-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 16px;
+    }
+
+    .report-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+    @media (max-width: 900px) {
+      .report-grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Arabic/English Side-by-Side Panel Layout */
+    .bilingual-panel-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+    @media (max-width: 900px) {
+      .bilingual-panel-row {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+    }
+    .bilingual-panel {
+      padding: 20px;
+      border-radius: 12px;
+      background: rgba(2, 6, 23, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    .bilingual-panel.ar {
+      border-right: 3px solid var(--gold);
+    }
+    .bilingual-panel.en {
+      border-left: 3px solid var(--blue-accent);
+      font-family: var(--font-english);
+      direction: ltr;
+      text-align: left;
+    }
+    .bilingual-panel.en h4 {
+      font-family: var(--font-english);
+    }
+    .panel-p {
+      font-size: 0.92rem;
+      line-height: 1.65;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    /* Detailed Tables */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(2, 6, 23, 0.5);
+    }
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: right;
+      font-size: 0.88rem;
+    }
+    .en-table table.data-table {
+      text-align: left;
+      direction: ltr;
+    }
+    table.data-table th, table.data-table td {
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    table.data-table th {
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--gold);
+      font-weight: 700;
+      font-size: 0.82rem;
+      letter-spacing: 0.5px;
+    }
+    table.data-table tbody tr:hover {
+      background: rgba(255,255,255,0.02);
+    }
+    table.data-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* CSS Interactive Custom SVG Charts */
+    .chart-container {
+      background: rgba(2, 6, 23, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .bar-chart-visual {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .bar-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .bar-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .bar-outer {
+      height: 12px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .bar-inner {
+      height: 100%;
+      border-radius: 6px;
+      width: 0%;
+      transition: width 1.5s cubic-bezier(0.1, 1, 0.1, 1);
+    }
+    .bar-inner.free { background: var(--crimson); }
+    .bar-inner.pro { background: var(--gold); }
+    .bar-inner.vps { background: var(--emerald); }
+
+    /* Warnings / Alerts */
+    .alert-box {
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+    .alert-box svg {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .alert-box-warning {
+      background: rgba(234, 179, 8, 0.05);
+      border-color: rgba(234, 179, 8, 0.2);
+      color: var(--gold);
+    }
+    .alert-box-caution {
+      background: rgba(239, 68, 68, 0.05);
+      border-color: rgba(239, 68, 68, 0.2);
+      color: var(--crimson);
+    }
+    .alert-box-tip {
+      background: rgba(16, 185, 129, 0.05);
+      border-color: rgba(16, 185, 129, 0.2);
+      color: var(--emerald);
+    }
+    .alert-text-content {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .alert-text-content strong {
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+    .alert-text-content p {
+      font-size: 0.82rem;
+      line-height: 1.5;
+      color: var(--text-muted);
+    }
+
+    /* Accordion Code Blocks */
+    .collapsible-code {
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      background: #090d1a;
+      overflow: hidden;
+    }
+    .collapsible-header {
+      background: rgba(15, 23, 42, 0.5);
+      padding: 12px 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+      font-size: 0.8rem;
+      font-family: var(--font-english);
+      color: var(--gold);
+    }
+    .collapsible-header:hover {
+      background: rgba(15, 23, 42, 0.8);
+    }
+    .collapsible-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s cubic-bezier(0, 1, 0, 1);
+    }
+    .collapsible-content pre {
+      margin: 0;
+      padding: 16px;
+      overflow-x: auto;
+      font-family: var(--font-code);
+      font-size: 0.82rem;
+      color: #9cdcfe;
+      line-height: 1.5;
+    }
+
+    /* ========================================== */
+    /* CINEMATIC PRESENTATION SLIDES VIEW         */
+    /* ========================================== */
+    #slides-view {
+      display: none;
+      width: 100vw;
+      height: calc(100vh - 100px);
+      position: relative;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .slide-deck {
+      width: 100%;
+      max-width: 1000px;
+      height: 80%;
+      position: relative;
+      perspective: 1500px;
+    }
+
+    .slide-card {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 20px 80px rgba(0,0,0,0.5);
+      border-radius: 24px;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      opacity: 0;
+      visibility: hidden;
+      transform: translate3d(0, 50px, -200px) rotateX(10deg);
+      transition: 
+        opacity 0.6s cubic-bezier(0.19, 1, 0.22, 1),
+        transform 0.6s cubic-bezier(0.19, 1, 0.22, 1),
+        visibility 0.6s ease;
+      z-index: 1;
+    }
+
+    .slide-card.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translate3d(0, 0, 0) rotateX(0deg);
+      z-index: 10;
+      border-color: var(--border-hover);
+      box-shadow: 0 0 40px var(--gold-glow);
+    }
+
+    /* Slide Card Content Structures */
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 20px;
+    }
+    .slide-body {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 20px;
+      padding: 20px 0;
+      overflow-y: auto;
+    }
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 16px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Slide Content Grids */
+    .slide-bullet-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .slide-bullet-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .slide-bullet-item svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--gold);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .bullet-text {
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    /* Slide Navigation Controls */
+    .slide-nav-controls {
+      position: absolute;
+      bottom: 24px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 24px;
+      z-index: 100;
+    }
+    .slide-ctrl-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-main);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .slide-ctrl-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+      transform: scale(1.1);
+      box-shadow: 0 0 15px var(--gold-glow);
+    }
+    .slide-progress-dots {
+      display: flex;
+      gap: 8px;
+    }
+    .slide-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      cursor: pointer;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+    .slide-dot.active {
+      width: 24px;
+      border-radius: 4px;
+      background: var(--gold);
+    }
+
+    /* Fullscreen indicator */
+    .fullscreen-btn {
+      position: absolute;
+      right: 24px;
+      bottom: 24px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      z-index: 100;
+    }
+    .fullscreen-btn:hover {
+      border-color: var(--gold);
+      color: var(--text-main);
+    }
+
+    /* Swipe Overlay for Presentation Mode Hint */
+    .slide-hint-toast {
+      position: absolute;
+      top: 10px;
+      background: rgba(234,179,8,0.1);
+      border: 1px solid rgba(234,179,8,0.2);
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 0.72rem;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      animation: pulseGlow 2s infinite alternate;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    @keyframes pulseGlow {
+      from { box-shadow: 0 0 5px rgba(234,179,8,0.05); opacity: 0.8; }
+      to { box-shadow: 0 0 15px rgba(234, 179, 8, 0.2); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="top-nav">
+    <div class="brand-section">
+      <div class="brand-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      </div>
+      <div class="brand-title">
+        <h2>منظومة كفيل</h2>
+        <span>Kafeel Platform</span>
+      </div>
+    </div>
+    <div class="view-selector">
+      <button class="view-btn active" id="btn-report" onclick="switchView('report')">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        التقرير الكامل / Report
+      </button>
+      <button class="view-btn" id="btn-slides" onclick="switchView('slides')">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+        العرض التقديمي / Slides
+      </button>
+    </div>
+  </header>
+
+  <!-- Container for Views -->
+  <main class="content-container">
+
+    <!-- ========================================== -->
+    <!-- 1. FULL REPORT VIEW SECTION                -->
+    <!-- ========================================== */ -->
+    <section id="report-view">
+      
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <div class="bilingual-header">
+          <h3>دراسة المخاطر والقدرة الاستيعابية</h3>
+          <span class="en-sub">Interactive Comprehensive Risk & Capacity Report</span>
+        </div>
+        <div class="filter-capsules">
+          <span class="filter-cap active" onclick="filterReport('all', this)">الكل (All)</span>
+          <span class="filter-cap" onclick="filterReport('hosting', this)">الاستضافة والسيرفر (Hosting)</span>
+          <span class="filter-cap" onclick="filterReport('limits', this)">الحدود الاستيعابية (Limits)</span>
+          <span class="filter-cap" onclick="filterReport('dev-short', this)">مخاطر قريبة (Short-term)</span>
+          <span class="filter-cap" onclick="filterReport('dev-long', this)">مخاطر بعيدة (Long-term)</span>
+          <span class="filter-cap" onclick="filterReport('robustness', this)">استقرار النظام (Robustness)</span>
+        </div>
+      </div>
+
+      <!-- Card 1: Executive Summary -->
+      <div class="report-card" data-category="robustness">
+        <div class="card-meta-row">
+          <span class="badge badge-gold">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            ملخص عام / Executive Summary
+          </span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Section 1</span>
+        </div>
+        <div class="bilingual-panel-row">
+          <div class="bilingual-panel ar">
+            <h3>الملخص التنفيذي للمنظومة 🇸🇦</h3>
+            <p class="panel-p">
+              تهدف هذه الدراسة إلى إجراء تحليل شامل للمخاطر المحتملة التي قد تواجه منظومة <strong>كفيل (Kafeel)</strong> للمرابحة الإسلامية. تم وضع هذه الدراسة لتفادي أي ثغرات فنية أو أمنية قد تعيق النشر التجاري الفعلي للمنظومة، مع حساب دقيق للقدرات الرقمية ومستويات ترقية الخوادم وباقات Supabase لتقديم توصيات وقائية مباشرة للمطورين والمدراء.
+            </p>
+          </div>
+          <div class="bilingual-panel en">
+            <h4>Technical & Business Assessment Summary 🇬🇧</h4>
+            <p class="panel-p">
+              This report serves as a complete technical blueprint analyzing immediate and long-term pitfalls for the Kafeel platform. By evaluating code constraints, Database row-level security (RLS), local/server time dynamics, and hosting environments, we provide developers and stakeholders with actionable mitigations and concrete budget planning guidelines.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Hosting and Server Infrastructure -->
+      <div class="report-card" data-category="hosting">
+        <div class="card-meta-row">
+          <span class="badge badge-blue">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+            البنية التحتية للاستضافة / Hosting Options
+          </span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Section 2</span>
+        </div>
+        
+        <div class="bilingual-header">
+          <h4>مقارنة خيارات نشر المنظومة (المعالجة السحابية مقابل السيرفر الخاص)</h4>
+          <span class="en-sub">Cloud Serverless Platform vs. Self-Hosted VPS Containerization</span>
+        </div>
+
+        <div class="bilingual-panel-row">
+          <div class="bilingual-panel ar">
+            <strong>1. الحل السحابي السريع (Supabase Cloud + Vercel):</strong>
+            <p class="panel-p">هو الخيار الموصى به برمجياً لبدء التشغيل التجاري الفوري؛ حيث يوفر إدارة آلية بالكامل للنسخ الاحتياطي وشبكات توصيل سريعة جداً داخل ليبيا، مع انعدام وجود أي مصاريف صيانة تقنية (DevOps Zero).</p>
+          </div>
+          <div class="bilingual-panel en">
+            <strong>2. Self-Hosted VPS Containerization (Docker Compose):</strong>
+            <p class="panel-p">Deploying Supabase locally using Docker Compose on private virtual servers (e.g. Hetzner, LTT). This ensures total sovereignty over credit logs and database records inside national networks, fulfilling absolute legal requirements.</p>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>وجه المقارنة / Feature</th>
+                <th>باقة السحاب الجاهزة / Managed Cloud</th>
+                <th>الخادم المستقل الذاتي / Self-Hosted VPS</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>سرعة النشر / Setup Speed</strong></td>
+                <td style="color:var(--emerald);">فورية (عدة دقائق) / Instant</td>
+                <td>متوسطة (تتطلب تهيئة Docker) / 2-3 hours</td>
+              </tr>
+              <tr>
+                <td><strong>إدارة الخادم والنسخ / Server Admin</strong></td>
+                <td>تلقائية بالكامل من المنصة / Automated</td>
+                <td style="color:var(--crimson);">يدوية بالكامل وتتحمل الإدارة مسؤوليتها</td>
+              </tr>
+              <tr>
+                <td><strong>سيادة وحماية البيانات / Data Sovereignty</strong></td>
+                <td>تخزن عالمياً في خوادم AWS</td>
+                <td style="color:var(--emerald);">سيادة ومطابقة محلية كاملة للبيانات</td>
+              </tr>
+              <tr>
+                <td><strong>الموثوقية والتشغيل / SLA & Uptime</strong></td>
+                <td style="color:var(--emerald);">99.99% (مدارة سحابياً)</td>
+                <td>تعتمد على أداء خادم الشركة المستأجرة</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Card 3: Capacity Limits and Cost -->
+      <div class="report-card" data-category="limits">
+        <div class="card-meta-row">
+          <span class="badge badge-emerald">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            السعة التخزينية والقدرة الاستيعابية / Capacity & Price Limits
+          </span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Section 3</span>
+        </div>
+
+        <div class="report-grid-2">
+          <div class="chart-container">
+            <strong>سعة اتصالات قاعدة البيانات الفورية (الحد الأقصى للمستخدمين النشطين في نفس الوقت)</strong>
+            <p style="font-size:0.75rem; color:var(--text-muted);">Maximum Concurrent WebSocket Connections (Realtime API limits)</p>
+            <div class="bar-chart-visual">
+              <div class="bar-row">
+                <div class="bar-meta">
+                  <span>الباقة المجانية / Free Tier</span>
+                  <strong>200 اتصال متزامن / connections</strong>
+                </div>
+                <div class="bar-outer">
+                  <div class="bar-inner free" style="width: 20%;"></div>
+                </div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-meta">
+                  <span>الباقة المدفوعة / Pro Tier ($25/mo)</span>
+                  <strong>500 اتصال متزامن / connections</strong>
+                </div>
+                <div class="bar-outer">
+                  <div class="bar-inner pro" style="width: 50%;"></div>
+                </div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-meta">
+                  <span>الخادم الخاص الذاتي / Self-Hosted VPS</span>
+                  <strong>أكثر من 10,000 اتصال متزامن / Unlimited</strong>
+                </div>
+                <div class="bar-outer">
+                  <div class="bar-inner vps" style="width: 100%;"></div>
+                </div>
+              </div>
+            </div>
+            <div class="alert-box alert-box-warning" style="margin-top: 10px;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              <div class="alert-text-content">
+                <strong>تنبيه القدرة الاستيعابية / Capacity Trigger</strong>
+                <p>إذا تجاوز حجم مكاتب السيارات النشطة 25 مكتباً في نفس الوقت مع وجود 100 موظف، سنصطدم بحد الباقة المجانية وتتوقف طوابير الربط الذكي فوراً.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-container">
+            <strong>سعة مساحة مستندات وملفات الضامنين والزبائن (تخزين الملفات والمستندات)</strong>
+            <p style="font-size:0.75rem; color:var(--text-muted);">Database Document Storage Limits (Supabase Bucket limits)</p>
+            <div class="bar-chart-visual">
+              <div class="bar-row">
+                <div class="bar-meta">
+                  <span>الباقة المجانية / Free Tier</span>
+                  <strong>1 GB (جيجابايت واحد)</strong>
+                </div>
+                <div class="bar-outer">
+                  <div class="bar-inner free" style="width: 10%;"></div>
+                </div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-meta">
+                  <span>الباقة المدفوعة / Pro Tier ($25/mo)</span>
+                  <strong>100 GB (مئة جيجابايت)</strong>
+                </div>
+                <div class="bar-outer">
+                  <div class="bar-inner pro" style="width: 60%;"></div>
+                </div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-meta">
+                  <span>الخادم الخاص الذاتي / Self-Hosted VPS</span>
+                  <strong>سعة الهارد ديسك بالكامل / Unlimited</strong>
+                </div>
+                <div class="bar-outer">
+                  <div class="bar-inner vps" style="width: 100%;"></div>
+                </div>
+              </div>
+            </div>
+            <div class="alert-box alert-box-tip" style="margin-top: 10px;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <div class="alert-text-content">
+                <strong>حسابات التوسع الفعلي / Scalability Equation</strong>
+                <p>مستندات المعاملة الواحدة المضغوطة تعادل 800 كيلوبايت. الباقة المجانية تكفي لحوالي 1,200 معاملة متكاملة قبل امتلاء مساحة التخزين.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: Short-Term Developer Risks (1 & 2) -->
+      <div class="report-card" data-category="dev-short">
+        <div class="card-meta-row">
+          <span class="badge badge-crimson">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            مخاطر برمجية قريبة / Short-Term Developer Pitfalls (Part I)
+          </span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Section 4</span>
+        </div>
+
+        <div class="bilingual-header">
+          <h4>الخطر 1: تباعد حسابات الفاصلة العائمة (Float Precision) مقابل محرك تحقق قاعدة البيانات الفعلي</h4>
+          <span class="en-sub">Risk 4.1: Mathematical Rounding Discrepancy between Frontend Engine & PostgreSQL Trigger</span>
+        </div>
+
+        <div class="bilingual-panel-row">
+          <div class="bilingual-panel ar">
+            <strong>تأثير المشكلة:</strong>
+            <p class="panel-p">يقوم زناد الحماية `prevent_financial_tampering` في قاعدة البيانات بإعادة حساب الدفعة الأولى بدقة فائقة. الواجهة الأمامية تعتمد على معالج الجافا سكربت `financialEngine.ts` الذي يستخدم أرقام الفاصلة العائمة. أي فارق تدوير يتجاوز 5.0 دينار ليبي سيجعل قاعدة البيانات ترفض إدخال المعاملة بالكامل وتتوقف الجلسة.</p>
+          </div>
+          <div class="bilingual-panel en">
+            <strong>Technical Impact:</strong>
+            <p class="panel-p">JavaScript floating point calculation errors can slightly skew rounding. If the difference between client-side computed down payments and PostgreSQL precise numeric rules exceeds 5 LYD, the database will throw an anti-tamper exception, resulting in transaction rejection.</p>
+          </div>
+        </div>
+
+        <div class="collapsible-code">
+          <div class="collapsible-header" onclick="toggleCode(this)">
+            <span>SQL Database Anti-Tampering Trigger Schema (Click to View / انقر للعرض)</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+          </div>
+          <div class="collapsible-content">
+            <pre>
+-- Re-calculate exact mathematical model in plpgsql to match financialEngine.ts
+v_total_murabaha := NEW.car_price * (1 + NEW.margin_rate);
+v_max_bank_capacity := LEAST(v_bank_ceiling, v_customer_salary * v_deduction_rate * v_term_months);
+v_expected_bank_repayment := LEAST(v_total_murabaha, v_max_bank_capacity);
+v_expected_down_payment := v_total_murabaha - v_expected_bank_repayment;
+
+-- Verify that down payment submitted is within 5 LYD buffer
+IF ABS(NEW.down_payment - v_expected_down_payment) > 5.0 THEN
+    RAISE EXCEPTION 'تلاعب بالقيم المالية مكشوف! القيمة المتوقعة للدفعة الأولى هي % د.ل، وتم تقديم % د.ل',
+        v_expected_down_payment, NEW.down_payment;
+END IF;</pre>
+          </div>
+        </div>
+
+        <hr style="border:none; border-top: 1px solid rgba(255,255,255,0.05);">
+
+        <div class="bilingual-header">
+          <h4>الخطر 2: انحراف التوقيت والتواريخ في تصفية تقويم المتابعات (Timezone shifts)</h4>
+          <span class="en-sub">Risk 4.2: Timezone Discrepancies in CRM Callback & Reminder Queries</span>
+        </div>
+
+        <div class="bilingual-panel-row">
+          <div class="bilingual-panel ar">
+            <strong>تأثير المشكلة:</strong>
+            <p class="panel-p">تخزن الحقول `callback_date` بتوقيت UTC العالمي. بينما تعمل المتصفحات داخل مكاتب ليبيا بنطاق توقيت طرابلس (GMT+2). هذا الفارق الزمني (ساعتين) سيؤدي في نهاية اليوم إلى ظهور المعاملات المجدولة لليوم في تبويب "الاتصالات المتأخرة" أو العكس، مما يشوش على عمل موظفي المعارض.</p>
+          </div>
+          <div class="bilingual-panel en">
+            <strong>Technical Impact:</strong>
+            <p class="panel-p">Timestamps are kept in UTC. Tripoli local time is GMT+2. Filtering potential customers scheduled for "Today" will split dates incorrectly near midnight hours if naively queried, causing scheduling confusion and missed callback alerts.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 5: Short-Term Developer Risks (3 & 4) -->
+      <div class="report-card" data-category="dev-short">
+        <div class="card-meta-row">
+          <span class="badge badge-crimson">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            مخاطر برمجية قريبة / Short-Term Developer Pitfalls (Part II)
+          </span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Section 5</span>
+        </div>
+
+        <div class="bilingual-header">
+          <h4>الخطر 3: فجوة وذاكرة صلاحيات الأمان والسياسات وعلاقتها برمز الجلسة للمستخدم</h4>
+          <span class="en-sub">Risk 4.3: RLS Policy Caching & Token Freshness Delays on Role Upgrades</span>
+        </div>
+
+        <div class="bilingual-panel-row">
+          <div class="bilingual-panel ar">
+            <strong>تأثير المشكلة:</strong>
+            <p class="panel-p">تعتمد سياسات أمان الأسطر (RLS) في Supabase على قراءة الصلاحية المضمنة في توقيع الـ JWT الأمني. عند ترقية مستخدم من رتبة "موظف" إلى "مدير" عبر الإدارة السحابية، لا يتأثر متصفح المستخدم فوراً، وسيظل معلقاً برتبته القديمة وتظهر له شاشات فارغة أو أخطاء حجب حتى يسجل خروجه يدوياً ويعود من جديد.</p>
+          </div>
+          <div class="bilingual-panel en">
+            <strong>Technical Impact:</strong>
+            <p class="panel-p">Client JWTs are cached inside browser storage. When user metadata role changes from 'staff' to 'manager' in the DB, the token's active payload is not refreshed, causing constant database read/write blocking errors for the upgraded user until their next login.</p>
+          </div>
+        </div>
+
+        <hr style="border:none; border-top: 1px solid rgba(255,255,255,0.05);">
+
+        <div class="bilingual-header">
+          <h4>الخطر 4: عدم وجود جدار حماية للمحاولات المتكررة (Rate Limiting) في دوال الدخول العامة</h4>
+          <span class="en-sub">Risk 4.4: Brute-Force Vulnerability inside Public join-with-code Edge Function</span>
+        </div>
+
+        <div class="bilingual-panel-row">
+          <div class="bilingual-panel ar">
+            <strong>تأثير المشكلة:</strong>
+            <p class="panel-p">دالة `join-with-code` هي واجهة عامة مفتوحة للجميع لاستقبال طلبات التسجيل. نظراً لأن الدالة تتجاوز قيود RLS لتأكيد الأكواد وتفعيل الحسابات، يمكن للبوتات والهاكرز استغلالها لإرسال ملايين الطلبات المتكررة لتخمين أكواد الانضمام للمعارض المشتركة واستهلاك سعة حسابات Supabase المدفوعة بالكامل وتجميد الخدمة.</p>
+          </div>
+          <div class="bilingual-panel en">
+            <strong>Technical Impact:</strong>
+            <p class="panel-p">The public endpoint lacks rate limits and validation controls. Attackers can flood the endpoint, brute-force search for valid office join codes, trigger admin creation commands, and crash database auth tiers rapidly.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 6: Long-Term Developer Risks -->
+      <div class="report-card" data-category="dev-long">
+        <div class="card-meta-row">
+          <span class="badge badge-crimson">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            مخاطر المطورين البعيدة / Long-Term Structural Pitfalls
+          </span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Section 6</span>
+        </div>
+
+        <div class="bilingual-header">
+          <h4>الخطر 5: غياب آلية تسوية التضارب عند مزامنة البيانات محلياً بعد عودة الإنترنت</h4>
+          <span class="en-sub">Risk 5.1: Offline Fallback Storage Drift & Lack of Conflict Resolution Mechanics</span>
+        </div>
+
+        <div class="bilingual-panel-row">
+          <div class="bilingual-panel ar">
+            <strong>تأثير المشكلة:</strong>
+            <p class="panel-p">توفر المنظومة خيار حفظ متميز محلياً في `localStorage` عند انقطاع الإنترنت لحماية الحسابات والمتابعات. ولكن عند عودة الاتصال لا توجد آلية تسوية تضارب (Conflict Resolution). إذا عدل موظف ملف العميل وهو غير متصل، وعدله محاسب آخر في نفس اللحظة وهو متصل؛ سيقوم النظام بمسح تعديل المحاسب بالكامل وتفقد البيانات تماسكها المالي.</p>
+          </div>
+          <div class="bilingual-panel en">
+            <strong>Technical Impact:</strong>
+            <p class="panel-p">When clients go offline, inputs fallback to local storage. Upon reconnection, there is no reconciliation algorithm to compare client vs server timestamps. Submitting out-of-sync edits risk overriding verified financial audits and customer entries.</p>
+          </div>
+        </div>
+
+        <hr style="border:none; border-top: 1px solid rgba(255,255,255,0.05);">
+
+        <div class="bilingual-header">
+          <h4>الخطر 6: تحديات صيانة ملفات التصميم التراكمية (CSS Maintainability Debt)</h4>
+          <span class="en-sub">Risk 5.2: Vanilla CSS Layout Maintainability in Enterprise Scaling</span>
+        </div>
+
+        <div class="bilingual-panel-row">
+          <div class="bilingual-panel ar">
+            <strong>تأثير المشكلة:</strong>
+            <p class="panel-p">تعتمد كفيل بالكامل على ملفات CSS تقليدية مخصصة لبناء جماليات وتأثيرات الواجهة. مع نمو وتوسع شاشات النظام، ستتعقد صيانة آلاف الأسطر التقليدية وسيواجه المطورون تضارباً في أسماء المحددات (Selectors) وضياع التناسق على أحجام الشاشات المختلفة.</p>
+          </div>
+          <div class="bilingual-panel en">
+            <strong>Technical Impact:</strong>
+            <p class="panel-p">Relying on pure global Vanilla CSS stylesheets for high-complexity custom components limits visual scalability. Overriding selectors and managing multiple theme variables across global files leads to visual fragmentation as more developers contribute.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 7: Actionable Mitigation Recommendations -->
+      <div class="report-card" data-category="robustness">
+        <div class="card-meta-row">
+          <span class="badge badge-emerald">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+            التوصيات الوقائية والحلول المباشرة / Actionable Mitigation
+          </span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Section 7</span>
+        </div>
+
+        <div class="bilingual-header">
+          <h4>المسؤوليات التشغيلية للمطورين والمدراء لتأمين إطلاق كفيل الفعلي</h4>
+          <span class="en-sub">Concrete Engineering and Management Mitigations for Launching</span>
+        </div>
+
+        <div class="bilingual-panel-row">
+          <div class="bilingual-panel ar">
+            <strong>👨‍💻 مهام وقائية للمطورين (Developers):</strong>
+            <p class="panel-p">
+              1. <strong>توحيد عمليات التقريب:</strong> إجبار الواجهة الأمامية على تدوير أرقام الدفعات العشرية لمرتبتين عشريتين عبر دالة `Math.round()` موحدة قبل إرسال البيانات لقاعدة البيانات.<br>
+              2. <strong>تأمين الدوال السحابية:</strong> فرض فحص وتأخير المحاولات (Throttling) وتحديد حد تسجيل من نفس عنوان الـ IP لثغرة رمز الانضمام.<br>
+              3. <strong>تحديث جلسة الرمز الأمني:</strong> إضافة مراقب فوري (Realtime Listener) في `AuthContext.tsx` يقوم بتنشيط الجلسة `supabase.auth.refreshSession()` تلقائياً للزبائن المرقّين حديثاً.
+            </p>
+          </div>
+          <div class="bilingual-panel en">
+            <strong>💼 Operational & Budget Guide (Management):</strong>
+            <p class="panel-p">
+              1. <strong>Launch Budget Allocation:</strong> Deploy production on the **Supabase Pro Tier ($25/mo)** immediately. This removes the 200 concurrent connection block, adds daily backups, and accommodates up to 100,000 files.<br>
+              2. <strong>Join Code Access Controls:</strong> Force Master Admins to generate complex random codes (`KF-X82A-33Q`) and disable the active state immediately after the required personnel joins.<br>
+              3. <strong>Monthly Threat Audits:</strong> Review the Master Admin Security dashboard once every 30 days to clear error stacks and audit access attempts.
+            </p>
+          </div>
+        </div>
+
+        <div class="alert-box alert-box-tip">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+          <div class="alert-text-content">
+            <strong>مستوى الجاهزية الفنية للمشروع / Current Verification Status</strong>
+            <p>المنظومة مبنية بمعايير حماية وتحصين عالية جداً. تطبيق التوصيات البسيطة المذكورة أعلاه يضمن استقراراً كاملاً وأماناً لا يضاهى عند التوسع والتشغيل المصرفي التجاري الفعلي.</p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 2. INTERACTIVE CINEMATIC SLIDES VIEW       -->
+    <!-- ========================================== -->
+    <section id="slides-view">
+
+      <div class="slide-hint-toast">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
+        <span>استخدم لوحة المفاتيح (⬅ / ➡) أو السحب للتنقل بين الشرائح</span>
+      </div>
+
+      <div class="slide-deck" id="slide-deck">
+        
+        <!-- Slide 1: Welcome -->
+        <div class="slide-card active">
+          <div class="slide-header">
+            <div class="bilingual-header">
+              <h1>منظومة كفيل للمرابحة الإسلامية</h1>
+              <span class="en-sub">Kafeel Interest-Free Murabaha System</span>
+            </div>
+            <span class="badge badge-gold">شريحة 1 / Slide 1</span>
+          </div>
+          <div class="slide-body" style="text-align: center; justify-content: center; align-items: center; gap: 30px;">
+            <div class="brand-logo" style="width: 80px; height: 80px; border-width: 2px;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="36" height="36" style="stroke-width: 2.5;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+            </div>
+            <div class="bilingual-header" style="align-items: center;">
+              <h2 style="font-size: 2rem; color: var(--gold);">دراسة المخاطر والقدرة الاستيعابية وتحديات النشر</h2>
+              <span class="en-sub" style="font-size: 1.1rem; text-align: center;">Comprehensive Risk, Performance Capacity, & Server Hosting Infrastructure Assessment</span>
+            </div>
+            <p style="font-size:0.9rem; color:var(--text-muted); max-w: 600px; line-height: 1.6;">
+              وثيقة استراتيجية فنية وتشغيلية مصممة لمساعدة فريق التطوير وصنّاع القرار على إطلاق مستقر وآمن للمنظومة على مستوى ليبيا.
+            </p>
+          </div>
+          <div class="slide-footer">
+            <span>Kafeel Platform v1.5.0</span>
+            <span>مؤسسة كفيل للتطوير الفني</span>
+          </div>
+        </div>
+
+        <!-- Slide 2: Executive Summary -->
+        <div class="slide-card">
+          <div class="slide-header">
+            <div class="bilingual-header">
+              <h2>الملخص التنفيذي للمنظومة</h2>
+              <span class="en-sub">Executive Summary & Strategic Overview</span>
+            </div>
+            <span class="badge badge-gold">شريحة 2 / Slide 2</span>
+          </div>
+          <div class="slide-body">
+            <div class="bilingual-panel-row" style="height: 100%;">
+              <div class="bilingual-panel ar" style="display:flex; flex-direction:column; justify-content:center;">
+                <h3>الأهداف والركائز 🇸🇦</h3>
+                <div class="slide-bullet-list" style="margin-top: 15px;">
+                  <div class="slide-bullet-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" /></svg>
+                    <span class="bullet-text"><strong>كشف المخاطر مبكراً:</strong> دراسة وحل العوائق البرمجية قبل تفعيل المعارض فعلياً.</span>
+                  </div>
+                  <div class="slide-bullet-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" /></svg>
+                    <span class="bullet-text"><strong>إدارة التكلفة والميزانية:</strong> حساب خطط الترقية وسيرفرات الاستضافة بدقة.</span>
+                  </div>
+                  <div class="slide-bullet-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" /></svg>
+                    <span class="bullet-text"><strong>الأمن وحماية البيانات:</strong> الامتثال للسياسات المصرفية وقوانين أمن المعلومات.</span>
+                  </div>
+                </div>
+              </div>
+              <div class="bilingual-panel en" style="display:flex; flex-direction:column; justify-content:center;">
+                <h3>Key Pillars 🇬🇧</h3>
+                <div class="slide-bullet-list" style="margin-top: 15px;">
+                  <div class="slide-bullet-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" /></svg>
+                    <span class="bullet-text"><strong>Prevent Developer Bugs:</strong> Resolve code rounding drift and time logic shifts immediately.</span>
+                  </div>
+                  <div class="slide-bullet-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" /></svg>
+                    <span class="bullet-text"><strong>Accurate Server Sizing:</strong> Evaluate SaaS Cloud limitations vs. Self-hosted VPS budgets.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>Kafeel Platform v1.5.0</span>
+            <span>القسم 1: الأهداف العامة</span>
+          </div>
+        </div>
+
+        <!-- Slide 3: Hosting Infrastructure Options -->
+        <div class="slide-card">
+          <div class="slide-header">
+            <div class="bilingual-header">
+              <h2>خيارات البنية التحتية ونشر الخوادم</h2>
+              <span class="en-sub">Hosting Infrastructure: Managed Cloud vs. Self-Hosted VPS</span>
+            </div>
+            <span class="badge badge-gold">شريحة 3 / Slide 3</span>
+          </div>
+          <div class="slide-body">
+            <div class="bilingual-panel-row">
+              <div class="bilingual-panel ar">
+                <strong>☁️ باقة السحاب السريعة (SaaS Cloud):</strong>
+                <p class="panel-p" style="font-size:0.85rem;">نشر قاعدة البيانات على Supabase Cloud والواجهة على Vercel. إيجابياتها: إعداد آلي بالكامل وسريع جداً، نسخ احتياطي يومي مدمج، ولا تتطلب مهندساً لإدارة السيرفرات (DevOps Zero). عيوبها: التكلفة تصاعدية عند زيادة استهلاك الجداول والملفات.</p>
+              </div>
+              <div class="bilingual-panel en">
+                <strong>🐳 Self-Hosted VPS (Docker Compose):</strong>
+                <p class="panel-p" style="font-size:0.85rem;">Setting up custom database containers via Docker Compose on a private virtual server (like Hetzner or DigitalOcean). Pros: Total sovereignty over sensitive credit logs inside Libya, with fixed predictable monthly costs. Cons: Manual maintenance, server backups, and network protection liabilities.</p>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>Kafeel Platform v1.5.0</span>
+            <span>القسم 2: السيرفرات والاستضافة</span>
+          </div>
+        </div>
+
+        <!-- Slide 4: Database WebSocket Concurrent Limits -->
+        <div class="slide-card">
+          <div class="slide-header">
+            <div class="bilingual-header">
+              <h2>الحدود الاستيعابية القصوى والترقية</h2>
+              <span class="en-sub">Quantitative Performance & Realtime Capacity Ceilings</span>
+            </div>
+            <span class="badge badge-gold">شريحة 4 / Slide 4</span>
+          </div>
+          <div class="slide-body" style="justify-content: space-around;">
+            <div class="bilingual-header" style="align-items: center; text-align: center;">
+              <h4>حدود اتصالات قنوات البث الفوري المتزامنة (WebSockets)</h4>
+              <span class="en-sub">Maximum Simultaneous Office and Staff Connections</span>
+            </div>
+            
+            <div class="bar-chart-visual" style="max-w:700px; width:100%; margin: 0 auto;">
+              <div class="bar-row">
+                <div class="bar-meta"><span>الباقة المجانية / Free Tier (حد أقصى 200 اتصال متزامن)</span><strong>20% سعة</strong></div>
+                <div class="bar-outer"><div class="bar-inner free" style="width: 20%;"></div></div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-meta"><span>الباقة المدفوعة / Pro Tier (حد أقصى 500 اتصال متزامن)</span><strong>50% سعة</strong></div>
+                <div class="bar-outer"><div class="bar-inner pro" style="width: 50%;"></div></div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-meta"><span>الخادم الخاص الذاتي / Self-Hosted VPS (غير محدود)</span><strong>100% سعة</strong></div>
+                <div class="bar-outer"><div class="bar-inner vps" style="width: 100%;"></div></div>
+              </div>
+            </div>
+
+            <div class="alert-box alert-box-warning" style="max-w: 700px; margin: 0 auto;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              <div class="alert-text-content">
+                <strong>مؤشر الترقية الفوري للمدراء:</strong>
+                <p>يجب الترقية فوراً من الخطة المجانية إلى Pro Tier ($25 شهرياً) عند تجاوز 25 مكتباً نشطاً أو 1,200 معاملة مستندات مضغوطة لتفادي حجب البيانات الفوري.</p>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>Kafeel Platform v1.5.0</span>
+            <span>القسم 3: حدود الأداء والقدرة</span>
+          </div>
+        </div>
+
+        <!-- Slide 5: Short-Term Developer Pitfalls (1 & 2) -->
+        <div class="slide-card">
+          <div class="slide-header">
+            <div class="bilingual-header">
+              <h2>مخاطر المطورين القريبة (1 & 2)</h2>
+              <span class="en-sub">Short-Term Developer Risks: Precision Mismatch & Timezone shifts</span>
+            </div>
+            <span class="badge badge-gold">شريحة 5 / Slide 5</span>
+          </div>
+          <div class="slide-body">
+            <div class="slide-bullet-list">
+              <div class="slide-bullet-item">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                <div class="bullet-text">
+                  <strong>خطر 1: تضارب حسابات الفاصلة العائمة (Float Precision):</strong>
+                  <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">تقريب الكسور في معالج الواجهة الجافا سكربت قد يختلف بفارق مئوي طفيف عن حسابات زناد الحماية المالي `prevent_financial_tampering` في قاعدة البيانات. الفروق التي تتجاوز 5 دينار ستوقف المعاملات بالكامل. الحل: توحيد دوال التدوير الحسابي قبل الإرسال.</p>
+                </div>
+              </div>
+              <div class="slide-bullet-item" style="margin-top: 15px;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                <div class="bullet-text">
+                  <strong>خطر 2: انحراف التوقيت الزمني (Timezone Shifts):</strong>
+                  <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">تخزين تواريخ المتابعات بـ UTC العالمي وعرضها بنطاق ليبيا (GMT+2) يسبب ترحيل التواريخ خلال فترات المساء. الحل: توظيف دالة تصفير الساعات والتهيئة الموحدة `getNormalizedDate()` المعتمدة محلياً.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>Kafeel Platform v1.5.0</span>
+            <span>القسم 4: أخطاء قريبة المدى</span>
+          </div>
+        </div>
+
+        <!-- Slide 6: Short-Term Developer Pitfalls (3 & 4) -->
+        <div class="slide-card">
+          <div class="slide-header">
+            <div class="bilingual-header">
+              <h2>مخاطر المطورين القريبة (3 & 4)</h2>
+              <span class="en-sub">Short-Term Developer Risks: RLS Lag & Edge Function Abuse</span>
+            </div>
+            <span class="badge badge-gold">شريحة 6 / Slide 6</span>
+          </div>
+          <div class="slide-body">
+            <div class="slide-bullet-list">
+              <div class="slide-bullet-item">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                <div class="bullet-text">
+                  <strong>خطر 3: فجوة وذاكرة صلاحيات الأمان الـ RLS:</strong>
+                  <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">عند ترقية حساب المستخدم لا يتحدث رمز الـ JWT تلقائياً في متصفحه. سيواجه المستخدم أخطاء حجب سياسات الأمان الـ RLS وحجب الواجهات وتظهر له البيانات فارغة حتى يسجل خروجه. الحل: تنشيط الجلسة برمجياً `supabase.auth.refreshSession()` فور اكتشاف الترقية.</p>
+                </div>
+              </div>
+              <div class="slide-bullet-item" style="margin-top: 15px;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                <div class="bullet-text">
+                  <strong>خطر 4: ثغرة تخمين أكواد مكاتب السيارات المفتوحة:</strong>
+                  <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">الدالة السحابية `join-with-code` عامة ولا يوجد بها جدار حماية للمحاولات المتكررة (Rate Limiting). يمكن للبوتات تخمين الأكواد وإرهاق سيرفرات التحقق. الحل: إجبار الإدارة على إصدار أكواد انضمام معقدة (`KF-982A-X3`) وتحديد حد محاولات أقصى لكل IP.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>Kafeel Platform v1.5.0</span>
+            <span>القسم 4: أخطاء قريبة المدى - جزء ثانٍ</span>
+          </div>
+        </div>
+
+        <!-- Slide 7: Long-Term Developer Risks (5 & 6) -->
+        <div class="slide-card">
+          <div class="slide-header">
+            <div class="bilingual-header">
+              <h2>المخاطر الهيكلية على المدى البعيد</h2>
+              <span class="en-sub">Long-Term Technical Risks: Data conflicts & CSS Technical Debt</span>
+            </div>
+            <span class="badge badge-gold">شريحة 7 / Slide 7</span>
+          </div>
+          <div class="slide-body">
+            <div class="slide-bullet-list">
+              <div class="slide-bullet-item">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                <div class="bullet-text">
+                  <strong>خطر 5: تعارض تزامنات البيانات عند انقطاع الإنترنت (Offline Data Drift):</strong>
+                  <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">حفظ المعاملات محلياً في `localStorage` بدون خوارزمية ذكية لتسوية التضارب قد يؤدي إلى قيام موظف بمسح إدخالات موظف آخر نشط فور عودة الإنترنت. الحل: بناء نظام فحص الطابع الزمني (Timestamp comparison) وعرض نافذة عائمة لتسوية التعارض يدوياً.</p>
+                </div>
+              </div>
+              <div class="slide-bullet-item" style="margin-top: 15px;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                <div class="bullet-text">
+                  <strong>خطر 6: ديون التصميم وصعوبة صيانة ملفات التنسيق المخصصة:</strong>
+                  <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">تراكم آلاف الأسطر البرمجية من Vanilla CSS التقليدية بدون إطار عمل مهيكل سيسبب تشتت الواجهة واختلاف الألوان وصعوبة التطوير السريع. الحل: تطبيق سياسة عزل التنسيق لكل مكون في ملف خاص (CSS Modules).</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>Kafeel Platform v1.5.0</span>
+            <span>القسم 5: المخاطر البعيدة والديون الفنية</span>
+          </div>
+        </div>
+
+        <!-- Slide 8: State Machine & Stability -->
+        <div class="slide-card">
+          <div class="slide-header">
+            <div class="bilingual-header">
+              <h2>ثبات المنظومة واستقرار آلة الحالات</h2>
+              <span class="en-sub">System Robustness & Transaction State Machine Stability</span>
+            </div>
+            <span class="badge badge-gold">شريحة 8 / Slide 8</span>
+          </div>
+          <div class="slide-body" style="justify-content: center; gap: 24px;">
+            <div class="bilingual-header" style="align-items:center; text-align:center;">
+              <h4>دورة حياة المعاملة المالية وعقبة فك الارتباط التلقائي</h4>
+              <span class="en-sub">Transaction Pipeline: PENDING ➔ VERIFIED ➔ MATCHED ➔ ACTIVE ➔ COMPLETED</span>
+            </div>
+            <p style="font-size:0.9rem; color:var(--text-muted); max-w:800px; text-align:center; line-height: 1.6; margin: 0 auto;">
+              إذا تراجع الضامن أو رُفض العميل في حالة "تم الربط MATCHED"؛ تتجمد حصص الرواتب ولا يتم إعادتها لقائمة الانتظار تلقائياً.
+              نوصي بـ <strong>تفعيل زناد زمني تلقائي (Postgres Cron Job)</strong> يقوم بفك تجميد المعاملة بعد مرور 72 ساعة دون إمضاء العقد، مما يتيح الرواتب والضامنين لعمليات ربط أخرى مباشرة.
+            </p>
+            <div class="alert-box alert-box-tip" style="max-w: 600px; margin: 0 auto;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" /></svg>
+              <div class="alert-text-content">
+                <strong>التحصين ضد تسريب الأخطاء الأمنية:</strong>
+                <p>تستخدم كفيل واقي صدمات فاخر `SecurityErrorBoundary` يخفي أي أعطال برمجية عن شاشات المستخدم لمنع استغلال الثغرات، ويسجلها في جدول `system_runtime_errors` آلياً.</p>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>Kafeel Platform v1.5.0</span>
+            <span>القسم 6: ثبات المنظومة</span>
+          </div>
+        </div>
+
+        <!-- Slide 9: Developer Mitigations Checklist -->
+        <div class="slide-card">
+          <div class="slide-header">
+            <div class="bilingual-header">
+              <h2>التوصيات الفنية العاجلة للمطورين</h2>
+              <span class="en-sub">Immediate Actionable Code Hardening for Developers</span>
+            </div>
+            <span class="badge badge-gold">شريحة 9 / Slide 9</span>
+          </div>
+          <div class="slide-body">
+            <div class="slide-bullet-list">
+              <div class="slide-bullet-item">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" /></svg>
+                <span class="bullet-text"><strong>تقريب الكسور العشرية:</strong> فرض تدوير مالي متناسق `Math.round(val*100)/100` في كود الواجهة والتحقق الفوري.</span>
+              </div>
+              <div class="slide-bullet-item">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" /></svg>
+                <span class="bullet-text"><strong>تأمين قنوات التسجيل:</strong> وضع حد أقصى للاتصالات (Rate Limiting) على الدالة السحابية العامة `join-with-code` لقطع التخمين.</span>
+              </div>
+              <div class="slide-bullet-item">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" /></svg>
+                <span class="bullet-text"><strong>تجديد رمز الـ JWT تلقائياً:</strong> إضافة مراقب فوري في `AuthContext.tsx` يجبر الجلسة على التحديث فور ترقية رتبة المستخدم.</span>
+              </div>
+              <div class="slide-bullet-item">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" /></svg>
+                <span class="bullet-text"><strong>حل تعارض البيانات:</strong> بناء خوارزمية فحص الطوابع الزمنية وعرض نافذة التنسيق للبيانات غير المتزامنة.</span>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>Kafeel Platform v1.5.0</span>
+            <span>القسم 7: مهام فريق التطوير</span>
+          </div>
+        </div>
+
+        <!-- Slide 10: Operational Recommendations for Management -->
+        <div class="slide-card">
+          <div class="slide-header">
+            <div class="bilingual-header">
+              <h2>التوصيات التشغيلية والمالية للإدارة</h2>
+              <span class="en-sub">Strategic Budget Allocation & Security Protocols for Managers</span>
+            </div>
+            <span class="badge badge-gold">شريحة 10 / Slide 10</span>
+          </div>
+          <div class="slide-body">
+            <div class="slide-bullet-list">
+              <div class="slide-bullet-item">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" /></svg>
+                <span class="bullet-text"><strong>تخصيص ميزانية الإطلاق الأولى:</strong> تفعيل باقة Supabase Pro ($25 شهرياً) ونشر الواجهة على Vercel لضمان سرعة الاستجابة وأمان النسخ الاحتياطي التلقائي بميزانية منخفضة لا تتجاوز 45$ شهرياً.</span>
+              </div>
+              <div class="slide-bullet-item">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" /></svg>
+                <span class="bullet-text"><strong>تأمين أكواد الانضمام:</strong> تعقيد الأكواد وإقفال الحسابات أو إبطال ميزة الانضمام الفوري فور تأكيد طاقم موظفي المعارض المطلوبين.</span>
+              </div>
+              <div class="slide-bullet-item">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" /></svg>
+                <span class="bullet-text"><strong>التدقيق الأمني الدوري:</strong> تكليف المسؤول الفني بمراجعة شاشة "الأمن والتحصين" في المنظومة مرة كل 30 يوماً لقراءة سجلات الأعطال والتأكد من تماسك المنظومة.</span>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>Kafeel Platform v1.5.0</span>
+            <span>القسم 7: التوصيات الإدارية</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Slide Navigation Controls -->
+      <div class="slide-nav-controls">
+        <button class="slide-ctrl-btn" onclick="prevSlide()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+        </button>
+        <div class="slide-progress-dots" id="slide-dots">
+          <!-- Dots dynamically generated -->
+        </div>
+        <button class="slide-ctrl-btn" onclick="nextSlide()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+        </button>
+      </div>
+
+      <!-- Toggle Fullscreen Button -->
+      <button class="fullscreen-btn" onclick="toggleFullScreen()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
+        ملء الشاشة / Fullscreen
+      </button>
+
+    </section>
+
+  </main>
+
+  <script>
+    /* View Switcher Script */
+    function switchView(view) {
+      const reportView = document.getElementById('report-view');
+      const slidesView = document.getElementById('slides-view');
+      const btnReport = document.getElementById('btn-report');
+      const btnSlides = document.getElementById('btn-slides');
+
+      if (view === 'report') {
+        reportView.style.display = 'flex';
+        slidesView.style.display = 'none';
+        btnReport.classList.add('active');
+        btnSlides.classList.remove('active');
+        document.body.style.overflowY = 'auto';
+      } else {
+        reportView.style.display = 'none';
+        slidesView.style.display = 'flex';
+        btnReport.classList.remove('active');
+        btnSlides.classList.add('active');
+        document.body.style.overflowY = 'hidden';
+        initSlides();
+        animateChartsInActiveSlide();
+      }
+    }
+
+    /* Report Category Filter Script */
+    function filterReport(category, el) {
+      // Toggle Capsule active state
+      document.querySelectorAll('.filter-cap').forEach(cap => cap.classList.remove('active'));
+      el.classList.add('active');
+
+      // Filter Cards
+      document.querySelectorAll('.report-card').forEach(card => {
+        if (category === 'all' || card.getAttribute('data-category') === category) {
+          card.style.display = 'flex';
+          setTimeout(() => card.style.opacity = '1', 50);
+        } else {
+          card.style.opacity = '0';
+          setTimeout(() => card.style.display = 'none', 200);
+        }
+      });
+    }
+
+    /* Report Accordion Accordion Toggle Script */
+    function toggleCode(header) {
+      const content = header.nextElementSibling;
+      const svg = header.querySelector('svg');
+      if (content.style.maxHeight && content.style.maxHeight !== '0px') {
+        content.style.maxHeight = '0px';
+        svg.style.transform = 'rotate(0deg)';
+      } else {
+        content.style.maxHeight = content.scrollHeight + 'px';
+        svg.style.transform = 'rotate(180deg)';
+      }
+    }
+
+    /* Interactive Presentation Slides Deck Script */
+    let currentSlideIndex = 0;
+    let slides = [];
+    let dotsContainer = document.getElementById('slide-dots');
+
+    function initSlides() {
+      slides = Array.from(document.querySelectorAll('.slide-card'));
+      dotsContainer.innerHTML = '';
+      
+      slides.forEach((slide, idx) => {
+        const dot = document.createElement('div');
+        dot.className = 'slide-dot' + (idx === 0 ? ' active' : '');
+        dot.onclick = () => showSlide(idx);
+        dotsContainer.appendChild(dot);
+      });
+      currentSlideIndex = 0;
+      showSlide(0);
+    }
+
+    function showSlide(index) {
+      if (index < 0 || index >= slides.length) return;
+      
+      // Update Slide State
+      slides.forEach((slide, idx) => {
+        slide.classList.remove('active');
+        if (idx === index) {
+          slide.classList.add('active');
+        }
+      });
+
+      // Update Dots
+      const dots = Array.from(document.querySelectorAll('.slide-dot'));
+      dots.forEach((dot, idx) => {
+        dot.classList.remove('active');
+        if (idx === index) {
+          dot.classList.add('active');
+        }
+      });
+
+      currentSlideIndex = index;
+    }
+
+    function nextSlide() {
+      if (currentSlideIndex < slides.length - 1) {
+        showSlide(currentSlideIndex + 1);
+      } else {
+        // Wrap around to beginning
+        showSlide(0);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlideIndex > 0) {
+        showSlide(currentSlideIndex - 1);
+      } else {
+        // Wrap around to end
+        showSlide(slides.length - 1);
+      }
+    }
+
+    /* Keyboard Navigation for Slides */
+    document.addEventListener('keydown', (e) => {
+      const slidesView = document.getElementById('slides-view');
+      if (slidesView.style.display === 'flex') {
+        if (e.key === 'ArrowRight') {
+          prevSlide(); // RTL navigation
+        } else if (e.key === 'ArrowLeft') {
+          nextSlide();
+        } else if (e.key === 'Escape') {
+          switchView('report');
+        }
+      }
+    });
+
+    /* Touch Swipe Navigation for Mobile Screens */
+    let touchStartX = 0;
+    let touchEndX = 0;
+    const slideDeck = document.getElementById('slide-deck');
+
+    slideDeck.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, false);
+
+    slideDeck.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipe();
+    }, false);
+
+    function handleSwipe() {
+      if (touchEndX < touchStartX - 50) {
+        nextSlide(); // Swipe Left
+      }
+      if (touchEndX > touchStartX + 50) {
+        prevSlide(); // Swipe Right
+      }
+    }
+
+    /* Dynamic Chart Load Animation */
+    window.addEventListener('load', () => {
+      animateCharts();
+    });
+
+    function animateCharts() {
+      setTimeout(() => {
+        document.querySelectorAll('.bar-inner.free').forEach(bar => bar.style.width = '20%');
+        document.querySelectorAll('.bar-inner.pro').forEach(bar => bar.style.width = '50%');
+        document.querySelectorAll('.bar-inner.vps').forEach(bar => bar.style.width = '100%');
+      }, 500);
+    }
+
+    function animateChartsInActiveSlide() {
+      // Reset width, then animate
+      document.querySelectorAll('.bar-inner').forEach(bar => bar.style.width = '0%');
+      animateCharts();
+    }
+
+    /* Slide Fullscreen toggle helper */
+    function toggleFullScreen() {
+      const slidesView = document.getElementById('slides-view');
+      if (!document.fullscreenElement) {
+        slidesView.requestFullscreen().catch(err => {
+          alert(`Error attempting to enable fullscreen mode: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    }
+  </script>
+</body>
+</html>
