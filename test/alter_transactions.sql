@@ -1,11 +1,16 @@
--- Add rejection_reason to transactions_raw and recreate transactions security barrier view + trigger function
-
 -- 1. Add column to transactions_raw if not exists
-ALTER TABLE public.transactions_raw ADD COLUMN IF NOT EXISTS rejection_reason TEXT;
-COMMENT ON COLUMN public.transactions_raw.rejection_reason IS 'Reason for document rejection by manager/accountant';
+ALTER TABLE public.transactions_raw 
+ADD COLUMN IF NOT EXISTS market_sale_price NUMERIC DEFAULT 0;
 
--- 2. Update the transactions view with security barrier
-CREATE OR REPLACE VIEW public.transactions WITH (security_barrier) AS
+-- 2. Save existing RLS policies on transaction_guarantors that depend on the view
+-- We'll drop them, recreate the view, then recreate them
+
+-- 3. Drop the view CASCADE (will drop dependent policies)
+DROP TRIGGER IF EXISTS transactions_view_trigger ON public.transactions;
+DROP VIEW IF EXISTS public.transactions CASCADE;
+
+-- 4. Recreate the transactions view with market_sale_price
+CREATE VIEW public.transactions WITH (security_barrier) AS
 SELECT
     id,
     office_id,
@@ -27,10 +32,11 @@ SELECT
     guarantors_needed,
     verification_status,
     created_at,
-    rejection_reason
+    rejection_reason,
+    market_sale_price
 FROM public.transactions_raw;
 
--- 3. Update the trigger function to support rejection_reason
+-- 5. Update the trigger function to support market_sale_price
 CREATE OR REPLACE FUNCTION public.transactions_view_trigger_func()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -38,7 +44,6 @@ SECURITY DEFINER
 AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        -- Explicitly assign default values to NEW to ensure complete view representation
         NEW.id := COALESCE(NEW.id, gen_random_uuid());
         NEW.car_price := COALESCE(NEW.car_price, 0);
         NEW.bank_ceiling := COALESCE(NEW.bank_ceiling, 0);
@@ -52,7 +57,7 @@ BEGIN
         NEW.created_at := COALESCE(NEW.created_at, now());
 
         INSERT INTO public.transactions_raw (
-            id, office_id, customer_id, workplace_id, car_price, bank_ceiling, margin_rate, down_payment, total_installments, office_loan, car_model, purchase_cost, is_files_complete, status, guarantors_needed, verification_status, created_at, rejection_reason
+            id, office_id, customer_id, workplace_id, car_price, bank_ceiling, margin_rate, down_payment, total_installments, office_loan, car_model, purchase_cost, is_files_complete, status, guarantors_needed, verification_status, created_at, rejection_reason, market_sale_price
         ) VALUES (
             NEW.id,
             NEW.office_id,
@@ -71,10 +76,10 @@ BEGIN
             NEW.guarantors_needed,
             NEW.verification_status,
             NEW.created_at,
-            NEW.rejection_reason
+            NEW.rejection_reason,
+            COALESCE(NEW.market_sale_price, 0)
         );
         
-        -- Make sure we dynamically evaluate purchase_cost visibility for return
         IF (auth.jwt() -> 'app_metadata' ->> 'role') NOT IN ('admin', 'manager', 'accountant') THEN
             NEW.purchase_cost := NULL;
         END IF;
@@ -94,17 +99,17 @@ BEGIN
             car_model = NEW.car_model,
             purchase_cost = CASE
                 WHEN (auth.jwt() -> 'app_metadata' ->> 'role') IN ('admin', 'manager', 'accountant') THEN NEW.purchase_cost
-                ELSE transactions_raw.purchase_cost -- Keep old value for staff
+                ELSE transactions_raw.purchase_cost
             END,
             is_files_complete = COALESCE(NEW.is_files_complete, false),
             status = COALESCE(NEW.status, 'PENDING'),
             guarantors_needed = COALESCE(NEW.guarantors_needed, 1),
             verification_status = COALESCE(NEW.verification_status, 'pending'),
             created_at = NEW.created_at,
-            rejection_reason = NEW.rejection_reason
+            rejection_reason = NEW.rejection_reason,
+            market_sale_price = COALESCE(NEW.market_sale_price, 0)
         WHERE id = OLD.id;
         
-        -- Mask return value if needed
         IF (auth.jwt() -> 'app_metadata' ->> 'role') NOT IN ('admin', 'manager', 'accountant') THEN
             NEW.purchase_cost := NULL;
         END IF;
@@ -117,3 +122,42 @@ BEGIN
     RETURN NULL;
 END;
 $$;
+
+-- 6. Recreate the INSTEAD OF trigger on the new view
+CREATE TRIGGER transactions_view_trigger
+INSTEAD OF INSERT OR UPDATE OR DELETE ON public.transactions
+FOR EACH ROW EXECUTE FUNCTION public.transactions_view_trigger_func();
+
+-- 7. Re-apply RLS policies on transaction_guarantors that referenced the transactions view
+DROP POLICY IF EXISTS "Offices can SELECT own guarantors" ON public.transaction_guarantors;
+CREATE POLICY "Offices can SELECT own guarantors" ON public.transaction_guarantors
+    FOR SELECT USING (
+        transaction_id IN (SELECT id FROM public.transactions WHERE office_id = (
+            SELECT office_id FROM public.user_profiles WHERE id = auth.uid()
+        ))
+    );
+
+DROP POLICY IF EXISTS "Offices can INSERT own guarantors" ON public.transaction_guarantors;
+CREATE POLICY "Offices can INSERT own guarantors" ON public.transaction_guarantors
+    FOR INSERT WITH CHECK (
+        transaction_id IN (SELECT id FROM public.transactions WHERE office_id = (
+            SELECT office_id FROM public.user_profiles WHERE id = auth.uid()
+        ))
+    );
+
+DROP POLICY IF EXISTS "Offices can UPDATE own guarantors" ON public.transaction_guarantors;
+CREATE POLICY "Offices can UPDATE own guarantors" ON public.transaction_guarantors
+    FOR UPDATE USING (
+        transaction_id IN (SELECT id FROM public.transactions WHERE office_id = (
+            SELECT office_id FROM public.user_profiles WHERE id = auth.uid()
+        ))
+    );
+
+DROP POLICY IF EXISTS "Only managers can DELETE own guarantors" ON public.transaction_guarantors;
+CREATE POLICY "Only managers can DELETE own guarantors" ON public.transaction_guarantors
+    FOR DELETE USING (
+        transaction_id IN (SELECT id FROM public.transactions WHERE office_id = (
+            SELECT office_id FROM public.user_profiles WHERE id = auth.uid()
+        ))
+        AND (auth.jwt() -> 'app_metadata' ->> 'role') IN ('admin', 'manager')
+    );

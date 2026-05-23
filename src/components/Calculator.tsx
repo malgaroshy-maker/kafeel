@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import { Calculator as CalcIcon, TrendingUp, Banknote, CreditCard, User, ShieldCheck, Save } from 'lucide-react'
+import { Calculator as CalcIcon, TrendingUp, Banknote, CreditCard, User, ShieldCheck, Save, Store } from 'lucide-react'
 import { calculateMurabaha, TERM_MONTHS } from '../lib/financialEngine'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
@@ -13,6 +13,7 @@ interface CalcState {
   marginRate: '0.16' | '0.24'
   deductionRate: '0.35' | '0.50'
   hasNotaryPledge: boolean
+  marketSalePrice: string
 }
 
 const defaultState: CalcState = {
@@ -23,6 +24,7 @@ const defaultState: CalcState = {
   marginRate: '0.16',
   deductionRate: '0.50',
   hasNotaryPledge: true,
+  marketSalePrice: '',
 }
 
 const CAR_PRESETS = [
@@ -120,7 +122,8 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, showSa
         total_installments: TERM_MONTHS,
         workplace_id: beneficiaryData?.workplace_id || null,
         guarantors_needed: guarantorsNeeded,
-        purchase_cost: !isStaff && n(form.purchaseCost) > 0 ? n(form.purchaseCost) : null
+        purchase_cost: !isStaff && n(form.purchaseCost) > 0 ? n(form.purchaseCost) : null,
+        market_sale_price: !isStaff && n(form.marketSalePrice) > 0 ? n(form.marketSalePrice) : 0
       }
 
       let txId = ''
@@ -304,18 +307,34 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, showSa
           </div>
 
           {!isStaff && (
-            <div className="input-group">
-              <label htmlFor="purchaseCost">سعر شراء السيارة بالكاش التقريبي وقت المعاملة</label>
-              <input
-                id="purchaseCost"
-                type="number"
-                inputMode="decimal"
-                placeholder="مثال: 90,000 (اختياري)"
-                value={form.purchaseCost}
-                onChange={(e) => update('purchaseCost', e.target.value)}
-                tabIndex={5}
-              />
-            </div>
+            <>
+              <div className="input-group">
+                <label htmlFor="purchaseCost">سعر شراء السيارة بالكاش التقريبي وقت المعاملة</label>
+                <input
+                  id="purchaseCost"
+                  type="number"
+                  inputMode="decimal"
+                  placeholder="مثال: 90,000 (اختياري)"
+                  value={form.purchaseCost}
+                  onChange={(e) => update('purchaseCost', e.target.value)}
+                  onFocus={(e) => e.target.select()}
+                  tabIndex={5}
+                />
+              </div>
+              <div className="input-group">
+                <label htmlFor="marketSalePrice">سعر بيع السيارة — سعر السوق (د.ل)</label>
+                <input
+                  id="marketSalePrice"
+                  type="number"
+                  inputMode="decimal"
+                  placeholder="مثال: 105,000 (اختياري)"
+                  value={form.marketSalePrice}
+                  onChange={(e) => update('marketSalePrice', e.target.value)}
+                  onFocus={(e) => e.target.select()}
+                  tabIndex={6}
+                />
+              </div>
+            </>
           )}
 
           <div className="input-group checkbox-group">
@@ -448,8 +467,31 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, showSa
               {!isStaff && n(form.purchaseCost) > 0 && n(form.carPrice) >= n(form.purchaseCost) && (
                 <div className="result-card" style={{ gridColumn: '1 / -1', border: '1px solid var(--success-color)', background: 'rgba(16, 185, 129, 0.05)' }}>
                   <div className="result-info full">
-                    <span className="result-label" style={{ color: 'var(--success-color)' }}>الربح المبدئي للمكتب (الفرق)</span>
+                    <span className="result-label" style={{ color: 'var(--success-color)' }}>الربح المبدئي للمكتب (سعر البيع للمصرف − سعر الشراء بالكاش)</span>
                     <span className="result-value" style={{ color: 'var(--success-color)' }}>{fmt(n(form.carPrice) - n(form.purchaseCost))} د.ل</span>
+                  </div>
+                </div>
+              )}
+
+              {!isStaff && n(form.marketSalePrice) > 0 && n(form.purchaseCost) > 0 && (
+                <div className="result-card" style={{
+                  gridColumn: '1 / -1',
+                  border: (n(form.marketSalePrice) - n(form.purchaseCost)) >= 0 ? '2px solid #10b981' : '2px solid #ef4444',
+                  background: (n(form.marketSalePrice) - n(form.purchaseCost)) >= 0 ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)',
+                  borderRadius: '12px',
+                  padding: '1rem'
+                }}>
+                  <div className="result-icon" style={{ background: (n(form.marketSalePrice) - n(form.purchaseCost)) >= 0 ? '#10b981' : '#ef4444' }}>
+                    <Store size={20} />
+                  </div>
+                  <div className="result-info">
+                    <span className="result-label" style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>صافي ربح المكتب (سعر السوق − سعر الشراء بالكاش)</span>
+                    <span className="result-value big" style={{
+                      color: (n(form.marketSalePrice) - n(form.purchaseCost)) >= 0 ? '#10b981' : '#ef4444',
+                      fontSize: '1.5rem'
+                    }}>
+                      {fmt(n(form.marketSalePrice) - n(form.purchaseCost))} د.ل
+                    </span>
                   </div>
                 </div>
               )}

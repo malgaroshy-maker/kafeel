@@ -33,21 +33,38 @@ interface TransactionLedgerItem {
   status: string;
 }
 
+interface DebtorItem {
+  id: string;
+  customerName: string;
+  workplaceName: string;
+  bankBranchName: string;
+  officeLoan: number;
+  debtAmount: number;
+  status: string;
+  date: string;
+}
+
 // Months in Arabic
 const ARABIC_MONTHS = [
   'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
   'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
 ];
 
-export default function ReportsDashboard() {
+interface ReportsDashboardProps {
+  onTabChange?: (tab: 'dashboard' | 'calculator' | 'customers' | 'potential-customers' | 'beneficiary' | 'documents' | 'queue' | 'settlements' | 'reports' | 'settings' | 'staff-stats' | 'financial-request') => void;
+}
+
+export default function ReportsDashboard({ onTabChange }: ReportsDashboardProps) {
   const { officeId, isAccountant, planType } = useAuth();
   const [reports, setReports] = useState<MonthlyReport[]>([]);
   const [settlementStats, setSettlementStats] = useState<SettlementReport[]>([]);
   const [ledger, setLedger] = useState<TransactionLedgerItem[]>([]);
-  const [activeTab, setActiveTab] = useState<'summary' | 'audit' | 'ledger'>('summary');
+  const [activeTab, setActiveTab] = useState<'summary' | 'audit' | 'ledger' | 'debts'>('summary');
+  const [debtors, setDebtors] = useState<DebtorItem[]>([]);
   
   // Ledger Search filter
   const [searchQuery, setSearchQuery] = useState('');
+  const [debtsSearchQuery, setDebtsSearchQuery] = useState('');
   
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
   const [loading, setLoading] = useState(true);
@@ -56,10 +73,24 @@ export default function ReportsDashboard() {
     if (!officeId) return;
     setLoading(true);
     try {
-      // 1. Fetch all transactions for this office
+      // 1. Fetch all transactions for this office with custom fields
       const { data: txs, error: txError } = await supabase
         .from('transactions')
-        .select('id, car_price, purchase_cost, created_at, status')
+        .select(`
+          id, 
+          car_price, 
+          purchase_cost, 
+          created_at, 
+          status,
+          office_loan,
+          customers (
+            id,
+            name,
+            workplace:workplace_id (name),
+            branch:branch_id (name),
+            bank:bank_id (name)
+          )
+        `)
         .eq('office_id', officeId);
       
       if (txError) throw txError;
@@ -123,7 +154,7 @@ export default function ReportsDashboard() {
       };
 
       sets?.forEach(s => {
-        const t = s.type;
+        const t = s.settlement_type || s.type;
         if (settlementGroups[t]) {
           settlementGroups[t].count += 1;
           settlementGroups[t].totalCarPrice += s.car_price || 0;
@@ -135,6 +166,36 @@ export default function ReportsDashboard() {
       });
 
       setSettlementStats(Object.values(settlementGroups));
+
+      // Map settlements by transaction_id to construct debtors list
+      const settlementsMap: Record<string, any> = {};
+      sets?.forEach(s => {
+        settlementsMap[s.transaction_id] = s;
+      });
+
+      const debtorsList: DebtorItem[] = [];
+      txs?.forEach(t => {
+        const s = settlementsMap[t.id];
+        const officeLoan = Number(t.office_loan) || 0;
+        const debtAmount = Number(s?.debt_amount) || 0;
+        
+        // If there's an active loan or outstanding debt
+        if (officeLoan > 0 || debtAmount > 0) {
+          const cust = (t as any).customers;
+          debtorsList.push({
+            id: t.id,
+            customerName: cust?.name || 'زبون غير معروف',
+            workplaceName: cust?.workplace?.name || 'غير محدد',
+            bankBranchName: cust?.branch?.name || cust?.bank?.name || 'غير محدد',
+            officeLoan,
+            debtAmount,
+            status: s?.status || t.status,
+            date: new Date(s?.created_at || t.created_at).toLocaleDateString('ar-LY')
+          });
+        }
+      });
+
+      setDebtors(debtorsList);
 
     } catch (err) {
       console.error('Error loading reports:', err);
@@ -162,6 +223,29 @@ export default function ReportsDashboard() {
   const totalInvestedCapital = ledger.reduce((acc, curr) => acc + curr.purchaseCost, 0);
   const totalReceivables = settlementStats.reduce((acc, curr) => acc + curr.totalDebt, 0);
   const averageProfitMargin = currentReport.totalSales > 0 ? (currentReport.netProfit / currentReport.totalSales) * 100 : 0;
+
+  // Debts and Loans Calculations
+  const totalDebtsVal = debtors.reduce((acc, curr) => acc + curr.debtAmount, 0);
+  const totalLoansVal = debtors.reduce((acc, curr) => acc + curr.officeLoan, 0);
+  const activeDebtorsCount = debtors.length;
+
+  const handleQuickSettle = (txId: string) => {
+    localStorage.setItem('quick_settle_tx_id', txId);
+    if (onTabChange) {
+      onTabChange('settlements');
+    }
+  };
+
+  const filteredDebtors = debtors.filter(item => {
+    const term = debtsSearchQuery.toLowerCase();
+    return (
+      item.customerName.toLowerCase().includes(term) ||
+      item.workplaceName.toLowerCase().includes(term) ||
+      item.bankBranchName.toLowerCase().includes(term) ||
+      item.id.toLowerCase().includes(term) ||
+      item.date.includes(term)
+    );
+  });
 
   // Filter Ledger Items
   const filteredLedger = ledger.filter(item => {
@@ -230,6 +314,15 @@ export default function ReportsDashboard() {
         >
           <PieChart size={16} />
           تحليل تسويات السيارات
+        </button>
+
+        <button
+          onClick={() => setActiveTab('debts')}
+          className={`btn ${activeTab === 'debts' ? 'btn-primary' : 'btn-ghost'}`}
+          style={{ padding: '0.6rem 1.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}
+        >
+          <Landmark size={16} />
+          تقرير المديونية والذمم
         </button>
 
         <button
@@ -509,6 +602,136 @@ export default function ReportsDashboard() {
           )}
         </div>
       )}
+      {/* Indebtedness Tab Content */}
+      {activeTab === 'debts' && (
+        <div className="fade-in">
+          {planType === 'BASIC' ? (
+            <PremiumLockBanner 
+              title="تقرير المديونية والذمم المالية للمكتب" 
+              description="هذا القسم مخصص للرقابة المتقدمة وتتبع ديون المعارض وسلف المكتب النشطة للزبائن ومراجعة تفاصيل مستحقات التمويل والكمبيالات. يرجى ترقية اشتراك المكتب لتفعيل هذه المزايا."
+              plans={['الاشتراك الممتاز (PREMIUM)', 'الاشتراك غير المحدود (UNLIMITED)']}
+            />
+          ) : (
+            <>
+              {/* Stats Grid */}
+              <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                
+                <div className="stat-card glass" style={{ padding: '1.5rem', borderRadius: '12px', borderLeft: '4px solid #eab308' }}>
+                  <div className="stat-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', color: 'var(--text-tertiary)' }}>
+                    <span className="stat-title" style={{ fontSize: '0.9rem' }}>إجمالي المديونيات المعلقة</span>
+                    <TrendingUp size={18} style={{ color: '#eab308' }} />
+                  </div>
+                  <div className="stat-value" style={{ fontSize: '2rem', fontWeight: 800, color: '#eab308' }}>{formatCurrency(totalDebtsVal)}</div>
+                </div>
+
+                <div className="stat-card glass" style={{ padding: '1.5rem', borderRadius: '12px', borderLeft: '4px solid #3b82f6' }}>
+                  <div className="stat-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', color: 'var(--text-tertiary)' }}>
+                    <span className="stat-title" style={{ fontSize: '0.9rem' }}>إجمالي سلف وقروض المعرض</span>
+                    <Landmark size={18} style={{ color: '#3b82f6' }} />
+                  </div>
+                  <div className="stat-value" style={{ fontSize: '2rem', fontWeight: 800, color: '#3b82f6' }}>{formatCurrency(totalLoansVal)}</div>
+                </div>
+
+                <div className="stat-card glass" style={{ padding: '1.5rem', borderRadius: '12px', borderLeft: '4px solid var(--text-secondary)' }}>
+                  <div className="stat-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', color: 'var(--text-tertiary)' }}>
+                    <span className="stat-title" style={{ fontSize: '0.9rem' }}>حسابات المدينين النشطة</span>
+                    <Users size={18} style={{ color: 'var(--text-secondary)' }} />
+                  </div>
+                  <div className="stat-value" style={{ fontSize: '2rem', fontWeight: 800 }}>{activeDebtorsCount}</div>
+                </div>
+
+              </div>
+
+              {/* Controls Block */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+                
+                {/* Search filter */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--surface-hover)', padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid var(--glass-border)', width: '320px' }}>
+                  <Search size={18} style={{ color: 'var(--text-tertiary)' }} />
+                  <input
+                    type="text"
+                    placeholder="ابحث باسم الزبون، جهة العمل، أو المصرف..."
+                    value={debtsSearchQuery}
+                    onChange={(e) => setDebtsSearchQuery(e.target.value)}
+                    style={{ border: 'none', background: 'transparent', outline: 'none', color: 'var(--text-primary)', width: '100%', fontSize: '0.85rem' }}
+                  />
+                </div>
+
+                {/* Print Debtors Action */}
+                <button 
+                  className="btn btn-ghost" 
+                  onClick={handlePrint}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.25rem', borderRadius: '8px', border: '1px solid var(--glass-border)' }}
+                >
+                  <Printer size={16} />
+                  طباعة كشف مديونية الذمم
+                </button>
+
+              </div>
+
+              {/* Debtors Table */}
+              <div className="glass" style={{ padding: '1rem', borderRadius: '16px', overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: '0.9rem' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid var(--glass-border)', color: 'var(--text-secondary)' }}>
+                      <th style={{ padding: '1rem 0.5rem' }}>اسم الزبون</th>
+                      <th style={{ padding: '1rem 0.5rem' }}>جهة العمل</th>
+                      <th style={{ padding: '1rem 0.5rem' }}>المصرف / الفرع المعتمد</th>
+                      <th style={{ padding: '1rem 0.5rem' }}>قرض وسلفة المعرض</th>
+                      <th style={{ padding: '1rem 0.5rem' }}>المديونية المتبقية</th>
+                      <th style={{ padding: '1rem 0.5rem' }}>تاريخ الحركة</th>
+                      <th style={{ padding: '1rem 0.5rem', textAlign: 'left' }}>الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredDebtors.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>
+                          لا توجد أي حسابات مديونية أو ذمم معلقة تطابق بحثك.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredDebtors.map((item) => (
+                        <tr key={item.id} style={{ borderBottom: '1px solid var(--glass-border)', transition: 'background 0.2s' }} className="table-row-hover">
+                          <td style={{ padding: '1rem 0.5rem', fontWeight: 'bold' }}>{item.customerName}</td>
+                          <td style={{ padding: '1rem 0.5rem' }}>{item.workplaceName}</td>
+                          <td style={{ padding: '1rem 0.5rem' }}>{item.bankBranchName}</td>
+                          <td style={{ padding: '1rem 0.5rem', color: item.officeLoan > 0 ? '#3b82f6' : 'var(--text-tertiary)', fontWeight: item.officeLoan > 0 ? 'bold' : 'normal' }}>
+                            {item.officeLoan > 0 ? formatCurrency(item.officeLoan) : '—'}
+                          </td>
+                          <td style={{ padding: '1rem 0.5rem', color: item.debtAmount > 0 ? '#eab308' : 'var(--text-tertiary)', fontWeight: item.debtAmount > 0 ? 'bold' : 'normal' }}>
+                            {item.debtAmount > 0 ? formatCurrency(item.debtAmount) : '—'}
+                          </td>
+                          <td style={{ padding: '1rem 0.5rem', fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>{item.date}</td>
+                          <td style={{ padding: '1rem 0.5rem', textAlign: 'left' }}>
+                            <button
+                              onClick={() => handleQuickSettle(item.id)}
+                              className="btn btn-primary"
+                              style={{ 
+                                padding: '0.4rem 0.8rem', 
+                                fontSize: '0.78rem', 
+                                background: 'linear-gradient(135deg, #bf953f, #d4af37)',
+                                color: '#000',
+                                border: 'none',
+                                fontWeight: 'bold',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                              }}
+                            >
+                              تسوية سريعة 💸
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Styled Printable Styles override to clean output for accountant printing */}
       <style>{`
@@ -516,17 +739,17 @@ export default function ReportsDashboard() {
           body * {
             visibility: hidden;
           }
-          .printable-ledger, .printable-ledger * {
+          .reports-container, .reports-container * {
             visibility: visible;
           }
-          .printable-ledger {
+          .reports-container {
             position: absolute;
             left: 0;
             top: 0;
             width: 100%;
             direction: rtl;
           }
-          .btn, input {
+          .btn, input, select, .tab-nav, nav, header {
             display: none !important;
           }
         }

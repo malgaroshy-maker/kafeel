@@ -457,7 +457,7 @@ const OfficeLayout: React.FC = () => {
           {activeTab === 'documents' && <DocumentUploader customerId={docCustomerId} transactionId={activeTransactionId} />}
           {activeTab === 'queue' && <WaitingQueue />}
           {activeTab === 'settlements' && <Settlements />}
-          {activeTab === 'reports' && <ReportsDashboard />}
+          {activeTab === 'reports' && <ReportsDashboard onTabChange={setActiveTab} />}
           {activeTab === 'dashboard' && <StaffDashboard onTabChange={setActiveTab} />}
           {activeTab === 'staff-stats' && <StaffStats />}
           {activeTab === 'settings' && <OfficeSettings />}

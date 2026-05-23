@@ -215,5 +215,25 @@
 - [x] **LocalStorage Fallback Namespacing**: Extended `localStorage` fallback mode to segment potential customer data by `officeId` for proper multi-office isolation when the Supabase table is unavailable.
 - [x] **Git Commit**: All changes committed to branch `shams` with message: `feat: crm leads calendar, callback dates & color-coding alert system`.
 
+## Phase 28: Deleted & Rejected Leads Audit Log (Completed) ✅
+- [x] **Database & Log Integration**: Add a dedicated audit tab in the Admin/Manager dashboard displaying soft-deleted potential leads from `potential_customer_logs` and rejected applications from `transactions` (incorporating `rejection_reason`).
+- [x] **Role Isolation**: Secure audit screens to ensure only roles `manager` and `admin` can inspect deleted/rejected data assets.
+
+## Phase 29: Indebtedness & Debts Tracking Report (Completed) ✅
+- [x] **Reports Dashboard Expansion**: Integrate a new "تقرير المديونية والذمم" tab inside `ReportsDashboard.tsx`.
+- [x] **Debt Metrics & Debtor Grid**: Aggregate total unpaid customer balances (`debt_amount` from settlements) and office credit loans (`office_loan` from transactions), with quick-settle shortcuts.
+- [x] **Showcase Screenshot**: Saved inside `public/showcase/15_indebtedness_report.png` showing the completed indebtedness panel.
+
+## Phase 30: Advanced Accounting Settlement Board (Completed) ✅
+- [x] **Form Extensions**: Update `Settlements.tsx` to include dedicated inputs for shipping transport costs, individual staff commissions, and structured details of promissory notes.
+- [x] **DB Migration Draft**: Supply custom schema upgrades adding the required columns to `public.settlements` (DDL pushed natively to cloud Supabase instance).
+- [x] **Elegant Clear-On-Focus UX**: Implemented `onFocus={(e) => e.target.select()}` for all number/text inputs in `Settlements.tsx` to automatically select and overwrite existing default data upon focus, solving the clear-before-typing requirement natively.
+
+## Phase 31: Printed Vehicle Exit Pass & Financial Statements (Completed) ✅
+- [x] **Print-friendly Stylesheet**: Create elegant print styling (`@media print`) and layout on A4 paper bounds.
+- [x] **Pass Generation**: Display single-click "Print Exit Pass & Consolidated Statement" actions for completed settlements, displaying legal authorizations and transaction summaries.
+- [x] **Showcase Screenshot**: Saved inside `public/showcase/14_exit_pass_fathi.png` (Exit Pass modal for Fathi) and `public/showcase/13_exit_pass_ali.png` (Exit Pass modal for Ali).
+
+
 
 

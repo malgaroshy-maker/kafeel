@@ -342,7 +342,7 @@ The test suite covers:
 - [x] **Phase 25**: E2E QA Audit Completion & Showcase Generation (Playwright automation, visual screenshot gallery, 24/24 Vitest tests passed)
 - [x] **Phase 26**: E2E QA Bug Fixes & Production Database Sync (v1.4.2) — Tenant isolation fix, Monitor name mapping fix, idempotent migrations, remote DB push
 - [x] **Phase 27**: CRM Leads Calendar, Callback Dates & Color-Coding Alert System (v1.4.3) — Glassmorphic tabs, timezone-safe date normalization, crimson/emerald/blue card states, `callback_date` TIMESTAMPTZ migration
-
+- [x] **Phase 28-31**: Premium Accounting, Audits & Exit Pass Suite (v1.5.0) — Added custom DDL columns to remote DB settlements table, fully integrated Deleted/Rejected Leads audit panel, designed & tested Indebtedness Report tab with Quick Settle transition, built premium clear-on-focus input behavior, and completed A4-styled Printable vehicle Exit Pass certificates (verified natively with 0 build errors).
 
 ---
 

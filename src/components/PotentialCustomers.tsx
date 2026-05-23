@@ -100,6 +100,7 @@ export default function PotentialCustomers({ onConvert }: Props) {
   const { officeId, isManager, user } = useAuth()
   const [customers, setCustomers] = useState<PotentialCustomer[]>([])
   const [logs, setLogs] = useState<LogEntry[]>([])
+  const [rejectedTransactions, setRejectedTransactions] = useState<any[]>([])
   const [workplaces, setWorkplaces] = useState<Workplace[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
@@ -129,8 +130,34 @@ export default function PotentialCustomers({ onConvert }: Props) {
       fetchPotentialCustomers()
       fetchLogs()
       fetchUserProfile()
+      fetchRejectedTransactions()
     }
   }, [officeId])
+
+  const fetchRejectedTransactions = async () => {
+    if (!officeId) return
+    try {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select(`
+          id,
+          rejection_reason,
+          created_at,
+          customers (
+            name
+          )
+        `)
+        .eq('office_id', officeId)
+        .eq('verification_status', 'rejected')
+        .order('created_at', { ascending: false })
+      
+      if (!error && data) {
+        setRejectedTransactions(data)
+      }
+    } catch (err) {
+      console.error('Error fetching rejected transactions:', err)
+    }
+  }
 
   const fetchUserProfile = async () => {
     if (!user?.id) return
@@ -597,51 +624,89 @@ export default function PotentialCustomers({ onConvert }: Props) {
         </form>
       )}
 
-      {/* View Activity Logs */}
+      {/* View Activity Logs & Rejected Audits */}
       {viewLogs && isManager && (
-        <div className="glass" style={{ padding: '1.5rem', borderRadius: '14px', border: '1px solid var(--glass-border)', background: 'var(--surface-hover)', marginBottom: '1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h4 style={{ margin: 0, color: 'var(--primary)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div className="glass" style={{ padding: '1.5rem', borderRadius: '14px', border: '1.5px solid var(--glass-border)', background: 'var(--surface-hover)', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.75rem' }}>
+            <h4 style={{ margin: 0, color: 'var(--primary)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}>
               <Clock size={18} />
-              سجل حركة التغييرات (الزبائن المحتملين)
+              لوحة رقابة المحذوفات والمرفوضات للإدارة (Deleted & Rejected Audits)
             </h4>
             <button
               onClick={() => { setViewLogs(false); }}
-              style={{ padding: '0.25rem 0.6rem', borderRadius: '6px', border: 'none', background: 'var(--surface-card)', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem' }}
+              style={{ padding: '0.4rem 1rem', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.8rem' }}
             >
-              إغلاق السجل
+              إغلاق لوحة الرقابة
             </button>
           </div>
 
-          {logs.length === 0 ? (
-            <p style={{ textAlign: 'center', margin: '2rem 0', color: 'var(--text-tertiary)' }}>لا توجد حركات مسجلة حالياً.</p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '300px', overflowY: 'auto', paddingRight: '0.5rem' }}>
-              {logs.map((log) => (
-                <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', background: 'var(--surface-card)', border: '1px solid var(--glass-border)', borderRadius: '8px', fontSize: '0.82rem' }}>
-                  <div>
-                    <span style={{ 
-                      padding: '0.15rem 0.4rem', 
-                      borderRadius: '4px', 
-                      fontSize: '0.7rem', 
-                      fontWeight: 'bold',
-                      marginLeft: '0.5rem',
-                      background: log.action_type === 'ADD' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
-                      color: log.action_type === 'ADD' ? '#10b981' : '#ef4444'
-                    }}>
-                      {log.action_type === 'ADD' ? 'إضافة' : 'حذف'}
-                    </span>
-                    <strong style={{ color: 'var(--text-primary)' }}>{log.customer_name}</strong>
-                  </div>
-                  <div style={{ color: 'var(--text-tertiary)', fontSize: '0.78rem' }}>
-                    بواسطة: <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{log.performed_by}</span>
-                    <span style={{ margin: '0 0.5rem' }}>|</span>
-                    {new Date(log.created_at).toLocaleString('ar-LY')}
-                  </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            
+            {/* Column A: CRM Activity Logs */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <h5 style={{ margin: 0, color: 'var(--text-primary)', fontWeight: 'bold', fontSize: '0.88rem', borderRight: '3px solid var(--primary)', paddingRight: '0.5rem' }}>
+                حركات الزبائن المحتملين (إضافة / حذف)
+              </h5>
+              
+              {logs.length === 0 ? (
+                <p style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--text-tertiary)', fontSize: '0.82rem' }}>لا توجد حركات مسجلة.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '350px', overflowY: 'auto', paddingLeft: '0.25rem' }}>
+                  {logs.map((log) => (
+                    <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: 'var(--surface-card)', border: '1px solid var(--glass-border)', borderRadius: '8px', fontSize: '0.8rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ 
+                          padding: '0.15rem 0.4rem', 
+                          borderRadius: '4px', 
+                          fontSize: '0.68rem', 
+                          fontWeight: 'bold',
+                          background: log.action_type === 'ADD' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                          color: log.action_type === 'ADD' ? '#10b981' : '#ef4444'
+                        }}>
+                          {log.action_type === 'ADD' ? 'إضافة' : 'حذف'}
+                        </span>
+                        <strong style={{ color: 'var(--text-primary)' }}>{log.customer_name}</strong>
+                      </div>
+                      <div style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem', textAlign: 'left' }}>
+                        بواسطة: <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{log.performed_by}</span>
+                        <div style={{ fontSize: '0.7rem', opacity: 0.8, marginTop: '2px' }}>{new Date(log.created_at).toLocaleString('ar-LY')}</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
-          )}
+
+            {/* Column B: Rejected Applications Audits */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <h5 style={{ margin: 0, color: 'var(--text-primary)', fontWeight: 'bold', fontSize: '0.88rem', borderRight: '3px solid #ef4444', paddingRight: '0.5rem' }}>
+                سجل طلبات التمويل المرفوضة من الإدارة
+              </h5>
+
+              {rejectedTransactions.length === 0 ? (
+                <p style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--text-tertiary)', fontSize: '0.82rem' }}>لا توجد طلبات تمويل مرفوضة حالياً.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '350px', overflowY: 'auto', paddingLeft: '0.25rem' }}>
+                  {rejectedTransactions.map((tx) => (
+                    <div key={tx.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '0.75rem', background: 'var(--surface-card)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', fontSize: '0.8rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.68rem', fontWeight: 'bold', background: 'rgba(239, 68, 68, 0.12)', color: '#ef4444' }}>مرفوض</span>
+                        <strong style={{ color: 'var(--text-primary)' }}>{tx.customers?.name || 'زبون غير معروف'}</strong>
+                      </div>
+                      <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)', padding: '6px 8px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.04)' }}>
+                        <strong>سبب الرفض:</strong> {tx.rejection_reason || 'لم يتم تسجيل سبب للرفض'}
+                      </p>
+                      <div style={{ color: 'var(--text-tertiary)', fontSize: '0.7rem', display: 'flex', justifyContent: 'space-between', marginTop: '2px' }}>
+                        <span>تاريخ المعاملة: {new Date(tx.created_at).toLocaleDateString('ar-LY')}</span>
+                        <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>رقابة فنية</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+          </div>
         </div>
       )}
 

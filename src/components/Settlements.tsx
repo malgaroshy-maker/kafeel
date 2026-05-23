@@ -12,6 +12,10 @@ interface SettlementData {
   salePrice: number
   officeCommission: number
   checkImageUrl: string
+  shippingCost?: number
+  staffCommission?: number
+  promissoryNotesCount?: number
+  promissoryNotesDetails?: string
 }
 
 interface ExternalSaleTimer {
@@ -49,6 +53,10 @@ export default function Settlements() {
       salePrice: 0,
       officeCommission: 0,
       checkImageUrl: '',
+      shippingCost: 0,
+      staffCommission: 0,
+      promissoryNotesCount: 0,
+      promissoryNotesDetails: ''
     }
   })
   const [timers, setTimers] = useState<ExternalSaleTimer[]>([])
@@ -56,6 +64,8 @@ export default function Settlements() {
   const [uploading, setUploading] = useState(false)
   const [activeTxList, setActiveTxList] = useState<any[]>([])
   const [selectedTxId, setSelectedTxId] = useState<string>('')
+  const [showExitPassModal, setShowExitPassModal] = useState(false)
+  const [lastSettledData, setLastSettledData] = useState<any>(null)
 
   const fetchActiveTransactions = useCallback(async () => {
     if (!officeId) return
@@ -147,7 +157,8 @@ export default function Settlements() {
   }, [])
 
   const handleInput = (field: keyof SettlementData, value: string) => {
-    setData((prev) => ({ ...prev, [field]: field === 'customerName' ? value : parseFloat(value) || 0 }))
+    const isStringField = field === 'customerName' || field === 'promissoryNotesDetails'
+    setData((prev) => ({ ...prev, [field]: isStringField ? value : parseFloat(value) || 0 }))
     setSubmitted(false)
   }
 
@@ -175,6 +186,64 @@ export default function Settlements() {
       }))
     }
   }
+
+  // Quick Settle Handler
+  const selectQuickSettleTx = useCallback(async (txId: string) => {
+    if (!txId || !officeId) return;
+    
+    // Check if already in activeTxList
+    const existing = activeTxList.find(t => t.id === txId);
+    if (existing) {
+      handleTxChange(txId);
+      return;
+    }
+    
+    // Otherwise, fetch it directly
+    try {
+      const { data: tx, error } = await supabase
+        .from('transactions')
+        .select(`
+          id,
+          car_price,
+          down_payment,
+          customers!inner (
+            name,
+            workplace:workplace_id (
+              name
+            )
+          )
+        `)
+        .eq('id', txId)
+        .single();
+        
+      if (error) throw error;
+      if (tx) {
+        setActiveTxList(prev => {
+          if (prev.some(p => p.id === tx.id)) return prev;
+          return [...prev, tx];
+        });
+        setSelectedTxId(txId);
+        const cust = tx.customers as any;
+        setData(prev => ({
+          ...prev,
+          customerName: (Array.isArray(cust) ? cust[0]?.name : cust?.name) || '',
+          carPrice: Number(tx.car_price) || 0,
+          downPayment: Number(tx.down_payment) || 0,
+          debtAmount: (Number(tx.car_price) || 0) - (Number(tx.down_payment) || 0),
+        }));
+      }
+    } catch (err) {
+      console.error('Error fetching quick settle transaction:', err);
+    }
+  }, [activeTxList, officeId]);
+
+  useEffect(() => {
+    const quickSettleTxId = localStorage.getItem('quick_settle_tx_id');
+    if (quickSettleTxId) {
+      selectQuickSettleTx(quickSettleTxId);
+      localStorage.removeItem('quick_settle_tx_id');
+    }
+  }, [activeTxList, selectQuickSettleTx]);
 
   // Calculations
   const netCashOut = data.carPrice - data.downPayment - data.debtAmount - data.officeCommission
@@ -253,9 +322,11 @@ export default function Settlements() {
     try {
       let netCash = 0
       if (activeType === 'CASH_OUT') {
-        netCash = data.carPrice - data.downPayment - data.debtAmount - data.officeCommission
+        netCash = data.carPrice - data.downPayment - data.debtAmount - data.officeCommission - (data.shippingCost || 0) - (data.staffCommission || 0)
       } else if (activeType === 'EXTERNAL_SALE') {
-        netCash = data.salePrice - data.carPrice - data.officeCommission
+        netCash = data.salePrice - data.carPrice - data.officeCommission - (data.shippingCost || 0) - (data.staffCommission || 0)
+      } else {
+        netCash = data.downPayment - (data.shippingCost || 0) - (data.staffCommission || 0)
       }
 
       const deadline = activeType === 'EXTERNAL_SALE'
@@ -264,9 +335,39 @@ export default function Settlements() {
 
       const settlementStatus = activeType === 'EXTERNAL_SALE' ? 'IN_PROGRESS' : 'COMPLETED'
 
-      const { error } = await supabase
+      const notesJson = JSON.stringify({
+        shipping_cost: data.shippingCost || 0,
+        staff_commission: data.staffCommission || 0,
+        promissory_notes_count: data.promissoryNotesCount || 0,
+        promissory_notes_details: data.promissoryNotesDetails || ''
+      })
+
+      const insertObj: any = {
+        transaction_id: selectedTxId,
+        office_id: officeId,
+        settlement_type: activeType,
+        down_payment_collected: data.downPayment,
+        debt_amount: data.debtAmount,
+        sale_price: activeType === 'EXTERNAL_SALE' ? data.salePrice : null,
+        office_commission: (activeType === 'CASH_OUT' || activeType === 'EXTERNAL_SALE') ? data.officeCommission : 0,
+        net_cash: netCash,
+        external_sale_deadline: deadline,
+        external_sale_completed: false,
+        status: settlementStatus,
+        check_image_url: data.checkImageUrl,
+        shipping_cost: data.shippingCost || 0,
+        staff_commission: data.staffCommission || 0,
+        promissory_notes_count: data.promissoryNotesCount || 0,
+        promissory_notes_details: data.promissoryNotesDetails || '',
+        notes: notesJson
+      }
+
+      let { error } = await supabase
         .from('settlements')
-        .insert({
+        .insert(insertObj)
+      
+      if (error && error.message && error.message.includes('column') && error.message.includes('does not exist')) {
+        const fallbackObj = {
           transaction_id: selectedTxId,
           office_id: officeId,
           settlement_type: activeType,
@@ -278,8 +379,14 @@ export default function Settlements() {
           external_sale_deadline: deadline,
           external_sale_completed: false,
           status: settlementStatus,
-          check_image_url: data.checkImageUrl
-        })
+          check_image_url: data.checkImageUrl,
+          notes: notesJson
+        }
+        const { error: retryError } = await supabase
+          .from('settlements')
+          .insert(fallbackObj)
+        error = retryError
+      }
       
       if (error) throw error
 
@@ -295,7 +402,18 @@ export default function Settlements() {
         if (txError) throw txError
       }
 
+      setLastSettledData({
+        ...data,
+        type: activeType,
+        netCash: netCash,
+        shippingCost: data.shippingCost || 0,
+        staffCommission: data.staffCommission || 0,
+        promissoryNotesCount: data.promissoryNotesCount || 0,
+        promissoryNotesDetails: data.promissoryNotesDetails || ''
+      })
+      
       setSubmitted(true)
+      setShowExitPassModal(true)
       localStorage.removeItem(DRAFT_KEY)
       setSelectedTxId('')
       setData({
@@ -307,6 +425,10 @@ export default function Settlements() {
         salePrice: 0,
         officeCommission: 0,
         checkImageUrl: '',
+        shippingCost: 0,
+        staffCommission: 0,
+        promissoryNotesCount: 0,
+        promissoryNotesDetails: ''
       })
       await Promise.all([
         loadData(),
@@ -403,6 +525,7 @@ export default function Settlements() {
               placeholder="0"
               value={data.carPrice || ''}
               onChange={(e) => handleInput('carPrice', e.target.value)}
+              onFocus={(e) => e.target.select()}
             />
           </div>
 
@@ -414,6 +537,7 @@ export default function Settlements() {
                 placeholder="0"
                 value={data.downPayment || ''}
                 onChange={(e) => handleInput('downPayment', e.target.value)}
+                onFocus={(e) => e.target.select()}
               />
             </div>
           )}
@@ -425,6 +549,7 @@ export default function Settlements() {
               placeholder="0"
               value={data.debtAmount || ''}
               onChange={(e) => handleInput('debtAmount', e.target.value)}
+              onFocus={(e) => e.target.select()}
             />
           </div>
 
@@ -436,6 +561,7 @@ export default function Settlements() {
                 placeholder="0"
                 value={data.salePrice || ''}
                 onChange={(e) => handleInput('salePrice', e.target.value)}
+                onFocus={(e) => e.target.select()}
               />
             </div>
           )}
@@ -448,9 +574,75 @@ export default function Settlements() {
                 placeholder="0"
                 value={data.officeCommission || ''}
                 onChange={(e) => handleInput('officeCommission', e.target.value)}
+                onFocus={(e) => e.target.select()}
               />
             </div>
           )}
+        </div>
+
+        {/* Advanced Accounting Parameters / تفاصيل تسوية محاسبية متقدمة */}
+        <div style={{
+          marginTop: '1.5rem',
+          padding: '1.5rem',
+          border: '1.5px solid var(--glass-border)',
+          borderRadius: '12px',
+          background: 'rgba(251, 245, 183, 0.03)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1rem'
+        }}>
+          <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#bf953f', margin: 0, fontSize: '0.95rem', fontWeight: 'bold' }}>
+            <Receipt size={16} />
+            تفاصيل التسوية المحاسبية المتقدمة
+          </h4>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="input-group">
+              <label>مصاريف شحن ونقل المركبة (د.ل)</label>
+              <input
+                type="number"
+                placeholder="0"
+                value={data.shippingCost || ''}
+                onChange={(e) => handleInput('shippingCost', e.target.value)}
+                onFocus={(e) => e.target.select()}
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div className="input-group">
+              <label>عمولة المبيعات الفردية للموظف (د.ل)</label>
+              <input
+                type="number"
+                placeholder="0"
+                value={data.staffCommission || ''}
+                onChange={(e) => handleInput('staffCommission', e.target.value)}
+                onFocus={(e) => e.target.select()}
+                style={{ width: '100%' }}
+              />
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '1rem' }}>
+            <div className="input-group">
+              <label>عدد الكمبيالات</label>
+              <input
+                type="number"
+                placeholder="0"
+                value={data.promissoryNotesCount || ''}
+                onChange={(e) => handleInput('promissoryNotesCount', e.target.value)}
+                onFocus={(e) => e.target.select()}
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div className="input-group">
+              <label>تفاصيل وأرقام الكمبيالات وتواريخ استحقاقها</label>
+              <input
+                type="text"
+                placeholder="مثال: كمبيالة رقم 102 استحقاق 2026/09/01..."
+                value={data.promissoryNotesDetails || ''}
+                onChange={(e) => handleInput('promissoryNotesDetails', e.target.value)}
+                onFocus={(e) => e.target.select()}
+                style={{ width: '100%' }}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Results */}
@@ -672,6 +864,147 @@ export default function Settlements() {
                 </div>
               )
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Branded PDF Exit Pass & Statement modal overlay */}
+      {showExitPassModal && lastSettledData && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem', overflowY: 'auto' }} className="printable-report-actions-overlay">
+          <div style={{ background: 'var(--surface)', borderRadius: '24px', border: '2px solid #bf953f', boxShadow: '0 20px 50px rgba(0,0,0,0.3)', width: '100%', maxWidth: '800px', padding: '2.5rem', position: 'relative', display: 'flex', flexDirection: 'column', gap: '1.5rem' }} className="printable-report-modal-card">
+            
+            {/* The printable exit pass document */}
+            <div className="printable-report-area" dir="rtl" style={{
+              background: '#fff',
+              color: '#1e293b',
+              padding: '2.5rem',
+              borderRadius: '16px',
+              border: '4px double #aa771c',
+              position: 'relative',
+              boxShadow: 'inset 0 0 40px rgba(170,119,28,0.05)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.5rem',
+              fontFamily: 'system-ui, -apple-system, sans-serif'
+            }}>
+              {/* Decorative gold double borders */}
+              <div style={{ position: 'absolute', top: '10px', right: '10px', left: '10px', bottom: '10px', border: '1px solid rgba(170,119,28,0.25)', pointerEvents: 'none' }}></div>
+              
+              {/* Branded Official Header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2.5px solid #bf953f', paddingBottom: '1rem', flexWrap: 'nowrap', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                  <img 
+                    src="/logo.png" 
+                    alt="Logo" 
+                    onError={(e) => { (e.target as any).src = 'https://raw.githubusercontent.com/malgaroshy-maker/kafeel/shams/public/logo.png' }}
+                    style={{ height: '55px', width: 'auto', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' }}
+                  />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <h3 style={{ margin: 0, fontSize: '1.35rem', fontWeight: '800', color: '#1e293b', letterSpacing: '-0.3px' }}>منظومة كفيل السحابية</h3>
+                    <span style={{ fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700' }}>Kafeel Finance Platform</span>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span style={{ background: '#fef08a', color: '#854d0e', padding: '4px 12px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: '800', border: '1px solid #fef08a' }}>إذن خروج مركبة نهائي</span>
+                  <span style={{ fontSize: '0.7rem', color: '#64748b', fontFamily: 'monospace' }}>رقم الحركة: {selectedTxId || 'KAFEEL-TX-MAIN'}</span>
+                </div>
+              </div>
+
+              {/* Exit Pass Details */}
+              <div style={{ margin: '1rem 0', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.92rem', lineHeight: '1.8', color: '#334155' }}>
+                <p style={{ margin: 0 }}>
+                  يرخص بموجب هذا المستند للمركبة المبينة تفاصيلها أدناه بالخروج النهائي من معرض السيارات المعتمد، بعد استيفاء وتصفية كافة الالتزامات المالية والضمانات والكمبيالات المترتبة لصالح المنظومة.
+                </p>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', background: '#f8fafc', padding: '1rem', borderRadius: '10px', border: '1px solid #e2e8f0', marginTop: '0.5rem' }}>
+                  <div><strong>اسم الزبون المستفيد:</strong> {lastSettledData.customerName}</div>
+                  <div><strong>نوع التسوية:</strong> {lastSettledData.type === 'PERSONAL_USE' ? 'استعمال شخصي' : lastSettledData.type === 'CASH_OUT' ? 'بيع للمكتب (تسييل)' : 'بيع خارجي'}</div>
+                  <div><strong>سعر المركبة الأساسي:</strong> {Number(lastSettledData.carPrice).toLocaleString('ar-LY')} د.ل</div>
+                  <div><strong>عدد الكمبيالات المستلمة:</strong> {lastSettledData.promissoryNotesCount || 0} كمبيالات</div>
+                </div>
+
+                {lastSettledData.promissoryNotesDetails && (
+                  <p style={{ margin: 0, padding: '0.5rem 1rem', background: '#fffbeb', borderRight: '3px solid #d97706', borderRadius: '4px', fontSize: '0.85rem' }}>
+                    <strong>بيان الكمبيالات المستلمة:</strong> {lastSettledData.promissoryNotesDetails}
+                  </p>
+                )}
+              </div>
+
+              {/* Financial Breakdown Table */}
+              <div style={{ marginTop: '0.5rem' }}>
+                <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.95rem', fontWeight: '800', color: '#1e293b' }}>كشف حساب التسوية المالي الموحد</h4>
+                <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #cbd5e1', fontSize: '0.8rem' }}>
+                  <thead>
+                    <tr style={{ background: '#f1f5f9' }}>
+                      <th style={{ padding: '8px 12px', border: '1px solid #cbd5e1', textAlign: 'right' }}>بيان الحركة المالية</th>
+                      <th style={{ padding: '8px 12px', border: '1px solid #cbd5e1', textAlign: 'left' }}>القيمة (د.ل)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style={{ padding: '8px 12px', border: '1px solid #cbd5e1' }}>سعر شراء/تقييم السيارة الأساسي</td>
+                      <td style={{ padding: '8px 12px', border: '1px solid #cbd5e1', textAlign: 'left' }}>{Number(lastSettledData.carPrice).toLocaleString('ar-LY')} د.ل</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '8px 12px', border: '1px solid #cbd5e1' }}>المقدم المالي المحصّل</td>
+                      <td style={{ padding: '8px 12px', border: '1px solid #cbd5e1', textAlign: 'left' }}>{Number(lastSettledData.downPayment).toLocaleString('ar-LY')} د.ل</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '8px 12px', border: '1px solid #cbd5e1' }}>الديون والذمم المتبقية المترتبة</td>
+                      <td style={{ padding: '8px 12px', border: '1px solid #cbd5e1', textAlign: 'left' }}>{Number(lastSettledData.debtAmount).toLocaleString('ar-LY')} د.ل</td>
+                    </tr>
+                    {lastSettledData.type === 'EXTERNAL_SALE' && (
+                      <tr>
+                        <td style={{ padding: '8px 12px', border: '1px solid #cbd5e1' }}>سعر البيع الخارجي للمشتري</td>
+                        <td style={{ padding: '8px 12px', border: '1px solid #cbd5e1', textAlign: 'left' }}>{Number(lastSettledData.salePrice).toLocaleString('ar-LY')} د.ل</td>
+                      </tr>
+                    )}
+                    <tr>
+                      <td style={{ padding: '8px 12px', border: '1px solid #cbd5e1' }}>مصاريف شحن ونقل المركبة من الموانئ / مصراتة</td>
+                      <td style={{ padding: '8px 12px', border: '1px solid #cbd5e1', textAlign: 'left' }}>{Number(lastSettledData.shippingCost).toLocaleString('ar-LY')} د.ل</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '8px 12px', border: '1px solid #cbd5e1' }}>عمولة المبيعات الفردية للموظف</td>
+                      <td style={{ padding: '8px 12px', border: '1px solid #cbd5e1', textAlign: 'left' }}>{Number(lastSettledData.staffCommission).toLocaleString('ar-LY')} د.ل</td>
+                    </tr>
+                    <tr style={{ background: '#f8fafc', fontWeight: 'bold' }}>
+                      <td style={{ padding: '8px 12px', border: '1px solid #cbd5e1' }}>صافي التدفق النقدي للمعاملة (Net Cash)</td>
+                      <td style={{ padding: '8px 12px', border: '1px solid #cbd5e1', textAlign: 'left', color: '#10b981' }}>{Number(lastSettledData.netCash).toLocaleString('ar-LY')} د.ل</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Signatures */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2rem', fontSize: '0.85rem' }}>
+                <div style={{ textAlign: 'center', width: '200px', display: 'flex', flexDirection: 'column', gap: '30px' }}>
+                  <span style={{ color: '#64748b' }}>توقيع المحاسب المعتمد</span>
+                  <span style={{ borderBottom: '1.5px solid #cbd5e1', width: '100%' }}></span>
+                </div>
+                <div style={{ textAlign: 'center', width: '200px', display: 'flex', flexDirection: 'column', gap: '30px' }}>
+                  <span style={{ color: '#64748b' }}>توقيع وختم مدير المعرض</span>
+                  <span style={{ borderBottom: '1.5px solid #cbd5e1', width: '100%' }}></span>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }} className="printable-report-actions">
+              <button 
+                onClick={() => window.print()}
+                className="btn btn-primary"
+                style={{ background: 'linear-gradient(135deg, #bf953f, #d4af37)', color: '#000', fontWeight: 'bold' }}
+              >
+                طباعة إذن الخروج الورقي 🖨️
+              </button>
+              <button 
+                onClick={() => setShowExitPassModal(false)}
+                className="btn btn-secondary"
+              >
+                إغلاق النافذة
+              </button>
+            </div>
+
           </div>
         </div>
       )}

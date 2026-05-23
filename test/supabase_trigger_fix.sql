@@ -1,36 +1,3 @@
--- Add rejection_reason to transactions_raw and recreate transactions security barrier view + trigger function
-
--- 1. Add column to transactions_raw if not exists
-ALTER TABLE public.transactions_raw ADD COLUMN IF NOT EXISTS rejection_reason TEXT;
-COMMENT ON COLUMN public.transactions_raw.rejection_reason IS 'Reason for document rejection by manager/accountant';
-
--- 2. Update the transactions view with security barrier
-CREATE OR REPLACE VIEW public.transactions WITH (security_barrier) AS
-SELECT
-    id,
-    office_id,
-    customer_id,
-    workplace_id,
-    car_price,
-    bank_ceiling,
-    margin_rate,
-    down_payment,
-    total_installments,
-    office_loan,
-    car_model,
-    CASE
-        WHEN (auth.jwt() -> 'app_metadata' ->> 'role') IN ('admin', 'manager', 'accountant') THEN purchase_cost
-        ELSE NULL
-    END AS purchase_cost,
-    is_files_complete,
-    status,
-    guarantors_needed,
-    verification_status,
-    created_at,
-    rejection_reason
-FROM public.transactions_raw;
-
--- 3. Update the trigger function to support rejection_reason
 CREATE OR REPLACE FUNCTION public.transactions_view_trigger_func()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -38,7 +5,7 @@ SECURITY DEFINER
 AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        -- Explicitly assign default values to NEW to ensure complete view representation
+        -- 1. Explicitly assign default values to NEW to ensure complete view representation
         NEW.id := COALESCE(NEW.id, gen_random_uuid());
         NEW.car_price := COALESCE(NEW.car_price, 0);
         NEW.bank_ceiling := COALESCE(NEW.bank_ceiling, 0);
@@ -51,6 +18,7 @@ BEGIN
         NEW.verification_status := COALESCE(NEW.verification_status, 'pending');
         NEW.created_at := COALESCE(NEW.created_at, now());
 
+        -- 2. Insert into public.transactions_raw directly
         INSERT INTO public.transactions_raw (
             id, office_id, customer_id, workplace_id, car_price, bank_ceiling, margin_rate, down_payment, total_installments, office_loan, car_model, purchase_cost, is_files_complete, status, guarantors_needed, verification_status, created_at, rejection_reason
         ) VALUES (
@@ -74,7 +42,7 @@ BEGIN
             NEW.rejection_reason
         );
         
-        -- Make sure we dynamically evaluate purchase_cost visibility for return
+        -- 3. Mask return value if needed
         IF (auth.jwt() -> 'app_metadata' ->> 'role') NOT IN ('admin', 'manager', 'accountant') THEN
             NEW.purchase_cost := NULL;
         END IF;
@@ -94,7 +62,7 @@ BEGIN
             car_model = NEW.car_model,
             purchase_cost = CASE
                 WHEN (auth.jwt() -> 'app_metadata' ->> 'role') IN ('admin', 'manager', 'accountant') THEN NEW.purchase_cost
-                ELSE transactions_raw.purchase_cost -- Keep old value for staff
+                ELSE transactions_raw.purchase_cost
             END,
             is_files_complete = COALESCE(NEW.is_files_complete, false),
             status = COALESCE(NEW.status, 'PENDING'),
