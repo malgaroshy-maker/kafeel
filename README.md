@@ -343,6 +343,8 @@ The test suite covers:
 - [x] **Phase 26**: E2E QA Bug Fixes & Production Database Sync (v1.4.2) — Tenant isolation fix, Monitor name mapping fix, idempotent migrations, remote DB push
 - [x] **Phase 27**: CRM Leads Calendar, Callback Dates & Color-Coding Alert System (v1.4.3) — Glassmorphic tabs, timezone-safe date normalization, crimson/emerald/blue card states, `callback_date` TIMESTAMPTZ migration
 - [x] **Phase 28-31**: Premium Accounting, Audits & Exit Pass Suite (v1.5.0) — Added custom DDL columns to remote DB settlements table, fully integrated Deleted/Rejected Leads audit panel, designed & tested Indebtedness Report tab with Quick Settle transition, built premium clear-on-focus input behavior, and completed A4-styled Printable vehicle Exit Pass certificates (verified natively with 0 build errors).
+- [x] **Phase 32**: Dynamic Registries, Cross-Office Transfers, Phone Masking & Rounded Downpayments (v1.4.6) — Added inline banks/branches insertion from CustomerForm searchables, implemented unique National ID duplicate checking with cross-office transfer requests flow, developed Manager transfer approvals settings panel, integrated phone privacy masking across all dashboards for unauthorized roles (revealed only to managers/accountants/admins), enhanced Murabaha engine to round downpayments up to the nearest 50 LYD with automated localized Arabic explanation notes, and expanded the Vitest suite to 25 tests.
+
 
 ---
 

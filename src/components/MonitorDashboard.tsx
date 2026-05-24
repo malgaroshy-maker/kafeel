@@ -13,6 +13,8 @@ import { maskPhone } from '../utils/masking'
 interface MonitorEntry {
   id: string
   customerName: string
+  customerNationalId: string
+  workplaceId: string
   officeName: string
   workplaceName: string
   submittedDate: string
@@ -135,13 +137,22 @@ export default function MonitorDashboard({ activeSubTab }: MonitorDashboardProps
           car_model,
           car_price,
           created_at,
+          status,
           offices (name),
           customers (
             id,
             name,
             salary,
             phone,
+            national_id,
+            workplace_id,
             workplaces (name, required_guarantors)
+          ),
+          transaction_guarantors (
+            id,
+            guarantor_name,
+            guarantor_national_id,
+            match_status
           )
         `)
         .order('created_at', { ascending: false })
@@ -154,16 +165,23 @@ export default function MonitorDashboard({ activeSubTab }: MonitorDashboardProps
           const office = Array.isArray(item.offices) ? item.offices[0] : item.offices
           const workplace = customer && Array.isArray(customer.workplaces) ? customer.workplaces[0] : (customer?.workplaces)
 
+          const confirmedGuarList = item.transaction_guarantors 
+            ? (Array.isArray(item.transaction_guarantors) ? item.transaction_guarantors : [item.transaction_guarantors])
+            : []
+          const currentGuarantors = confirmedGuarList.filter((tg: any) => tg.match_status === 'CONFIRMED').length
+
           return {
             id: item.id,
             customerName: customer?.name || 'غير معروف',
+            customerNationalId: customer?.national_id || '',
+            workplaceId: customer?.workplace_id || '',
             officeName: office?.name || 'غير معروف',
             workplaceName: workplace?.name || 'غير معروف',
             submittedDate: new Date(item.created_at).toLocaleDateString('ar-LY'),
             created_at: item.created_at,
             carModel: item.car_model || 'سيارة غير محددة',
             guarantorsNeeded: workplace?.required_guarantors || 0,
-            currentGuarantors: 0,
+            currentGuarantors: currentGuarantors,
             _salary: customer?.salary,
             _carPrice: item.car_price,
             _customerPhone: customer?.phone
@@ -234,11 +252,23 @@ export default function MonitorDashboard({ activeSubTab }: MonitorDashboardProps
         const guarantorIdx = (i + 1) % selectedForLink.length
         const guarantorEntry = entries.find(e => e.id === selectedForLink[guarantorIdx])
         if (!guarantorEntry) continue
-        await supabase.from('transaction_guarantors').insert({
+        
+        // 1. Insert confirmed manual guarantor
+        const { error: guarantorErr } = await supabase.from('transaction_guarantors').insert({
           transaction_id: beneficiaryId,
-          guarantor_customer_id: guarantorEntry.id,
-          match_type: 'MANUAL'
+          guarantor_name: guarantorEntry.customerName,
+          guarantor_national_id: guarantorEntry.customerNationalId,
+          workplace_id: guarantorEntry.workplaceId || null,
+          match_type: 'MANUAL',
+          match_status: 'CONFIRMED'
         })
+        if (guarantorErr) throw guarantorErr
+
+        // 2. Update status of the beneficiary's transaction to MATCHED
+        const { error: txErr } = await supabase.from('transactions_raw')
+          .update({ status: 'MATCHED' })
+          .eq('id', beneficiaryId)
+        if (txErr) throw txErr
       }
       // Notify offices
       for (const id of selectedForLink) {

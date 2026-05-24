@@ -385,9 +385,41 @@ const OfficeLayout: React.FC = () => {
         <div className="main-inner">
           {activeTab === 'customers' && (
             <CustomerList 
-              onSelect={(id) => {
+              onSelect={async (id) => {
                 setSelectedBeneficiary(id);
+                setSelectedGuarantor(null); // Reset
                 setActiveTab('calculator');
+                
+                try {
+                  const { data: tx } = await supabase
+                    .from('transactions')
+                    .select('id, status, transaction_guarantors(guarantor_id, guarantor_national_id, match_status)')
+                    .eq('customer_id', id)
+                    .in('status', ['MATCHED', 'ACTIVE', 'COMPLETED'])
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                    
+                  if (tx && tx.transaction_guarantors && tx.transaction_guarantors.length > 0) {
+                    const confirmedGuar = tx.transaction_guarantors.find((tg: any) => tg.match_status === 'CONFIRMED');
+                    if (confirmedGuar) {
+                      if (confirmedGuar.guarantor_id) {
+                        setSelectedGuarantor(confirmedGuar.guarantor_id);
+                      } else if (confirmedGuar.guarantor_national_id) {
+                        const { data: gCust } = await supabase
+                          .from('customers')
+                          .select('id')
+                          .eq('national_id', confirmedGuar.guarantor_national_id)
+                          .maybeSingle();
+                        if (gCust) {
+                          setSelectedGuarantor(gCust.id);
+                        }
+                      }
+                    }
+                  }
+                } catch (err) {
+                  console.error('Error fetching linked guarantor for calculator:', err);
+                }
               }} 
               onEdit={(customer) => {
                 setEditingCustomer(customer);

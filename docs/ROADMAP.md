@@ -234,6 +234,24 @@
 - [x] **Pass Generation**: Display single-click "Print Exit Pass & Consolidated Statement" actions for completed settlements, displaying legal authorizations and transaction summaries.
 - [x] **Showcase Screenshot**: Saved inside `public/showcase/14_exit_pass_fathi.png` (Exit Pass modal for Fathi) and `public/showcase/13_exit_pass_ali.png` (Exit Pass modal for Ali).
 
+## Phase 32: Dynamic Registry, Cross-Office Transfers, Phone Masking & Rounded Downpayments (v1.4.6) ✅
+- [x] **Dynamic Bank & Branch Registry**: Integrated inline additions of new banks (`banks` table) and branches (`branches` table) directly inside `CustomerForm.tsx` search-dropdowns, automatically committing them to the database and selecting them without leaving the form.
+- [x] **Cross-Office Customer Transfer Request Flow**: Added a strict duplicate check on National ID (`national_id`) during registration. If already registered under another office, the system displays a modal warning and allows staff to send a transfer request (`customer_transfers` table) to prevent duplicate profiles.
+- [x] **Manager Transfer Approvals Board**: Developed incoming and outgoing transfer request management cards inside the `SettingsPanel` (exclusive to managers). Approving a transfer updates the customer's `office_id` to the requesting tenant office dynamically.
+- [x] **Privacy Masking & Lead Protection**: Created `src/utils/masking.ts` with `maskPhone` utility. Phone numbers in `CustomerList`, `PotentialCustomers`, `FinancialRequest`, `DocumentUploader`, and `MonitorDashboard` are masked (e.g. `0912***678` format) for unauthorized roles (like standard staff/monitors), and fully revealed only to Managers, Accountants, and Admins.
+- [x] **Financial Downpayment Rounding**: Enhanced the core Murabaha engine (`financialEngine.ts`) to round calculated downpayments up to the nearest 50 LYD for ease of physical cash transactions, generating a detailed localized Arabic accounting note (`accountingNote`) detailing the rounding adjustments.
+- [x] **Supabase SQL Schema Hardening**: Updated `supabase/schema.sql` and created migration `19_add_customer_transfers.sql` to deploy INSERT RLS policies for `banks` and `branches`, and the table definition with policies for `customer_transfers` to the production database.
+
+- [x] **Unit Testing Assertion**: Expanded Vitest suite in `test/financialEngine.test.ts` to verify rounding rules and localized accountingNote generations (25/25 tests passing successfully).
+
+## Phase 33: Operations Monitor Manual Matchmaking & Database RLS Policy Resolution (v1.4.8) ✅
+- [x] **Database Migration (`20_add_monitor_rls_policies.sql`)**: Authored and pushed migration `20` to cloud Supabase to establish SELECT, INSERT, and UPDATE policies on `public.transaction_guarantors` and `public.transactions_raw` for the `monitor` role, resolving the RLS 403 Forbidden matchmaking bug completely.
+- [x] **Extend Query payload & Fields**: Updated `loadData` in `MonitorDashboard.tsx` to query and fetch `national_id` and `workplace_id` from `customers` in the join.
+- [x] **Dynamic Guarantor & Pipeline Counters**: Configured dynamic counting of actual verified guarantors in `loadData`, accurately mapping pipeline stages (`docs`, `waiting`, `matched`, `delivered`) and removing static zeros.
+- [x] **Fix Manual matchmaking execution**: Repaired `executeManualLink` in the monitor portal to write exact details into `transaction_guarantors` (`guarantor_name`, `guarantor_national_id`, `workplace_id`, `match_type: 'MANUAL'`, `match_status: 'CONFIRMED'`) and automatically promote transaction status in `transactions_raw` to `'MATCHED'`.
+- [x] **Backend QA Script Validation**: Created `test/verify_manual_match.js` backend script to programmatically assert correct database state transitions, confirming successful manual loops and lowest-salary calculation integration.
+
+
 
 
 

@@ -93,8 +93,9 @@ We will systematically save screenshots of key interfaces during testing to `/ar
 
 ### ✅ Phase 0: Automated Math Suite | مرحلة الاختبار الآلي
 - **Status | الحالة:** ✅ PASSED | ناجح
-- All 24 Vitest unit tests passed covering Murabaha margins, deduction ceilings, and excess gap calculations.
-- كل الـ24 اختبار رياضي آلي نجح بنجاح كامل.
+- All 25 Vitest unit tests passed covering Murabaha margins, deduction ceilings, excess gap calculations, and 50 LYD downpayment rounding.
+- كل الـ25 اختبار رياضي آلي نجح بنجاح كامل (بما في ذلك تقريب الدفعة الأولى لأقرب 50 د.ل والملاحظة المحاسبية).
+
 
 ### ✅ Phase 1: Public Interface & Onboarding | المرحلة 1: الواجهة العامة
 - **Status | الحالة:** ✅ COMPLETED | مكتمل
@@ -154,6 +155,15 @@ We will systematically save screenshots of key interfaces during testing to `/ar
 - Processed post-delivery settlements, uploaded checks, and completed transaction statuses.
 - 📸 `12_post_delivery_settlements.png` captured and saved ✅
 
+### ✅ Phase 9: Cross-Office E2E Matchmaking & Flow | المرحلة 9: اختبار المطابقة ثنائي المكاتب E2E
+- **Status | الحالة:** ✅ COMPLETED & VERIFIED | مكتمل وموثق بنجاح
+- Registered new customers under separate offices (Al-Baraka and Al-Hurriya) with matching workspaces (وزارة المالية).
+- Placed transaction `e2e2e2e2-e2e2-e2e2-e2e2-e2e2e2e2e2e2` in `WAITING_MATCH` status.
+- Triggered automated matching RPC `public.attempt_auto_match()` to search and bind a cross-office guarantor within the allowed `salary_match_limit` (20 LYD difference, threshold <= 50 LYD).
+- Verified automatic guarantor assignment (`E2E_Test_Fathi` with match status `CONFIRMED` and match type `AUTO`).
+- Progressed successfully through Approval, Active, Settlement (`CASH_OUT`), and completed transaction statuses (`COMPLETED`).
+- Verified database multi-tenant isolation and secure cross-office linkages.
+
 ---
 
 ### 📸 Screenshot Inventory | جرد لقطات الشاشة المحفوظة
@@ -188,6 +198,8 @@ We will systematically save screenshots of key interfaces during testing to `/ar
 ---
 
 ### 🌐 Cloud Verification & Schema Sync Status | حالة المطابقة والربط السحابي
-- **Database Status | حالة قاعدة البيانات:** ✅ **100% Synced / مطابقة بالكامل**
-- **Applied Migrations | الهجرات المطبقة:** All 17 sequential migrations successfully created and synchronised on Supabase.
-- **E2E Status | حالة النظام الكلية:** ✅ Fully operational, verified, and E2E production ready. All core TypeScript modules compile without warnings or errors.
+- **Database Status | الحالة:** ✅ **100% Synced / مطابقة بالكامل**
+- **Applied Migrations:** All local migrations (1 to 20) and remote schemas including table `customer_transfers` and `transaction_guarantors` RLS monitor authorization policies successfully synchronised and applied on cloud Supabase.
+- **E2E Status | حالة النظام الكلية:** ✅ Fully operational, verified, and E2E production ready. All core TypeScript modules compile without warnings or errors. Verified 100% correct manual circular matchmaking (Phase 33), downpayment rounding to 50 LYD, dynamic bank/branch entries, manager-approved cross-office customer transfers, and phone number privacy masking across all panels (v1.4.8 release).
+
+

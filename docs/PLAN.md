@@ -143,6 +143,8 @@ Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Mura
 | `potential_customers` | Prospective buyers registration hub | ✅ | ✅ |
 | `potential_customer_logs` | Audit trail of potential customer edits/deletions | ✅ | ✅ |
 | `financial_requests` | Custom cash advances and bill requests (LOAN, FINANCIAL_VALUE, BILLS) | ✅ | ✅ |
+| `customer_transfers` | Cross-office customer transfer requests and approvals | ✅ | ✅ |
+
 
 ## 7. Edge Functions
 | Function | Purpose | Auth |
@@ -172,6 +174,9 @@ Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Mura
   - Resolved **BUG-02** by fixing customer name metadata binding (`customer?.name` mapping) in the Operations Monitor dashboard.
   - Completed DB sync: Modified SQL policies for safe, idempotent deployments, pushed outstanding migrations `13` through `17` to production Supabase cloud database instance (`gwpesjsnwsdjerxfuqio`), and verified all 17 migrations match 100% on both Local and Remote.
   - Verified full test coverage with zero Vitest failures and compiled error-free production bundler.
+- **Phase 32 (Dynamic Registry, Cross-Office Transfers, Phone Masking & Rounded Downpayments - v1.4.6)**: Complete ✅ — Fully built inline bank/branch dynamically additions, check duplicate National IDs with cross-office transfer requests modal, manager incoming/outgoing transfers approval grids in settings, phone number privacy masking utility for unauthorized users, 50 LYD rounded downpayments in the financial engine with customized accounting explanation notes, and 25 passing unit tests.
+- **Phase 33 (Monitor Manual Matchmaking & Database RLS Policy Resolution - v1.4.8)**: Complete ✅ — Resolved the remote RLS 403 Forbidden matchmaking bug completely by deploying a PostgreSQL migration `20_add_monitor_rls_policies.sql` to authorize the `monitor` role with write access on the database tables. Updated the monitor dashboard `loadData` to query and fetch exact customer metadata (`national_id`, `workplace_id`) and dynamic guarantor counters. Repaired `executeManualLink` to record confirmed details in `transaction_guarantors` and promote the transaction status to `'MATCHED'` in `transactions_raw` automatically. Verified using automated backend test scripts (`verify_manual_match.js`).
+
 
 
 

@@ -180,14 +180,20 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, showSa
   const n = (v: string) => parseFloat(v) || 0
 
   const results = useMemo(() => {
+    // Determine the active salary to use (use lowest if guarantor is linked)
+    let activeSalary = n(form.netSalary);
+    if (beneficiaryData && guarantorData) {
+      activeSalary = Math.min(beneficiaryData.salary || 0, guarantorData.salary || 0);
+    }
+
     return calculateMurabaha({
       carPrice: n(form.carPrice),
       bankCeiling: n(form.bankCeiling),
-      netSalary: n(form.netSalary),
+      netSalary: activeSalary,
       marginRate: parseFloat(form.marginRate),
       deductionRate: 0.50, // Always 50% limit as requested
     })
-  }, [form])
+  }, [form, beneficiaryData, guarantorData])
 
   const fmt = (v: number) =>
     v.toLocaleString('ar-LY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -254,6 +260,23 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, showSa
               onChange={(e) => update('netSalary', e.target.value)}
               tabIndex={1}
             />
+            {beneficiaryData && guarantorData && (
+              <div style={{
+                fontSize: '0.8rem',
+                color: 'var(--warning)',
+                background: 'rgba(217, 119, 6, 0.1)',
+                border: '1px solid rgba(217, 119, 6, 0.25)',
+                padding: '0.5rem 0.75rem',
+                borderRadius: '8px',
+                marginTop: '0.5rem',
+                lineHeight: '1.4',
+                fontWeight: 'bold',
+                direction: 'rtl',
+                textAlign: 'right'
+              }}>
+                ⚠️ تم ربط الضامن! يتم حساب الأقساط والقدرة بناءً على <strong>الراتب الأدنى</strong>: {Math.min(beneficiaryData.salary || 0, guarantorData.salary || 0).toLocaleString('ar-LY')} د.ل (المستفيد: {beneficiaryData.salary?.toLocaleString()} | الضامن: {guarantorData.salary?.toLocaleString()})
+              </div>
+            )}
           </div>
 
           <div className="input-group">

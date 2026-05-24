@@ -10,6 +10,8 @@
 * `net_salary` ($S$): Customer's net monthly salary. ✅
 * `term_months` ($T$): Installment period — **Fixed at 96 months (8 years)** per business decision. ✅
 * `deduction_rate` ($D$): Max allowed salary deduction percentage (Default: 0.35, Exception: up to 0.50). ✅
+* `market_sale_price` ($P_{market}$): Market sale price of the car (سعر السوق) to evaluate office market profit. ✅
+
 
 ## 2. Mathematical Equations & Algorithms (العمليات الحسابية) ✅
 
@@ -31,12 +33,23 @@ The down payment consists of two distinct components:
 2. **Salary Capacity Gap (عجز القدرة):** If the customer's salary capacity ($I_{capacity}$) is less than the ideal installment ($I_{ideal}$), the capacity gap is multiplied by the term duration to be paid upfront.
    $$I_{gap} = \max(0, I_{ideal} - I_{capacity})$$
    $$Gap_{total} = I_{gap} \times 96$$
+   $$DownPayment_{raw} = Excess + Gap_{total}$$
 
-$$DownPayment_{total} = Excess + Gap_{total}$$
+### Step 4.5: Rounding Down Payment (تقريب الدفعة الأولى)
+To simplify physical cash handling in Libyan offices, the raw down payment is rounded *up* to the nearest 50 Dinars (LYD):
+$$DownPayment_{total} = \text{ceil}\left(\frac{DownPayment_{raw}}{50}\right) \times 50$$
+
+An automated Arabic accounting note is generated (`accountingNote`) explaining this rounding difference (e.g., `تم تقريب الدفعة لأقرب 50 د.ل بمقدار زيادة قدرها 37.20 د.ل لتسهيل المعاملة.`).
 
 ### Step 5: Calculate Actual Financed Amount & Repayment (التمويل الفعلي للمصرف) ✅
 $$Repayment_{bank} = V_{murabaha} - DownPayment_{total}$$
 $$I_{actual} = \frac{Repayment_{bank}}{96}$$
+
+### Step 6: Calculate Office Market Profit (صافي ربح المكتب) ✅
+If the market sale price ($P_{market}$) and cash purchase cost ($C_{purchase}$) are supplied, the office profit is calculated as:
+$$\text{Profit}_{office} = P_{market} - C_{purchase}$$
+*This represents the cash-based markup of the office relative to the market valuation, separate from bank murabaha margins.*
+
 
 ---
 
@@ -62,7 +75,7 @@ $$I_{actual} = \frac{Repayment_{bank}}{96}$$
 |-------|-------|
 | `src/lib/financialEngine.ts` | المحرك الحسابي الأساسي للمنظومة |
 | `src/components/Calculator.tsx` | واجهة المستخدم لعرض المدخلات والنتائج بالتنسيق المفصل الجديد |
-| `test/financialEngine.test.ts` | اختبارات الوحدة الآلية (24 اختبار) |
+| `test/financialEngine.test.ts` | اختبارات الوحدة الآلية (25 اختبار) |
 
 ### القرارات التصميمية:
 * **تقسيم الدفعة الأولى:** عرض بطاقتين منفصلتين توضحان أسباب استحقاق الدفعة الأولى لزيادة الشفافية للزبائن والموظفين.
