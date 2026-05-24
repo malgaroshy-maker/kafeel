@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { Search, User, Phone, Building2, Calculator as CalcIcon, Pencil, Trash2, FileText, Clock } from 'lucide-react'
+import { maskPhone } from '../utils/masking'
 
 interface Customer {
   id: string
@@ -25,7 +26,8 @@ interface Props {
 }
 
 export default function CustomerList({ onSelect, onEdit, onDocuments, onSendToQueue }: Props) {
-  const { officeId, isManager, isAccountant } = useAuth()
+  const { officeId, isManager, isAccountant, isAdmin, role } = useAuth()
+  const showFullPhone = isManager || isAccountant || isAdmin || role === 'admin';
   const [customers, setCustomers] = useState<Customer[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
@@ -270,7 +272,7 @@ export default function CustomerList({ onSelect, onEdit, onDocuments, onSendToQu
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', color: 'var(--text-secondary)', background: 'var(--surface-card)', padding: '0.25rem 0.6rem', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
                       <Phone size={11} style={{ color: 'var(--primary)', flexShrink: 0 }} />
-                      <span>{customer.phone || '—'}</span>
+                      <span>{showFullPhone ? (customer.phone || '—') : maskPhone(customer.phone)}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', color: 'var(--text-secondary)', background: 'var(--surface-card)', padding: '0.25rem 0.6rem', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
                       <Building2 size={11} style={{ color: 'var(--primary)', flexShrink: 0 }} />

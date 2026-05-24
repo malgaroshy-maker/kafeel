@@ -175,5 +175,22 @@ describe('Financial Engine — calculateMurabaha', () => {
       expect(result.downPayment).toBe(0)
       expect(result.monthlyInstallment).toBeCloseTo(75400 / 96, 2)
     })
+
+    it('rounds downPayment up to nearest 50 LYD and generates correct accountingNote', () => {
+      // Let's create an input where downPayment is not a multiple of 50
+      // Car price = 95230, Margin = 16% => total = 110466.8
+      // Salary = 2515, Deduction = 0.35 => maxInstallment = 880.25 => capacity = 84504
+      // raw downpayment = 110466.8 - 84504 = 25962.8
+      // rounded downpayment should be 26000 (diff = 26000 - 25962.8 = 37.20)
+      const result = calculateMurabaha({
+        carPrice: 95230,
+        bankCeiling: 120000,
+        netSalary: 2515,
+        marginRate: 0.16,
+        deductionRate: 0.35
+      })!
+      expect(result.downPayment).toBe(26000)
+      expect(result.accountingNote).toContain('تم تقريب الدفعة لأقرب 50 د.ل بمقدار زيادة قدرها 37.20')
+    })
   })
 })

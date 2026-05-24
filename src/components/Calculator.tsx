@@ -461,6 +461,21 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, showSa
                   }}>
                     {results.downPayment > 0 ? `${fmt(results.downPayment)} د.ل` : 'لا توجد دفعة أولى'}
                   </span>
+                  {results.accountingNote && (
+                    <div style={{
+                      fontSize: '0.82rem',
+                      color: 'var(--text-secondary)',
+                      marginTop: '0.5rem',
+                      background: 'rgba(255,255,255,0.02)',
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '6px',
+                      border: '1px dashed var(--glass-border)',
+                      textAlign: 'center',
+                      width: '100%'
+                    }}>
+                      📝 {results.accountingNote}
+                    </div>
+                  )}
                 </div>
               </div>
 

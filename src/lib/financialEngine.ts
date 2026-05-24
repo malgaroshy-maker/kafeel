@@ -33,6 +33,7 @@ export interface CalcResult {
   totalRepayment: number        // actualBankRepayment
   profitAmount: number          // bankProfit
   isOverCapacity: boolean       // maxFundingCapacity < bankCeiling
+  accountingNote: string        // Note about downpayment rounding
 }
 
 export function calculateMurabaha(input: CalcInput): CalcResult | null {
@@ -61,7 +62,16 @@ export function calculateMurabaha(input: CalcInput): CalcResult | null {
 
   // 6. Down Payment = Excess over ceiling + Salary gap total (capped at total value)
   const rawDownPayment = excessValue + salaryGapTotal
-  const debt = Math.min(totalMurabahaValue, rawDownPayment)
+  const debtRaw = Math.min(totalMurabahaValue, rawDownPayment)
+
+  // Rounding down payment up to the nearest 50 LYD
+  const roundedDownPayment = Math.ceil(debtRaw / 50) * 50
+  const debt = Math.min(totalMurabahaValue, roundedDownPayment)
+  const roundingDifference = debt - debtRaw
+
+  const accountingNote = roundingDifference > 0
+    ? `تم تقريب الدفعة لأقرب 50 د.ل بمقدار زيادة قدرها ${roundingDifference.toFixed(2)} د.ل لتسهيل المعاملة.`
+    : 'الدفعة مسجلة بدون تقريب إضافي.';
 
   // 7. Actual bank repayment (total repayment including profit)
   const totalRepayment = totalMurabahaValue - debt
@@ -98,6 +108,7 @@ export function calculateMurabaha(input: CalcInput): CalcResult | null {
     debt,
     totalRepayment,
     profitAmount,
-    isOverCapacity
+    isOverCapacity,
+    accountingNote
   }
 }

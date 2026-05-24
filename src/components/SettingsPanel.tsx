@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Lock, Eye, EyeOff, CheckCircle, AlertTriangle, Moon, Sun, Shield, Palette } from 'lucide-react';
+import { Lock, Eye, EyeOff, CheckCircle, AlertTriangle, Moon, Sun, Shield, Palette, ArrowLeftRight, Check, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface SettingsPanelProps {
@@ -32,11 +32,107 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onThemeChange }) => {
   const [officeSettingsError, setOfficeSettingsError] = useState('');
   const [officeSettingsSuccess, setOfficeSettingsSuccess] = useState('');
 
+  // Transfer requests state
+  const [incomingTransfers, setIncomingTransfers] = useState<any[]>([]);
+  const [outgoingTransfers, setOutgoingTransfers] = useState<any[]>([]);
+  const [loadingTransfers, setLoadingTransfers] = useState(false);
+
   useEffect(() => {
     if (isManager && officeId) {
       fetchOfficeSettings();
+      fetchTransferRequests();
     }
   }, [isManager, officeId]);
+
+  const fetchTransferRequests = async () => {
+    if (!officeId) return;
+    setLoadingTransfers(true);
+    try {
+      // 1. Fetch Incoming (from_office_id = officeId)
+      const { data: incoming, error: incError } = await supabase
+        .from('customer_transfers')
+        .select(`
+          id,
+          customer_id,
+          status,
+          created_at,
+          customer:customer_id(name, national_id),
+          to_office:to_office_id(name)
+        `)
+        .eq('from_office_id', officeId)
+        .order('created_at', { ascending: false });
+
+      if (incError) throw incError;
+      setIncomingTransfers(incoming || []);
+
+      // 2. Fetch Outgoing (to_office_id = officeId)
+      const { data: outgoing, error: outError } = await supabase
+        .from('customer_transfers')
+        .select(`
+          id,
+          customer_id,
+          status,
+          created_at,
+          customer:customer_id(name, national_id),
+          from_office:from_office_id(name)
+        `)
+        .eq('to_office_id', officeId)
+        .order('created_at', { ascending: false });
+
+      if (outError) throw outError;
+      setOutgoingTransfers(outgoing || []);
+    } catch (err) {
+      console.error('Error fetching transfers:', err);
+    } finally {
+      setLoadingTransfers(false);
+    }
+  };
+
+  const handleApproveTransfer = async (transferId: string, customerId: string, targetOfficeId: string) => {
+    if (!window.confirm('هل أنت متأكد من الموافقة على نقل ملف الزبون؟')) return;
+    try {
+      // 1. Update customer office_id
+      const { error: custError } = await supabase
+        .from('customers')
+        .update({ office_id: targetOfficeId })
+        .eq('id', customerId);
+
+      if (custError) throw custError;
+
+      // 2. Update transfer status
+      const { error: transferError } = await supabase
+        .from('customer_transfers')
+        .update({ status: 'APPROVED' })
+        .eq('id', transferId);
+
+      if (transferError) throw transferError;
+
+      alert('تمت الموافقة على الطلب ونقل ملف الزبون بنجاح!');
+      fetchTransferRequests();
+    } catch (err: any) {
+      console.error('Error approving transfer:', err);
+      alert(`فشل قبول الطلب: ${err.message || 'خطأ غير معروف'}`);
+    }
+  };
+
+  const handleRejectTransfer = async (transferId: string) => {
+    if (!window.confirm('هل أنت متأكد من رفض نقل ملف الزبون؟')) return;
+    try {
+      const { error } = await supabase
+        .from('customer_transfers')
+        .update({ status: 'REJECTED' })
+        .eq('id', transferId);
+
+      if (error) throw error;
+
+      alert('تم رفض طلب نقل الزبون.');
+      fetchTransferRequests();
+    } catch (err: any) {
+      console.error('Error rejecting transfer:', err);
+      alert(`فشل رفض الطلب: ${err.message || 'خطأ غير معروف'}`);
+    }
+  };
+
 
   const fetchOfficeSettings = async () => {
     setLoadingOfficeSettings(true);
@@ -445,6 +541,132 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onThemeChange }) => {
         )}
 
       </div>
+
+      {/* Transfer Requests Section (Manager only) */}
+      {isManager && (
+        <div className="glass" style={{ marginTop: '2rem', padding: '1.5rem', borderRadius: '16px', border: '1px solid var(--glass-border)', background: 'var(--surface-hover)' }}>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1.5rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <ArrowLeftRight size={22} style={{ color: 'var(--accent)' }} />
+            طلبات نقل الزبائن المكررة
+          </h3>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>
+            
+            {/* Incoming Requests */}
+            <div>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-secondary)' }}>
+                📥 طلبات نقل واردة (بانتظار موافقتك للإفراج عن الزبون)
+              </h4>
+
+              {loadingTransfers ? (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem' }}>
+                  <span className="animate-spin inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full text-primary"></span>
+                </div>
+              ) : incomingTransfers.length === 0 ? (
+                <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-tertiary)', background: 'var(--surface)', borderRadius: '12px', fontSize: '0.85rem' }}>
+                  لا توجد طلبات نقل واردة حالياً.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {incomingTransfers.map((req) => (
+                    <div key={req.id} className="glass" style={{ padding: '1rem', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--glass-border)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                        <div>
+                          <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', fontSize: '0.9rem' }}>{req.customer?.name}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>الرقم الوطني: {req.customer?.national_id}</div>
+                        </div>
+                        <span style={{ 
+                          fontSize: '0.7rem', 
+                          padding: '0.2rem 0.5rem', 
+                          borderRadius: '4px', 
+                          fontWeight: 'bold',
+                          background: req.status === 'PENDING' ? 'rgba(245, 158, 11, 0.15)' : req.status === 'APPROVED' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                          color: req.status === 'PENDING' ? 'var(--warning)' : req.status === 'APPROVED' ? '#10b981' : '#ef4444',
+                        }}>
+                          {req.status === 'PENDING' ? 'قيد الانتظار' : req.status === 'APPROVED' ? 'تم القبول' : 'مرفوض'}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+                        المكتب الطالب: <strong style={{ color: 'var(--text-primary)' }}>{req.to_office?.name}</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>
+                          تاريخ الطلب: {new Date(req.created_at).toLocaleDateString('ar-LY')}
+                        </span>
+                        {req.status === 'PENDING' && (
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button 
+                              onClick={() => handleApproveTransfer(req.id, req.customer_id, req.to_office_id || '')}
+                              style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.3rem 0.6rem', background: '#10b981', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer' }}
+                            >
+                              <Check size={14} /> موافقة
+                            </button>
+                            <button 
+                              onClick={() => handleRejectTransfer(req.id)}
+                              style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.3rem 0.6rem', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer' }}
+                            >
+                              <X size={14} /> رفض
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Outgoing Requests */}
+            <div>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-secondary)' }}>
+                📤 طلبات نقل صادرة (مرسلة للمكاتب الأخرى لاعتمادها)
+              </h4>
+
+              {loadingTransfers ? (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem' }}>
+                  <span className="animate-spin inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full text-primary"></span>
+                </div>
+              ) : outgoingTransfers.length === 0 ? (
+                <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-tertiary)', background: 'var(--surface)', borderRadius: '12px', fontSize: '0.85rem' }}>
+                  لا توجد طلبات نقل صادرة حالياً.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {outgoingTransfers.map((req) => (
+                    <div key={req.id} className="glass" style={{ padding: '1rem', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--glass-border)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                        <div>
+                          <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', fontSize: '0.9rem' }}>{req.customer?.name}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>الرقم الوطني: {req.customer?.national_id}</div>
+                        </div>
+                        <span style={{ 
+                          fontSize: '0.7rem', 
+                          padding: '0.2rem 0.5rem', 
+                          borderRadius: '4px', 
+                          fontWeight: 'bold',
+                          background: req.status === 'PENDING' ? 'rgba(245, 158, 11, 0.15)' : req.status === 'APPROVED' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                          color: req.status === 'PENDING' ? 'var(--warning)' : req.status === 'APPROVED' ? '#10b981' : '#ef4444',
+                        }}>
+                          {req.status === 'PENDING' ? 'قيد الانتظار' : req.status === 'APPROVED' ? 'تم القبول' : 'مرفوض'}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+                        المكتب الحالي: <strong style={{ color: 'var(--text-primary)' }}>{req.from_office?.name}</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>
+                          تاريخ الطلب: {new Date(req.created_at).toLocaleDateString('ar-LY')}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );

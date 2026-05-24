@@ -3,6 +3,7 @@ import { Upload, FileCheck, Image as ImageIcon, Loader2, Send, User, X, FileText
 import { compressImage } from '../utils/imageCompression'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { maskPhone } from '../utils/masking'
 
 interface DocItem {
   label: string
@@ -35,7 +36,8 @@ const formatSize = (bytes: number) => {
 }
 
 export default function DocumentUploader({ customerId, transactionId }: Props) {
-  const { officeId } = useAuth()
+  const { officeId, isManager, isAccountant, isAdmin, role } = useAuth()
+  const showFullPhone = isManager || isAccountant || isAdmin || role === 'admin';
   const [customers, setCustomers] = useState<{ id: string; name: string; national_id: string; phone: string }[]>([])
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(customerId || null)
   const [isCustomerSelectOpen, setIsCustomerSelectOpen] = useState(false)
@@ -449,7 +451,7 @@ export default function DocumentUploader({ customerId, transactionId }: Props) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <User size={16} style={{ color: 'var(--primary)' }} />
               <span style={{ fontWeight: 500 }}>
-                {customerName ? `${customerName} (${customers.find(c => c.id === selectedCustomerId)?.phone || 'معرّف الزبون'})` : 'اختر زبوناً للبدء في إدارة ملفاته...'}
+                {customerName ? `${customerName} (${showFullPhone ? (customers.find(c => c.id === selectedCustomerId)?.phone || 'معرّف الزبون') : maskPhone(customers.find(c => c.id === selectedCustomerId)?.phone)})` : 'اختر زبوناً للبدء في إدارة ملفاته...'}
               </span>
             </div>
             <ChevronDown size={16} style={{ opacity: 0.7 }} />
@@ -501,7 +503,7 @@ export default function DocumentUploader({ customerId, transactionId }: Props) {
                   >
                     <div>
                       <div style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{c.name}</div>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginTop: '0.2rem' }}>هاتف: {c.phone} | وظيفي: {c.national_id}</div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginTop: '0.2rem' }}>هاتف: {showFullPhone ? c.phone : maskPhone(c.phone)} | وظيفي: {c.national_id}</div>
                     </div>
                     {selectedCustomerId === c.id && (
                       <span style={{ fontSize: '0.8rem', color: 'var(--success)', fontWeight: 'bold' }}>✓ الحالي</span>

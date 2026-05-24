@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { Search, User, Phone, Building2, Trash2, Clock, Plus, AlertCircle, RefreshCw, Clipboard, Check, BookOpen } from 'lucide-react'
+import { maskPhone } from '../utils/masking'
 
 interface Workplace {
   id: string
@@ -97,7 +98,8 @@ CREATE POLICY "Users can INSERT own office potential logs"
     WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));`;
 
 export default function PotentialCustomers({ onConvert }: Props) {
-  const { officeId, isManager, user } = useAuth()
+  const { officeId, isManager, user, isAccountant, isAdmin, role } = useAuth()
+  const showFullPhone = isManager || isAccountant || isAdmin || role === 'admin';
   const [customers, setCustomers] = useState<PotentialCustomer[]>([])
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [rejectedTransactions, setRejectedTransactions] = useState<any[]>([])
@@ -877,7 +879,7 @@ export default function PotentialCustomers({ onConvert }: Props) {
                     <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', color: 'var(--text-secondary)', background: 'var(--surface-card)', padding: '0.25rem 0.6rem', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
                         <Phone size={11} style={{ color: 'var(--primary)', flexShrink: 0 }} />
-                        <span>{customer.phone || '—'}</span>
+                        <span>{showFullPhone ? (customer.phone || '—') : maskPhone(customer.phone)}</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', color: 'var(--text-secondary)', background: 'var(--surface-card)', padding: '0.25rem 0.6rem', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
                         <Building2 size={11} style={{ color: 'var(--primary)', flexShrink: 0 }} />

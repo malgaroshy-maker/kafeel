@@ -6,6 +6,8 @@ import {
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useRealtimeMatches } from '../hooks/useRealtimeMatches'
+import { useAuth } from '../contexts/AuthContext'
+import { maskPhone } from '../utils/masking'
 
 // Operations Monitor sees masked/relevant logistics data
 interface MonitorEntry {
@@ -62,6 +64,8 @@ export default function MonitorDashboard({ activeSubTab }: MonitorDashboardProps
   const [selectedForLink, setSelectedForLink] = useState<string[]>([])
   const [linkResult, setLinkResult] = useState<string | null>(null)
   const { isConnected } = useRealtimeMatches()
+  const { isManager, isAccountant, isAdmin, role } = useAuth()
+  const showFullPhone = isManager || isAccountant || isAdmin || role === 'admin';
 
   // 1. Delivery & Logistics Pipeline States (Can be modified by user and persisted in LocalStorage for demo/future table mapping)
   const [deliveryStatuses, setDeliveryStatuses] = useState<Record<string, 'processing' | 'ready' | 'shipping' | 'delivered'>>(() => {
@@ -385,7 +389,7 @@ export default function MonitorDashboard({ activeSubTab }: MonitorDashboardProps
                         {urgent && <span style={{ marginRight: '0.5rem', background: '#ef4444', color: '#fff', fontSize: '0.65rem', padding: '0.1rem 0.35rem', borderRadius: '4px', fontWeight: 'bold' }}>متأخر ⚠️</span>}
                       </td>
                       {showSensitive && <td className="cell-sensitive">{entry._salary ? `${entry._salary.toLocaleString('ar-LY')} د.ل` : 'غير متوفر'}</td>}
-                      {showSensitive && <td className="cell-sensitive mono">{entry._customerPhone || 'لا يوجد'}</td>}
+                      {showSensitive && <td className="cell-sensitive mono">{showFullPhone ? (entry._customerPhone || 'لا يوجد') : maskPhone(entry._customerPhone)}</td>}
                       <td>
                         <span className={`badge ${entry.currentGuarantors >= entry.guarantorsNeeded ? 'badge-success' : 'badge-warning'}`}>
                           {entry.currentGuarantors}/{entry.guarantorsNeeded} ضامن

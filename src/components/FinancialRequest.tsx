@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Coins, FileText, CheckCircle, XCircle, AlertTriangle, ArrowRight, ChevronDown } from 'lucide-react';
+import { maskPhone } from '../utils/masking';
 
 interface Props {
   beneficiaryId?: string | null;
@@ -9,7 +10,8 @@ interface Props {
 }
 
 export default function FinancialRequest({ beneficiaryId, onProceedToDocs }: Props) {
-  const { isManager, isStaff, officeId } = useAuth();
+  const { isManager, isStaff, isAccountant, isAdmin, role, officeId } = useAuth();
+  const showFullPhone = isManager || isAccountant || isAdmin || role === 'admin';
   const [requests, setRequests] = useState<any[]>([]);
   const [useFallback, setUseFallback] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -364,7 +366,7 @@ CREATE POLICY "Only managers can DELETE own financial requests"
                           }}
                           style={{ padding: '0.5rem 1rem', cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.02)' }}
                         >
-                          {c.name} ({c.phone})
+                          {c.name} ({showFullPhone ? c.phone : maskPhone(c.phone)})
                         </div>
                       ))}
                     </div>

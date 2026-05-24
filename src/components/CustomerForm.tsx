@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import { Save, RotateCcw, ChevronDown, ShieldCheck, User, Clock } from 'lucide-react'
+import { Save, RotateCcw, ChevronDown, ShieldCheck, User, Clock, AlertTriangle } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 
@@ -239,6 +239,36 @@ const CustomerFields = ({
                       {banks.filter(b => b.name.toLowerCase().includes(bankSearchTerm.toLowerCase())).length === 0 && (
                         <div className="searchable-no-results">لا توجد نتائج</div>
                       )}
+                      {bankSearchTerm.trim() && !banks.some(b => b.name.toLowerCase() === bankSearchTerm.trim().toLowerCase()) && (
+                        <div 
+                          className="searchable-option add-new-option" 
+                          style={{ color: 'var(--primary, #bf953f)', borderTop: '1px dashed rgba(255,255,255,0.1)', fontWeight: 'bold' }}
+                          onClick={async (e) => {
+                            e.stopPropagation()
+                            try {
+                              const newName = bankSearchTerm.trim()
+                              const { data: newBank, error } = await supabase
+                                .from('banks')
+                                .insert({ name: newName })
+                                .select()
+                                .single()
+                              if (error) throw error
+                              if (newBank) {
+                                setBanks(prev => [...prev, newBank].sort((a, b) => a.name.localeCompare(b.name)))
+                                onChange('bankId', newBank.id)
+                                onChange('branchId', '')
+                                setIsBankOpen(false)
+                                setBankSearchTerm('')
+                              }
+                            } catch (err: any) {
+                              console.error(err)
+                              alert(`فشل إدخال المصرف الجديد: ${err.message || 'خطأ غير معروف'}`)
+                            }
+                          }}
+                        >
+                          ➕ إضافة مصرف جديد: "{bankSearchTerm.trim()}"
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -283,6 +313,35 @@ const CustomerFields = ({
                       ))}
                       {selectedBankBranches.filter(br => br.name.toLowerCase().includes(branchSearchTerm.toLowerCase())).length === 0 && (
                         <div className="searchable-no-results">لا توجد نتائج</div>
+                      )}
+                      {branchSearchTerm.trim() && !selectedBankBranches.some(br => br.name.toLowerCase() === branchSearchTerm.trim().toLowerCase()) && (
+                        <div 
+                          className="searchable-option add-new-option" 
+                          style={{ color: 'var(--primary, #bf953f)', borderTop: '1px dashed rgba(255,255,255,0.1)', fontWeight: 'bold' }}
+                          onClick={async (e) => {
+                            e.stopPropagation()
+                            try {
+                              const newName = branchSearchTerm.trim()
+                              const { data: newBranch, error } = await supabase
+                                .from('branches')
+                                .insert({ bank_id: data.bankId, name: newName })
+                                .select()
+                                .single()
+                              if (error) throw error
+                              if (newBranch) {
+                                setSelectedBankBranches(prev => [...prev, newBranch].sort((a, b) => a.name.localeCompare(b.name)))
+                                onChange('branchId', newBranch.id)
+                                setIsBranchOpen(false)
+                                setBranchSearchTerm('')
+                              }
+                            } catch (err: any) {
+                              console.error(err)
+                              alert(`فشل إدخال الفرع الجديد: ${err.message || 'خطأ غير معروف'}`)
+                            }
+                          }}
+                        >
+                          ➕ إضافة فرع جديد: "{branchSearchTerm.trim()}"
+                        </div>
                       )}
                     </div>
                   </div>
@@ -394,6 +453,7 @@ export default function CustomerForm({ role: _role = 'beneficiary', onSuccess, i
   const [saved, setSaved] = useState(false)
   const [savedToQueue, setSavedToQueue] = useState(false)
   const [showValidation, setShowValidation] = useState(false)
+  const [duplicateCustomer, setDuplicateCustomer] = useState<any | null>(null)
 
   // Search/Select states for Beneficiary fields
   const [banks, setBanks] = useState<any[]>([])
@@ -551,10 +611,40 @@ export default function CustomerForm({ role: _role = 'beneficiary', onSuccess, i
     return result
   }
 
+  const checkDuplicateNationalId = async (nationalId: string) => {
+    if (!nationalId) return null
+    try {
+      const { data, error } = await supabase
+        .from('customers')
+        .select('id, name, office_id, offices:office_id(name)')
+        .eq('national_id', nationalId)
+        .maybeSingle()
+      if (error) {
+        console.error('Error checking duplicate national_id:', error)
+        return null
+      }
+      return data
+    } catch (err) {
+      console.error(err)
+      return null
+    }
+  }
+
   const handleSave = async () => {
     setShowValidation(true)
+    if (!beneficiary.fullName || !beneficiary.phone || !beneficiary.nationalId || !beneficiary.bankId || !beneficiary.branchId || !beneficiary.workplaceId) {
+      return
+    }
     setLoading(true)
     try {
+      if (beneficiary.nationalId) {
+        const existing = await checkDuplicateNationalId(beneficiary.nationalId)
+        if (existing && existing.office_id !== officeId) {
+          setDuplicateCustomer(existing)
+          setLoading(false)
+          return
+        }
+      }
       // 1. Save Beneficiary
       const ben = await saveCustomer(beneficiary, true)
       if (!ben) throw new Error('Missing beneficiary data')
@@ -586,8 +676,19 @@ export default function CustomerForm({ role: _role = 'beneficiary', onSuccess, i
 
   const handleSaveAndQueue = async () => {
     setShowValidation(true)
+    if (!beneficiary.fullName || !beneficiary.phone || !beneficiary.nationalId || !beneficiary.bankId || !beneficiary.branchId || !beneficiary.workplaceId) {
+      return
+    }
     setLoading(true)
     try {
+      if (beneficiary.nationalId) {
+        const existing = await checkDuplicateNationalId(beneficiary.nationalId)
+        if (existing && existing.office_id !== officeId) {
+          setDuplicateCustomer(existing)
+          setLoading(false)
+          return
+        }
+      }
       // 1. Save Beneficiary
       const ben = await saveCustomer(beneficiary, true)
       if (!ben) throw new Error('Missing beneficiary data')
@@ -772,6 +873,35 @@ export default function CustomerForm({ role: _role = 'beneficiary', onSuccess, i
                       {banks.filter(b => b.name.toLowerCase().includes(bankSearchTerm.toLowerCase())).length === 0 && (
                         <div className="searchable-no-results">لا توجد نتائج</div>
                       )}
+                      {bankSearchTerm.trim() && !banks.some(b => b.name.toLowerCase() === bankSearchTerm.trim().toLowerCase()) && (
+                        <div 
+                          className="searchable-option add-new-option" 
+                          style={{ color: 'var(--primary, #bf953f)', borderTop: '1px dashed rgba(255,255,255,0.1)', fontWeight: 'bold' }}
+                          onClick={async (e) => {
+                            e.stopPropagation()
+                            try {
+                              const newName = bankSearchTerm.trim()
+                              const { data: newBank, error } = await supabase
+                                .from('banks')
+                                .insert({ name: newName })
+                                .select()
+                                .single()
+                              if (error) throw error
+                              if (newBank) {
+                                setBanks(prev => [...prev, newBank].sort((a, b) => a.name.localeCompare(b.name)))
+                                setBeneficiary(prev => ({ ...prev, bankId: newBank.id, branchId: '' }))
+                                setIsBankOpen(false)
+                                setBankSearchTerm('')
+                              }
+                            } catch (err: any) {
+                              console.error(err)
+                              alert(`فشل إدخال المصرف الجديد: ${err.message || 'خطأ غير معروف'}`)
+                            }
+                          }}
+                        >
+                          ➕ إضافة مصرف جديد: "{bankSearchTerm.trim()}"
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -816,6 +946,35 @@ export default function CustomerForm({ role: _role = 'beneficiary', onSuccess, i
                       ))}
                       {selectedBankBranches.filter(br => br.name.toLowerCase().includes(branchSearchTerm.toLowerCase())).length === 0 && (
                         <div className="searchable-no-results">لا توجد نتائج</div>
+                      )}
+                      {branchSearchTerm.trim() && !selectedBankBranches.some(br => br.name.toLowerCase() === branchSearchTerm.trim().toLowerCase()) && (
+                        <div 
+                          className="searchable-option add-new-option" 
+                          style={{ color: 'var(--primary, #bf953f)', borderTop: '1px dashed rgba(255,255,255,0.1)', fontWeight: 'bold' }}
+                          onClick={async (e) => {
+                            e.stopPropagation()
+                            try {
+                              const newName = branchSearchTerm.trim()
+                              const { data: newBranch, error } = await supabase
+                                .from('branches')
+                                .insert({ bank_id: beneficiary.bankId, name: newName })
+                                .select()
+                                .single()
+                              if (error) throw error
+                              if (newBranch) {
+                                setSelectedBankBranches(prev => [...prev, newBranch].sort((a, b) => a.name.localeCompare(b.name)))
+                                setBeneficiary(prev => ({ ...prev, branchId: newBranch.id }))
+                                setIsBranchOpen(false)
+                                setBranchSearchTerm('')
+                              }
+                            } catch (err: any) {
+                              console.error(err)
+                              alert(`فشل إدخال الفرع الجديد: ${err.message || 'خطأ غير معروف'}`)
+                            }
+                          }}
+                        >
+                          ➕ إضافة فرع جديد: "{branchSearchTerm.trim()}"
+                        </div>
                       )}
                     </div>
                   </div>
@@ -1040,6 +1199,59 @@ export default function CustomerForm({ role: _role = 'beneficiary', onSuccess, i
           <RotateCcw size={20} />
         </button>
       </div>
+
+      {/* Duplicate Customer Transfer Request Modal */}
+      {duplicateCustomer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-950/85 backdrop-blur-sm">
+          <div className="glass max-w-md w-full p-6 rounded-2xl border border-white/10 shadow-2xl text-center" style={{ background: 'var(--surface-hover)', backdropFilter: 'blur(12px)' }}>
+            <div className="w-16 h-16 mx-auto mb-4 bg-warning/20 text-warning rounded-full flex items-center justify-center">
+              <AlertTriangle size={32} style={{ color: 'var(--warning, #f59e0b)' }} />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">رقم وطني مسجل مسبقاً!</h3>
+            <p className="text-sm text-gray-300 mb-6 leading-relaxed">
+              الرقم الوطني <strong className="text-white">{beneficiary.nationalId}</strong> مسجل مسبقاً باسم <strong className="text-primary" style={{ color: 'var(--primary, #bf953f)' }}>{duplicateCustomer.name}</strong> لدى مكتب <strong className="text-white">{duplicateCustomer.offices?.name || 'مكتب آخر'}</strong>.
+              <br /><br />
+              لمنع التكرار، لا يمكن إضافته مجدداً. هل ترغب في تقديم طلب لنقل ملف الزبون إلى مكتبك؟
+            </p>
+            <div className="flex gap-3">
+              <button 
+                className="btn btn-primary flex-1 py-3 text-sm font-semibold"
+                onClick={async () => {
+                  setLoading(true)
+                  try {
+                    const { error } = await supabase
+                      .from('customer_transfers')
+                      .insert({
+                        customer_id: duplicateCustomer.id,
+                        from_office_id: duplicateCustomer.office_id,
+                        to_office_id: officeId,
+                        status: 'PENDING'
+                      })
+                    if (error) throw error
+                    alert('تم تقديم طلب النقل بنجاح! سيتم إخطار مدير المكتب لاعتماده.')
+                    setDuplicateCustomer(null)
+                  } catch (err: any) {
+                    console.error(err)
+                    alert(`فشل تقديم طلب النقل: ${err.message || 'خطأ غير معروف'}`)
+                  } finally {
+                    setLoading(false)
+                  }
+                }}
+                disabled={loading}
+              >
+                تقديم طلب نقل زبون
+              </button>
+              <button 
+                className="btn btn-ghost flex-1 py-3 text-sm font-semibold border border-white/10"
+                onClick={() => setDuplicateCustomer(null)}
+                disabled={loading}
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
