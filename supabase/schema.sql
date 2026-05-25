@@ -117,6 +117,8 @@ CREATE TABLE IF NOT EXISTS public.transactions (
     verification_status TEXT DEFAULT 'pending' CHECK (verification_status IN ('pending', 'verified', 'rejected')),
     rejection_reason TEXT,
     guarantors_needed INTEGER NOT NULL DEFAULT 1,
+    has_notary_pledge BOOLEAN DEFAULT false,
+    market_sale_price NUMERIC DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -157,6 +159,10 @@ CREATE TABLE IF NOT EXISTS public.settlements (
         CHECK (status IN ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'EXPIRED')),
     notes TEXT,
     check_image_url TEXT,
+    shipping_cost NUMERIC DEFAULT 0,
+    staff_commission NUMERIC DEFAULT 0,
+    promissory_notes_count INTEGER DEFAULT 0,
+    promissory_notes_details TEXT,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -187,10 +193,13 @@ CREATE POLICY "Public read workplaces"
     USING (true);
 
 -- ---- OFFICES ----
-CREATE POLICY "Public read offices"
+CREATE POLICY "Offices can SELECT own details"
     ON public.offices FOR SELECT
-    TO public
-    USING (true);
+    TO authenticated
+    USING (
+        id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid)
+        OR (auth.jwt() -> 'app_metadata' ->> 'role') IN ('admin', 'monitor')
+    );
 
 CREATE POLICY "Admins have full access to offices"
     ON public.offices FOR ALL

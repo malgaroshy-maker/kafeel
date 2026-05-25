@@ -3200,4 +3200,313 @@ h1, h2, h3, h4, h5, h6 {
   transform: scale(1.1) !important;
 }
 
+/* ============================================================================
+   MOBILE RESPONSIVE VIEW OPTIMIZATIONS (SCREENS <= 768PX)
+   ============================================================================ */
+@media (max-width: 768px) {
+  /* --- App Shell Header (Office & Monitor Dashboards) --- */
+  header[style*="linear-gradient"],
+  .app-header {
+    padding: 0.75rem 1rem !important;
+  }
+  header[style*="linear-gradient"] .header-inner,
+  .app-header .header-inner {
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+    align-items: center !important;
+    text-align: center !important;
+    width: 100% !important;
+  }
+  header[style*="linear-gradient"] .brand,
+  .app-header .brand {
+    flex-direction: column !important;
+    gap: 0.4rem !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+  header[style*="linear-gradient"] .brand img,
+  .app-header .brand img,
+  .app-header .brand-img {
+    height: 44px !important;
+    width: auto !important;
+  }
+  header[style*="linear-gradient"] .office-name-header {
+    margin-right: 0 !important;
+    margin-top: 0.25rem !important;
+  }
+  
+  /* Header action button group (Theme, Settings, Logout) */
+  header[style*="linear-gradient"] div[style*="display: flex"],
+  .app-header div[style*="display: flex"] {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+    flex-wrap: wrap !important;
+  }
+  
+  /* Navigation Tab Pills in MonitorLayout Header */
+  header[style*="linear-gradient"] div[style*="gap: 0.35rem"] {
+    width: 100% !important;
+    justify-content: center !important;
+    margin: 0.5rem 0 !important;
+  }
+
+  /* --- Tab Navigation (Side scrolling on mobile) --- */
+  .tab-nav {
+    top: 0 !important;
+    position: sticky !important;
+  }
+  .tab-nav-inner {
+    padding: 0.4rem 0.75rem !important;
+    gap: 0.35rem !important;
+    scrollbar-width: none;
+  }
+  .tab-nav-inner::-webkit-scrollbar {
+    display: none;
+  }
+  .tab-btn {
+    padding: 0.65rem 0.95rem !important;
+    font-size: 0.82rem !important;
+    border-radius: var(--radius-sm) !important;
+    min-height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+  }
+
+  /* --- Landing Page Mobile Optimizations --- */
+  .logo-large {
+    width: 100% !important;
+    max-width: 260px !important;
+    height: auto !important;
+    margin-bottom: 1.25rem !important;
+  }
+  .hero-section {
+    padding: 3.5rem 0 1.5rem !important;
+  }
+  .hero-title {
+    font-size: 1.75rem !important;
+    line-height: 1.3 !important;
+    margin-bottom: 1rem !important;
+  }
+  .hero-subtitle {
+    font-size: 0.98rem !important;
+    margin-bottom: 1.75rem !important;
+    padding: 0 0.5rem !important;
+  }
+  .hero-btns {
+    flex-direction: column !important;
+    gap: 0.85rem !important;
+    width: 100% !important;
+    padding: 0 1rem !important;
+  }
+  .hero-btns .btn {
+    width: 100% !important;
+    justify-content: center !important;
+    min-height: 46px !important;
+  }
+  .features-section {
+    padding: 2.5rem 0 1rem !important;
+  }
+  .features-section > div[style*="gridTemplateColumns"] {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+    padding: 0 1rem !important;
+  }
+  .features-section .glass {
+    padding: 1.5rem 1.25rem !important;
+    border-radius: 16px !important;
+  }
+  .section-header {
+    margin-bottom: 2rem !important;
+    padding: 0 1rem !important;
+  }
+  .section-header h2 {
+    font-size: 1.55rem !important;
+  }
+  .section-header p {
+    font-size: 0.925rem !important;
+  }
+
+  /* --- Login & Join Pages --- */
+  .join-page {
+    flex-direction: column !important;
+    padding: 1rem !important;
+    gap: 1.25rem !important;
+    justify-content: flex-start !important;
+  }
+  .join-page .glass[style*="flex: 1 1 280px"] {
+    max-width: 100% !important;
+    width: 100% !important;
+    align-self: center !important;
+    flex: none !important;
+  }
+  .login-card {
+    padding: 2rem 1.25rem !important;
+    border-radius: 16px !important;
+  }
+  .login-logo {
+    width: 120px !important;
+    margin-bottom: 1rem !important;
+  }
+  .login-header {
+    margin-bottom: 1.5rem !important;
+  }
+  .login-title h2 {
+    font-size: 1.35rem !important;
+  }
+  .join-code-input {
+    font-size: 1.35rem !important;
+    letter-spacing: 0.2em !important;
+    min-height: 48px !important;
+  }
+
+  /* --- Touch Targets & Size Standards --- */
+  .btn,
+  .preset-btn,
+  .toggle-btn,
+  .workplace-chip,
+  .btn-icon {
+    min-height: 44px !important;
+  }
+  .home-back-btn, 
+  .home-theme-toggle-btn {
+    width: 44px !important;
+    height: 44px !important;
+    top: 0.85rem !important;
+  }
+  .home-back-btn {
+    left: 0.85rem !important;
+  }
+  .home-theme-toggle-btn {
+    right: 0.85rem !important;
+  }
+  .btn-link {
+    min-height: 44px !important;
+    padding: 8px 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+  
+  /* Agree to terms layout and tap areas */
+  .checkbox-label {
+    font-size: 0.9rem !important;
+    padding: 10px 0 !important;
+    align-items: flex-start !important;
+  }
+  .custom-terms-checkbox,
+  .checkbox-label input[type="checkbox"] {
+    width: 22px !important;
+    height: 22px !important;
+    margin-top: 0 !important;
+  }
+
+  /* --- iOS Zoom & Touch Entry Fields --- */
+  .input-group input[type="text"],
+  .input-group input[type="number"],
+  .input-group input[type="tel"],
+  .input-group input[type="email"],
+  .input-group input[type="password"],
+  .input-group select,
+  .input-group textarea,
+  .workplace-input,
+  .searchable-select-trigger,
+  .searchable-select-search input {
+    font-size: 16px !important; /* Enforces 16px to disable iOS browser auto-zoom */
+    min-height: 46px !important;
+    padding: 0.75rem 1rem !important;
+  }
+
+  /* --- Dashboards, Grids, and Card Spacing --- */
+  .calc-grid,
+  .results-grid,
+  .settlement-grid,
+  .admin-stats,
+  .portals-grid,
+  .bank-management-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+  .highlight-card,
+  .debt-card,
+  .term-info {
+    grid-column: span 1 !important;
+  }
+  
+  /* Form buttons stack vertically */
+  .form-actions {
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+    margin-top: 1.25rem !important;
+    padding-top: 0.85rem !important;
+  }
+  .form-actions .btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  
+  /* Reduce excessive container paddings for larger active viewport area */
+  .app-main {
+    padding: 1rem 0 !important;
+  }
+  .main-inner {
+    padding: 0 0.6rem !important;
+  }
+  .calc-panel, 
+  .customer-form-container, 
+  .doc-uploader-container, 
+  .queue-container, 
+  .monitor-container,
+  .settlement-container,
+  .admin-container,
+  .workplaces-section {
+    padding: 1.15rem 0.85rem !important;
+    border-radius: var(--radius-md) !important;
+  }
+  
+  /* Waiting Queue cards */
+  .queue-card-details {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.5rem !important;
+  }
+  
+  /* Workplaces & Bank setup input stacking */
+  .add-workplace-row {
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+  }
+  .add-workplace-row button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* --- Modals & Overlays --- */
+  .modal-content.terms-modal {
+    max-height: 85vh !important;
+    width: 100% !important;
+    margin: 0 !important;
+    border-radius: var(--radius-md) !important;
+  }
+  .modal-backdrop {
+    padding: 0.65rem !important;
+  }
+  .modal-body.terms-body {
+    padding: 1.1rem !important;
+    font-size: 0.88rem !important;
+  }
+  .modal-footer {
+    padding: 1rem !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+  .modal-footer .btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+
 

@@ -187,6 +187,7 @@ const CustomerFields = ({
                 placeholder="مثال: 2500"
                 value={data.salary}
                 onChange={(e) => onChange('salary', e.target.value)}
+                onFocus={(e) => e.target.select()}
               />
             </div>
 
@@ -811,6 +812,7 @@ export default function CustomerForm({ role: _role = 'beneficiary', onSuccess, i
                 placeholder="مثال: 2500"
                 value={beneficiary.salary}
                 onChange={(e) => setBeneficiary(prev => ({ ...prev, salary: e.target.value }))}
+                onFocus={(e) => e.target.select()}
               />
             </div>
 
@@ -1171,6 +1173,7 @@ export default function CustomerForm({ role: _role = 'beneficiary', onSuccess, i
             className="w-full bg-navy-950/50 border-success/30 text-success-color"
             value={beneficiary.purchaseCost || ''}
             onChange={(e) => setBeneficiary(prev => ({ ...prev, purchaseCost: e.target.value }))}
+            onFocus={(e) => e.target.select()}
           />
         </div>
       )}

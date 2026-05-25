@@ -271,6 +271,15 @@
 - [x] **Solve JWT Caching Drift**: Configured a real-time Postgres table listener on `user_profiles` inside `AuthContext.tsx` to automatically invoke `supabase.auth.refreshSession()` on user role promotion, updating layout access dynamically.
 - [x] **Documentation Alignment**: Synchronized and standardized versions to `v1.5.0` across the entire codebase and test logs.
 
+## Phase 35: Cyber Safeguard Telemetry & Database Schema Hardening (v1.5.1) ✅
+- [x] **Tighten Office RLS Policies**: Replaced public-bypass RLS policy `"Public read offices"` with secure `"Offices can SELECT own details"`, restricting SELECT using `auth.jwt()` tenant isolation to completely prevent `join_code` leaks.
+- [x] **Align `market_sale_price` Schema**: Added the `market_sale_price` column to `transactions_raw` base table and view triggers to prevent crashes during Murabaha saves.
+- [x] **Secure Clipboard Phone Copy**: Fixed `CustomerList.tsx` clipboard copying handler to respect user role masking flags, preventing unauthorized staff from copying raw, unmasked phone numbers.
+- [x] **Add Missing Settlement Columns**: Created migration `22_security_and_schema_alignment.sql` to add `shipping_cost`, `staff_commission`, `promissory_notes_count`, and `promissory_notes_details` directly to the settlements table schema.
+- [x] **Premium UX clear-on-focus**: Applied `onFocus={(e) => e.target.select()}` auto-selection across primary inputs in `Calculator.tsx` and `CustomerForm.tsx`.
+- [x] **Documentation & QA Synchronization**: Updated `test_plan.md`, `test-results.md` and `ROADMAP.md` and certified the release `v1.5.1`.
+
+
 
 
 

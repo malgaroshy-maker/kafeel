@@ -164,6 +164,15 @@ We will systematically save screenshots of key interfaces during testing to `/ar
 - Progressed successfully through Approval, Active, Settlement (`CASH_OUT`), and completed transaction statuses (`COMPLETED`).
 - Verified database multi-tenant isolation and secure cross-office linkages.
 
+### ✅ Phase 10: Cyber Safeguard Telemetry & Database Schema Hardening | المرحلة 10: الأمن السيبراني ومطابقة البيانات (v1.5.1)
+- **Status | الحالة:** ✅ COMPLETED & COMPLIANT | مكتمل ومطابق للمعايير الأمنية والرياضية
+- Secured `public.offices` SELECT policy via JWT tenant isolation, verifying that unauthenticated guest requests to list codes receive `403 Forbidden` errors.
+- Patched phone copying in `CustomerList.tsx` to automatically truncate and mask phone numbers for unauthorized roles (`staff`, `monitor`) during clipboard operations.
+- Added `market_sale_price` column to `transactions_raw` base table, and aligned View + Trigger declarations to support seamless calculation saves without PostgreSQL crashes.
+- Extended the database `settlements` table schema by adding dedicated logistics/commission columns, removing the degraded Javascript fallback loop.
+- Integrated standard `onFocus={(e) => e.target.select()}` clear-on-focus UX in both `Calculator.tsx` and `CustomerForm.tsx`.
+- Verified TypeScript compilation (`0 errors`) and Vitest test suite (`25/25 passed`).
+
 ---
 
 ### 📸 Screenshot Inventory | جرد لقطات الشاشة المحفوظة

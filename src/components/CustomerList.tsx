@@ -627,7 +627,7 @@ export default function CustomerList({ onSelect, onEdit, onDocuments, onSendToQu
                         </span>
                       </div>
                       <div 
-                        onClick={() => handleCopy(customer.phone || '', `${customer.id}-phone`)}
+                        onClick={() => handleCopy(showFullPhone ? (customer.phone || '') : maskPhone(customer.phone), `${customer.id}-phone`)}
                         style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', color: 'var(--text-secondary)', background: 'var(--surface-card)', padding: '0.25rem 0.6rem', borderRadius: '8px', border: '1px solid var(--glass-border)', cursor: 'pointer', transition: 'all 0.2s' }}
                         className="chip-hover-premium"
                         title="انقر لنسخ رقم الهاتف"
@@ -857,7 +857,7 @@ export default function CustomerList({ onSelect, onEdit, onDocuments, onSendToQu
                         </span>
                       </div>
                       <div 
-                        onClick={() => tx.customer?.phone && handleCopy(tx.customer.phone, `${tx.id}-phone`)}
+                        onClick={() => tx.customer?.phone && handleCopy(showFullPhone ? tx.customer.phone : maskPhone(tx.customer.phone), `${tx.id}-phone`)}
                         style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', color: 'var(--text-secondary)', background: 'var(--surface-card)', padding: '0.25rem 0.6rem', borderRadius: '8px', border: '1px solid var(--glass-border)', cursor: 'pointer', transition: 'all 0.2s' }}
                         className="chip-hover-premium"
                         title="انقر لنسخ رقم الهاتف"

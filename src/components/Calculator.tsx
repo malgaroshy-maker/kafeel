@@ -259,6 +259,7 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, showSa
               placeholder="مثال: 2,500"
               value={form.netSalary}
               onChange={(e) => update('netSalary', e.target.value)}
+              onFocus={(e) => e.target.select()}
               tabIndex={1}
             />
             {beneficiaryData && guarantorData && (
@@ -314,6 +315,7 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, showSa
                 update('carPrice', e.target.value)
                 setSelectedCar(null)
               }}
+              onFocus={(e) => e.target.select()}
               tabIndex={4}
             />
           </div>
