@@ -158,7 +158,7 @@ const LandingPage: React.FC = () => {
               منظومة المرابحة الاسلامية للسيارات
             </h1>
             <p className="hero-subtitle" style={{ fontSize: '1.35rem', color: isDark ? '#cbd5e1' : '#334155', fontWeight: 500, marginBottom: '2.5rem', lineHeight: 1.6 }}>
-              الحل السحابي المتكامل والأكثر أماناً لإدارة مكاتب تقسيط ومرابحة السيارات، معززاً بأحدث أدوات التحكم الذكية للfounder والملاك.
+              الحل السحابي المتكامل والأكثر أماناً لإدارة مكاتب تقسيط ومرابحة السيارات، مصمم لتبسيط العمل اليومي وتمكين مدراء المكاتب وموظفي إدخال البيانات بأدوات تحكم ذكية وسلسة.
             </p>
             <div className="hero-btns" style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
               <button 
@@ -194,7 +194,7 @@ const LandingPage: React.FC = () => {
         <section className="features-section" style={{ padding: '5rem 0 2rem' }}>
           <div className="section-header" style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
             <h2 style={{ fontSize: '2.35rem', fontWeight: 900, color: isDark ? '#ffffff' : '#0f172a', marginBottom: '0.85rem' }}>لماذا يثق أصحاب مكاتب السيارات في منظومة كفيل؟</h2>
-            <p style={{ fontSize: '1.15rem', color: isDark ? '#94a3b8' : '#475569', maxWidth: '700px', margin: '0 auto', lineHeight: 1.6 }}>أقوى الأدوات الإدارية المصممة خصيصاً لمكاتب تقسيط وبيع السيارات بموثوقية مطلقة وسهولة متناهية تريح بالك وتضمن حقوقك.</p>
+            <p style={{ fontSize: '1.15rem', color: isDark ? '#94a3b8' : '#475569', maxWidth: '700px', margin: '0 auto', lineHeight: 1.6 }}>أقوى الأدوات الإدارية المصممة خصيصاً لمكاتب تقسيط وبيع السيارات بموثوقية مطلقة وسهولة متناهية تضمن السرية التامة والأمان المطلق لبياناتكم وأرباحكم.</p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2.5rem' }}>

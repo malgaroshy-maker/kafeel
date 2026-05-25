@@ -3,6 +3,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage'
 import { Save, RotateCcw, ChevronDown, ShieldCheck, User, Clock, AlertTriangle } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
+import { logAction } from '../utils/auditLogger'
 
 interface Workplace {
   id: string
@@ -443,7 +444,7 @@ const CustomerFields = ({
 }
 
 export default function CustomerForm({ role: _role = 'beneficiary', onSuccess, initialData }: Props) {
-  const { role: userRole, officeId } = useAuth()
+  const { role: userRole, officeId, displayName, user } = useAuth()
   const [beneficiary, setBeneficiary] = useLocalStorage<CustomerDraft>(`kafeel_customer_beneficiary_draft`, emptyDraft)
   const [guarantor1, setGuarantor1] = useLocalStorage<CustomerDraft>(`kafeel_customer_guarantor1_draft`, emptyDraft)
   const [guarantor2, setGuarantor2] = useLocalStorage<CustomerDraft>(`kafeel_customer_guarantor2_draft`, emptyDraft)
@@ -582,6 +583,7 @@ export default function CustomerForm({ role: _role = 'beneficiary', onSuccess, i
 
     let query = supabase.from('customers')
     let result;
+    const isUpdate = !!formData.id;
 
     if (formData.id) {
       // If we have an existing ID, update by ID
@@ -607,6 +609,22 @@ export default function CustomerForm({ role: _role = 'beneficiary', onSuccess, i
         .single()
       if (error) throw error
       result = data
+    }
+
+    // Log the creation or update in the security audit logs
+    if (officeId && result) {
+      logAction({
+        officeId,
+        userId: user?.id,
+        userName: displayName || user?.email || 'موظف المكتب',
+        action: isUpdate ? 'EDIT_CUSTOMER' : 'CREATE_CUSTOMER',
+        entityType: 'customer',
+        entityId: result.id,
+        details: isUpdate 
+          ? `تعديل ملف ${isBeneficiary ? 'المستفيد' : 'الضامن'}: ${formData.fullName} (الرقم الوطني: ${formData.nationalId})` 
+          : `إنشاء ملف ${isBeneficiary ? 'المستفيد' : 'الضامن'} الجديد: ${formData.fullName} (الرقم الوطني: ${formData.nationalId})`,
+        severity: 'INFO'
+      });
     }
 
     return result

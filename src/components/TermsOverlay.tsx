@@ -4,15 +4,15 @@ import { supabase } from '../lib/supabase';
 import { ShieldCheck, LogOut, Check, AlertCircle } from 'lucide-react';
 
 export function TermsOverlay() {
-  const { user, acceptedTerms, setAcceptedTerms, signOut } = useAuth();
+  const { user, acceptedTerms, setAcceptedTerms, signOut, isLoading } = useAuth();
   const [agree, setAgree] = useState(false);
   const [hasRead, setHasRead] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const bodyRef = useRef<HTMLDivElement>(null);
 
-  // If user is not logged in or has already accepted terms, render nothing
-  if (!user || acceptedTerms) {
+  // If still loading profile, user is not logged in, or has already accepted terms, render nothing
+  if (isLoading || !user || acceptedTerms) {
     return null;
   }
 

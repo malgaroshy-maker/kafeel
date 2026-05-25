@@ -17,7 +17,7 @@
 
 ### Step 1: Calculate Maximum Allowed Installment (الحد الأقصى لقسم الراتب المسموح) ✅
 $$I_{capacity} = S \times D$$
-*حيث $D$ مثبتة دائماً عند 50% (0.50) كحد أقصى للمصرف.*
+*حيث $D$ تمثل نسبة الاستقطاع المسموحة (35% كافتراضي، وترتفع إلى 50% كحد أقصى للمصرف عند توقيع تعهد محرر العقود).*
 
 ### Step 2: Calculate Total Murabaha Value (إجمالي قيمة المرابحة) ✅
 $$V_{murabaha} = P_{car} \times (1 + M)$$
@@ -57,8 +57,8 @@ $$\text{Profit}_{office} = P_{market} - C_{purchase}$$
 
 ### A. Salary & Deduction Validations ✅
 * **No Hardcoded Minimum Salary:** The validation is purely dynamic based on the math above.
-* **Deduction Limit:** Fixed at **50% (0.50)** of net salary for all calculations.
-* **Notary Pledge Checkbox (تعهد محرر عقود):** Acts as a **reminder flag only** and does not alter the mathematical execution, ensuring consistency.
+* **Dynamic Deduction Limit:** Toggled between **35% (0.35)** as a default standard and **50% (0.50)** of net salary.
+* **Notary Pledge Checkbox (تعهد محرر عقود):** Directly modifies the deduction limit parameter to allow 50% salary deductions instead of 35% default, while serving as a legal reminder flag.
 
 ### B. Guarantor Requirements (Workplace Dependent) ✅
 * **Public Sector (تعيين عام):** Requires exactly **1** guarantor from the public sector.

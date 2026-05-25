@@ -67,8 +67,6 @@ export default function Login() {
 
     const role = (data.user?.app_metadata?.role as UserRole) || 'none';
 
-    // If there is a specific URL they tried to visit, and we assume it's valid for their role, go there.
-    // Otherwise, direct them to their default portal.
     if (from && from !== '/') {
       navigate(from, { replace: true });
     } else {
@@ -92,135 +90,119 @@ export default function Login() {
     setLoading(false);
   };
 
-  const adminBroadcasts = broadcasts.filter(b => b.created_by_role === 'admin' || (!b.created_by_role && !b.message.startsWith('DEALER_ALERT:')));
-  const dealerBroadcasts = broadcasts.filter(b => b.created_by_role === 'monitor' || b.created_by_role === 'car_agent' || b.message.startsWith('DEALER_ALERT:'));
-
   return (
-    <div className="join-page" style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: '2rem', padding: '2rem', flexWrap: 'wrap', overflowY: 'auto' }}>
-      <div className="global-watermark"></div>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%', position: 'relative', overflowY: 'auto' }}>
+      {/* Broadcasts Marquee Banner (Top of page, above login box) */}
+      {broadcasts.length > 0 && (() => {
+        const isArabicBroadcast = /[\u0600-\u06FF]/.test(broadcasts.map(b => b.message).join(' '));
+        return (
+          <div style={{ borderBottom: '1px solid var(--glass-border)', padding: '0.65rem 1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'var(--surface)', position: 'relative', overflow: 'hidden', zIndex: 90 }}>
+            <div style={{ overflow: 'hidden', whiteSpace: 'nowrap', flex: 1 }}>
+              <div style={{ display: 'inline-flex', gap: '15rem', animation: `${isArabicBroadcast ? 'marqueeLTR' : 'marqueeRTL'} 35s linear infinite` }}>
+                {broadcasts.map(b => {
+                  const isDealer = b.created_by_role === 'monitor' || b.created_by_role === 'car_agent' || b.message.startsWith('DEALER_ALERT:');
+                  const Icon = isDealer ? Store : ShieldCheck;
+                  const label = isDealer ? 'إعلان الوكيل' : 'إشعار الإدارة';
+                  const badgeColor = isDealer ? 'var(--accent)' : 'var(--error)';
+                  const cleanMessage = isDealer ? b.message.replace(/^DEALER_ALERT:\s*/, '') : b.message;
+                  const dateStr = new Date(b.created_at).toLocaleDateString('en-GB');
 
-      {/* Admin Broadcasts Column (Right in RTL) */}
-      {adminBroadcasts.length > 0 && (
-        <div className="glass" style={{ flex: '1 1 280px', maxWidth: '360px', padding: '1.5rem', borderRight: '4px solid var(--error)', background: 'linear-gradient(to bottom left, rgba(239, 68, 68, 0.05), transparent)', alignSelf: 'stretch' }}>
-          <h3 style={{ color: 'var(--error)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}>
-            <ShieldCheck size={20} /> إشعار مصممي النظام
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '400px', overflowY: 'auto' }} className="custom-scroll">
-            {adminBroadcasts.length > 0 ? adminBroadcasts.map(b => (
-              <div key={b.id} style={{ padding: '0.85rem', background: 'var(--surface)', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.2)' }}>
-                <div style={{ fontSize: '0.75rem', color: 'var(--error)', marginBottom: '0.25rem' }}>
-                  {new Date(b.created_at).toLocaleDateString('en-GB')}
-                </div>
-                <p style={{ margin: 0, color: 'var(--text-primary)', lineHeight: 1.5, fontSize: '0.9rem' }}>{b.message}</p>
+                  return (
+                    <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem', color: badgeColor, fontWeight: 700 }}>
+                      <Icon size={18} />
+                      <span>[{label} - {dateStr}]: {cleanMessage}</span>
+                    </div>
+                  );
+                })}
               </div>
-            )) : (
-              <p style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>لا توجد إشعارات إدارية حالياً</p>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Login Card (Center) */}
-      <div style={{ flex: '0 1 480px', width: '100%' }}>
-        <div className="glass-container" style={{ width: '100%' }}>
-          <div className="glass login-card">
-            <button onClick={() => navigate('/')} className="home-back-btn" title="الرئيسية">
-              <Home size={20} />
-            </button>
-
-            <button onClick={toggleTheme} className="home-theme-toggle-btn" title={theme === 'light' ? 'الوضع الداكن' : 'الوضع المضيء'}>
-              {theme === 'light' ? <Moon size={20} /> : <Sun size={20} style={{ color: '#fbbf24' }} />}
-            </button>
-            <div className="login-header">
-              <img src="/logo.png" alt="كفيل" className="login-logo" />
-              <div className="login-title">
-                <Lock size={24} className="accent-icon" />
-                <h2>تسجيل الدخول</h2>
-              </div>
-              <p className="login-subtitle">أدخل بياناتك للوصول إلى لوحة التحكم</p>
             </div>
+          </div>
+        );
+      })()}
 
-            {error && (
-              <div className="alert alert-error">
-                <AlertCircle size={18} />
-                <span>{error}</span>
-              </div>
-            )}
+      {/* Main Login content wrapper */}
+      <div className="join-page" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at center, var(--bg-secondary), var(--bg-primary))', padding: '0.75rem 2rem' }}>
+        <div className="global-watermark"></div>
 
-            <form onSubmit={handleLogin} className="login-form">
-              <div className="input-group">
-                <label>
-                  <Mail size={16} /> البريد الإلكتروني
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@kafeel.ly"
-                  dir="ltr"
-                />
-              </div>
-
-              <div className="input-group">
-                <label>
-                  <Lock size={16} /> كلمة المرور
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  dir="ltr"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="btn btn-primary btn-lg"
-                disabled={loading}
-              >
-                {loading ? 'جاري تسجيل الدخول...' : 'دخول'}
+        {/* Login Card (Center) */}
+        <div style={{ flex: '0 1 480px', width: '100%' }}>
+          <div className="glass-container" style={{ width: '100%' }}>
+            <div className="glass login-card">
+              <button onClick={() => navigate('/')} className="home-back-btn" title="الرئيسية">
+                <Home size={20} />
               </button>
-            </form>
 
-            {!hideJoin && (
-              <div className="login-footer">
-                <p>
-                  ليس لديك حساب؟{' '}
-                  <button onClick={() => navigate('/join')} className="btn-link">
-                    انضم الآن
-                  </button>
-                </p>
+              <button onClick={toggleTheme} className="home-theme-toggle-btn" title={theme === 'light' ? 'الوضع الداكن' : 'الوضع المضيء'}>
+                {theme === 'light' ? <Moon size={20} /> : <Sun size={20} style={{ color: '#fbbf24' }} />}
+              </button>
+              <div className="login-header">
+                <img src="/logo.png" alt="كفيل" className="login-logo" />
+                <div className="login-title">
+                  <Lock size={24} className="accent-icon" />
+                  <h2>تسجيل الدخول</h2>
+                </div>
+                <p className="login-subtitle">أدخل بياناتك للوصول إلى لوحة التحكم</p>
               </div>
-            )}
+
+              {error && (
+                <div className="alert alert-error">
+                  <AlertCircle size={18} />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleLogin} className="login-form">
+                <div className="input-group">
+                  <label>
+                    <Mail size={16} /> البريد الإلكتروني
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="admin@kafeel.ly"
+                    dir="ltr"
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label>
+                    <Lock size={16} /> كلمة المرور
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    dir="ltr"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-lg"
+                  disabled={loading}
+                >
+                  {loading ? 'جاري تسجيل الدخول...' : 'دخول'}
+                </button>
+              </form>
+
+              {!hideJoin && (
+                <div className="login-footer">
+                  <p>
+                    ليس لديك حساب؟{' '}
+                    <button onClick={() => navigate('/join')} className="btn-link">
+                      انضم الآن
+                    </button>
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Dealer Broadcasts Column (Left in RTL) */}
-      {dealerBroadcasts.length > 0 && (
-        <div className="glass" style={{ flex: '1 1 280px', maxWidth: '360px', padding: '1.5rem', borderRight: '4px solid var(--accent)', background: 'linear-gradient(to bottom left, rgba(191, 149, 63, 0.05), transparent)', alignSelf: 'stretch' }}>
-          <h3 style={{ color: 'var(--accent)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}>
-            <Store size={20} /> إعلانات وكيل السيارات
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '400px', overflowY: 'auto' }} className="custom-scroll">
-            {dealerBroadcasts.length > 0 ? dealerBroadcasts.map(b => (
-              <div key={b.id} style={{ padding: '0.85rem', background: 'var(--surface)', borderRadius: '8px', border: '1px solid rgba(191,149,63,0.2)' }}>
-                <div style={{ fontSize: '0.75rem', color: 'var(--accent)', marginBottom: '0.25rem' }}>
-                  {new Date(b.created_at).toLocaleDateString('en-GB')}
-                </div>
-                <p style={{ margin: 0, color: 'var(--text-primary)', lineHeight: 1.5, fontSize: '0.9rem' }}>
-                  {b.message.startsWith('DEALER_ALERT:') ? b.message.replace(/^DEALER_ALERT:\s*/, '') : b.message}
-                </p>
-              </div>
-            )) : (
-              <p style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>لا توجد إعلانات من الوكيل حالياً</p>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

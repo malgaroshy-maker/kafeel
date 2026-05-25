@@ -20,6 +20,9 @@ interface PotentialCustomer {
   notes: string
   callback_date?: string | null
   created_at: string
+  is_converted?: boolean
+  converted_customer_id?: string | null
+  converted_at?: string | null
 }
 
 interface LogEntry {
@@ -296,7 +299,10 @@ export default function PotentialCustomers({ onConvert }: Props) {
         ...customerPayload,
         salary: customerPayload.salary || 0,
         workplace: workplaceInfo,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        is_converted: false,
+        converted_customer_id: null,
+        converted_at: null
       }
       const updated = [newCustomer, ...customers]
       saveLocalFallbackCustomers(updated)
@@ -884,6 +890,13 @@ export default function PotentialCustomers({ onConvert }: Props) {
                       <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-primary)' }}>{customer.name}</span>
                       <span style={{ background: 'rgba(191, 149, 63, 0.08)', color: 'var(--primary)', border: '1px solid rgba(191, 149, 63, 0.2)', fontSize: '0.7rem', padding: '0.15rem 0.5rem', borderRadius: '8px', fontWeight: 'bold' }}>زبون محتمل</span>
                       
+                      {customer.is_converted && (
+                        <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.3)', fontSize: '0.7rem', padding: '0.15rem 0.5rem', borderRadius: '8px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                          <Check size={11} />
+                          <span>تحول لعميل</span>
+                        </span>
+                      )}
+
                       {overdue && (
                         <span style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.25)', fontSize: '0.7rem', padding: '0.15rem 0.5rem', borderRadius: '8px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                           <span>⚠️ مراجعة متأخرة</span>
@@ -945,27 +958,45 @@ export default function PotentialCustomers({ onConvert }: Props) {
               </div>
               
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <button 
-                  onClick={() => onConvert(customer)}
-                  style={{ 
-                    background: 'rgba(16, 185, 129, 0.1)', 
+                {!customer.is_converted ? (
+                  <button 
+                    onClick={() => onConvert(customer)}
+                    style={{ 
+                      background: 'rgba(16, 185, 129, 0.1)', 
+                      color: '#34d399', 
+                      border: '1px solid rgba(16, 185, 129, 0.25)', 
+                      fontSize: '0.78rem',
+                      padding: '0.45rem 0.9rem',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      transition: 'all 0.2s'
+                    }}
+                    title="تحويل إلى تسجيل زبون نشط بالكامل"
+                  >
+                    <RefreshCw size={14} />
+                    <span>تسجيل كزبون نشط</span>
+                  </button>
+                ) : (
+                  <span style={{ 
                     color: '#34d399', 
-                    border: '1px solid rgba(16, 185, 129, 0.25)', 
-                    fontSize: '0.78rem',
+                    background: 'rgba(16, 185, 129, 0.08)',
+                    border: '1px solid rgba(16, 185, 129, 0.2)',
+                    fontSize: '0.75rem', 
                     padding: '0.45rem 0.9rem',
                     borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.35rem',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    transition: 'all 0.2s'
-                  }}
-                  title="تحويل إلى تسجيل زبون نشط بالكامل"
-                >
-                  <RefreshCw size={14} />
-                  <span>تسجيل كزبون نشط</span>
-                </button>
+                    fontWeight: 'bold', 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: '0.3rem' 
+                  }}>
+                    <Check size={14} />
+                    <span>تم التحويل</span>
+                  </span>
+                )}
 
                 <button 
                   onClick={() => handleDelete(customer)}

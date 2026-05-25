@@ -285,6 +285,12 @@
 - [x] **Requests Board Display Upgrade**: Updated the requests table to render the employee name (`created_by_name`) under the "Applicant" (مقدم الطلب) column, ensuring clear visibility for the Office Manager during approvals.
 - [x] **Documentation & Schema Synchronization**: Updated `test_plan.md`, `test-results.md`, `PLAN.md`, `PRD.md`, `Design.md`, and `ROADMAP.md` to reflect the changes.
 
+## Phase 37: Lead Conversion Tracking & Security Audit Logging (v1.6.0) ✅
+- [x] **Lead Conversion Workflow (`OfficeLayout.tsx`, `PotentialCustomers.tsx`, `CustomerForm.tsx`)**: Implemented dynamic lead conversion tracking by adding `is_converted`, `converted_customer_id`, and `converted_at` to the database schema and using a robust database-first, localStorage-fallback synchronization layer. Added badges and action restrictions in the UI.
+- [x] **Centralized Security Logging (`auditLogger.ts`)**: Designed a global audit logging utility to persist security logs (`audit_logs` table) with structured action categories and a secure fallback system.
+- [x] **Sensitive Action Telemetry (`CustomerList.tsx`, `CustomerForm.tsx`)**: Injected logs targeting copying of sensitive fields (Phone, NID, Transaction ID), customer profile creations/edits, deletions, and queue submissions.
+- [x] **Staff Productivity Metrics (`StaffStats.tsx`)**: Calculated potential leads registered by each operator, tracking individual conversion performance and displaying these statistics via a branch lead conversion KPI card and performance tables.
+
 
 
 

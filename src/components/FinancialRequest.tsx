@@ -28,9 +28,9 @@ export default function FinancialRequest({ beneficiaryId, onProceedToDocs }: Pro
   const [createdBy, setCreatedBy] = useState('');
 
   useEffect(() => {
-    if (displayName || user?.user_metadata?.name) {
-      setCreatedBy(displayName || user?.user_metadata?.name || '');
-    }
+    // Use the account email as the primary applicant identifier
+    const name = user?.email || displayName || user?.user_metadata?.name || '';
+    if (name) setCreatedBy(name);
   }, [displayName, user]);
 
   // Dropdown list for selecting other customers
@@ -174,7 +174,7 @@ CREATE TABLE IF NOT EXISTS public.financial_requests (
       return;
     }
 
-    const creatorName = createdBy.trim() || displayName || user?.user_metadata?.name || user?.email || 'موظف المكتب';
+    const creatorName = createdBy.trim() || user?.email || displayName || user?.user_metadata?.name || 'موظف المكتب';
 
     const newRequest = {
       office_id: officeId,
@@ -526,7 +526,7 @@ CREATE TABLE IF NOT EXISTS public.financial_requests (
                           </span>
                         </td>
                         <td style={{ padding: '0.75rem', color: 'var(--primary-light)', fontWeight: 'bold' }}>{req.amount.toLocaleString()} د.ل</td>
-                        <td style={{ padding: '0.75rem', fontSize: '0.85rem' }}>{req.created_by_name || 'موظف المكتب'}</td>
+                        <td style={{ padding: '0.75rem', fontSize: '0.85rem', direction: 'ltr', textAlign: 'right' }}>{req.created_by_name || 'موظف المكتب'}</td>
                         <td style={{ padding: '0.75rem', fontSize: '0.8rem', color: req.status === 'APPROVED' ? '#10b981' : 'var(--text-secondary)' }}>
                           {displayDate}
                         </td>

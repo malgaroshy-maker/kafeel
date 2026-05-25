@@ -1,12 +1,12 @@
 # 🛡️ Security Hardening & Threat Telemetry Documentation | وثيقة الأمن والتحصين السيبراني
-**Version / الإصدار:** `1.3.5`
+**Version / الإصدار:** `1.6.0`
 **Last Updated / آخر تحديث:** May 2026
 
 ---
 
 ## 🇺🇸 English Version
 
-This document outlines the security architecture, threat logging, and data masking mechanisms implemented in the Kafeel multi-tenant financial application as of version `1.3.5`. 
+This document outlines the security architecture, threat logging, and data masking mechanisms implemented in the Kafeel multi-tenant financial application as of version `1.6.0`. 
 
 The security suite guarantees absolute protection against data leaks, client-side financial parameter tampering, structural crash path leaks, and unauthorized ledger queries.
 
@@ -38,13 +38,19 @@ The security suite guarantees absolute protection against data leaks, client-sid
 * **File Path:** [`src/lib/financialEngine.ts`](file:///c:/Users/masal/OneDrive/Documents/opencode/kafeel/src/lib/financialEngine.ts)
 * **Mechanisms Implemented:**
   * Enforces banking calculations in full compliance with Jumhouria Bank and the Central Bank of Libya.
-  * Completely covered by an extensive 23-scenario Vitest test suite (`npm test`) validating edge-cases, double guarantors, public/classified salary differences, and correct profit accumulation.
+  * Completely covered by an extensive 25-scenario Vitest test suite (`npm test`) validating edge-cases, double guarantors, public/classified salary differences, and correct profit accumulation.
+
+#### 5. 📋 Security Audit Logging & Clipboard Telemetry
+* **File Path:** [`src/components/CustomerList.tsx`](file:///c:/Users/masal/OneDrive/Documents/opencode/kafeel/src/components/CustomerList.tsx), [`src/utils/auditLogger.ts`](file:///c:/Users/masal/OneDrive/Documents/opencode/kafeel/src/utils/auditLogger.ts)
+* **Mechanisms Implemented:**
+  * **Clipboard Auditing:** Automatically logs clipboard copies of sensitive customer information (National IDs, Phone numbers, transaction IDs) along with operator details.
+  * **Lifecycle Action Logs:** Documents customer creations, file updates, queue submissions, and hard-deletions on the `audit_logs` database table (tenant-isolated for Managers/Admins).
 
 ---
 
 ## 🇱🇾 النسخة العربية (Arabic Version)
 
-توثق هذه الصفحة البنية التحتية للحماية والأمن السيبراني، ومراقبة محاولات الاختراق وحجب البيانات الحساسة المطبقة في منظومة **كفيل** المالية ابتداءً من الإصدار الآمن `1.3.5`.
+توثق هذه الصفحة البنية التحتية للحماية والأمن السيبراني، ومراقبة محاولات الاختراق وحجب البيانات الحساسة المطبقة في منظومة **كفيل** المالية ابتداءً من الإصدار الآمن `1.6.0`.
 
 توفر هذه الحزمة الأمنية حصانة كاملة ضد تسريب معلومات الشراء الفعلي، ومكافحة التلاعب بنسب المرابحة، وحجب تفاصيل الأخطاء الفنية عن المستخدمين لمنع الهندسة العكسية.
 
@@ -76,4 +82,10 @@ The security suite guarantees absolute protection against data leaks, client-sid
 * **مسار الملف:** [`src/lib/financialEngine.ts`](file:///c:/Users/masal/OneDrive/Documents/opencode/kafeel/src/lib/financialEngine.ts)
 * **آليات الحماية المطبقة:**
   * صياغة معادلات المرابحة والحدود القصوى والضمانات بشكل مغلق ومحمي.
-  * مغطى بالكامل بـ **23 سيناريو فحص واختبار تلقائي** بمحرك Vitest لضمان الدقة الرياضية وتوافقها مع قوانين الجمهورية والمصرف المركزي الليبي.
+  * مغطى بالكامل بـ **25 سيناريو فحص واختبار تلقائي** بمحرك Vitest لضمان الدقة الرياضية وتوافقها مع قوانين الجمهورية والمصرف المركزي الليبي.
+
+#### 5. 📋 سجل التدقيق الأمني ورصد نسخ البيانات الحساسة
+* **مسار الملف:** [`src/components/CustomerList.tsx`](file:///c:/Users/masal/OneDrive/Documents/opencode/kafeel/src/components/CustomerList.tsx), [`src/utils/auditLogger.ts`](file:///c:/Users/masal/OneDrive/Documents/opencode/kafeel/src/utils/auditLogger.ts)
+* **آليات الحماية المطبقة:**
+  * **سجل نسخ الحافظة التلقائي:** توثيق نسخ البيانات الحساسة فوراً (رقم الهاتف، الرقم الوطني، معرف المعاملة) وتسجيل هوية الفاعل.
+  * **سجل حركة العملاء الحساسة:** رصد وتوثيق عمليات الحذف والإضافة وإرسال المعاملات لقائمة الانتظار في جدول `audit_logs` المعزول على مستوى المكتب.

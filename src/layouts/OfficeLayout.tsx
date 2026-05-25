@@ -47,6 +47,52 @@ const OfficeLayout: React.FC = () => {
   const [docCustomerId, setDocCustomerId] = useState<any>(null);
   const [activeTransactionId, setActiveTransactionId] = useState<string | null>(null);
   const [cameFromRegistration, setCameFromRegistration] = useState(false);
+  const [convertingPotentialCustomerId, setConvertingPotentialCustomerId] = useState<string | null>(null);
+
+  const updateLocalPotentialCustomerConversion = (potentialId: string, customerId: string) => {
+    const key = `kafeel_potential_customers_${officeId}`;
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        const updated = parsed.map((c: any) => {
+          if (c.id === potentialId) {
+            return {
+              ...c,
+              is_converted: true,
+              converted_customer_id: customerId,
+              converted_at: new Date().toISOString()
+            };
+          }
+          return c;
+        });
+        localStorage.setItem(key, JSON.stringify(updated));
+      } catch (e) {
+        console.error("Local storage conversion error:", e);
+      }
+    }
+  };
+
+  const markPotentialCustomerAsConverted = async (potentialId: string, customerId: string) => {
+    try {
+      const { error } = await supabase
+        .from('potential_customers')
+        .update({
+          is_converted: true,
+          converted_customer_id: customerId,
+          converted_at: new Date().toISOString()
+        })
+        .eq('id', potentialId);
+      
+      if (error) {
+        console.warn("Database failed to update conversion, updating local storage...", error);
+        updateLocalPotentialCustomerConversion(potentialId, customerId);
+      }
+    } catch (err) {
+      console.error("Conversion update error:", err);
+      updateLocalPotentialCustomerConversion(potentialId, customerId);
+    }
+  };
   const navigate = useNavigate();
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -551,6 +597,7 @@ const OfficeLayout: React.FC = () => {
           {activeTab === 'potential-customers' && (
             <PotentialCustomers
               onConvert={(customer) => {
+                setConvertingPotentialCustomerId(customer.id);
                 setEditingCustomer({
                   id: '',
                   name: customer.name,
@@ -579,11 +626,17 @@ const OfficeLayout: React.FC = () => {
             <CustomerForm
               role="beneficiary"
               initialData={editingCustomer}
-              onSuccess={(id, gIds) => {
+              onSuccess={async (id, gIds) => {
                 setSelectedBeneficiary(id);
                 if (gIds && gIds.length > 0) {
                   setSelectedGuarantor(gIds[0]); // Primary guarantor
                 }
+                
+                if (convertingPotentialCustomerId) {
+                  await markPotentialCustomerAsConverted(convertingPotentialCustomerId, id);
+                  setConvertingPotentialCustomerId(null);
+                }
+                
                 setEditingCustomer(null);
                 setCameFromRegistration(true);
                 setActiveTab('calculator');

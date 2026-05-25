@@ -51,10 +51,10 @@ PERSONAL_USE | CASH_OUT | EXTERNAL_SALE
 - Fixed term: **96 months** (hardcoded, not user-configurable)
 - Margins: **16%** or **24%** only (toggle buttons)
 - Bank ceiling max: **120,000 LYD**
-- Deduction Limit: Fixed at **50%** (0.50) of net salary for all calculations (Notary pledge toggle is a reminder flag only and does not alter mathematical execution)
+- Deduction Limit: Toggled between **35%** (0.35) as a default and **50%** (0.50) when the Notary Pledge checkbox is checked.
 - Pure functions in `src/lib/financialEngine.ts` — zero side effects
 - **Always run `npm test` after modifying financial logic**
-- 24 unit tests in `test/financialEngine.test.ts`
+- 25 unit tests in `test/financialEngine.test.ts`
 
 ---
 

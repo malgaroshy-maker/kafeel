@@ -13,6 +13,9 @@ interface StaffMetric {
   completedTransactionsCount: number;
   totalVolume: number;
   rank: number;
+  potentialCount: number;
+  convertedCount: number;
+  conversionRate: number;
 }
 
 const ROLE_LABELS: Record<string, { label: string; color: string }> = {
@@ -27,6 +30,7 @@ export default function StaffStats() {
   const [team, setTeam] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [potentialCustomers, setPotentialCustomers] = useState<any[]>([]);
   
   interface StaffFinancialConfig {
     salaryType: 'salary_only' | 'salary_and_commission' | 'commission_only';
@@ -160,6 +164,25 @@ export default function StaffStats() {
       if (tError) throw tError;
       setTransactions(txs || []);
 
+      // 4. Fetch all potential customers (with fallback)
+      let potCustsData = [];
+      try {
+        const { data, error } = await supabase
+          .from('potential_customers')
+          .select('id, name, created_at, is_converted, converted_at, created_by')
+          .eq('office_id', officeId);
+        if (!error && data) {
+          potCustsData = data;
+        } else {
+          const saved = localStorage.getItem(`kafeel_potential_customers_${officeId}`);
+          if (saved) potCustsData = JSON.parse(saved);
+        }
+      } catch (err) {
+        const saved = localStorage.getItem(`kafeel_potential_customers_${officeId}`);
+        if (saved) potCustsData = JSON.parse(saved);
+      }
+      setPotentialCustomers(potCustsData || []);
+
     } catch (err) {
       console.error('Error fetching statistics:', err);
     } finally {
@@ -197,7 +220,10 @@ export default function StaffStats() {
         earnedCommission: 0,
         earnedSalary: 0,
         absentDeduction: 0,
-        totalPayout: 0
+        totalPayout: 0,
+        potentialCount: 0,
+        convertedCount: 0,
+        conversionRate: 0
       } as any;
     });
 
@@ -229,6 +255,26 @@ export default function StaffStats() {
           }
         }
       });
+
+      potentialCustomers.forEach(pc => {
+        let assignedMemberId = null;
+        if (pc.created_by && operationalTeam.some(m => m.id === pc.created_by)) {
+          assignedMemberId = pc.created_by;
+        } else {
+          const creatorIndex = getCreatorIndex(pc.id, operationalTeam.length);
+          const assignedCreator = operationalTeam[creatorIndex];
+          if (assignedCreator) {
+            assignedMemberId = assignedCreator.id;
+          }
+        }
+        
+        if (assignedMemberId && memberMetrics[assignedMemberId]) {
+          memberMetrics[assignedMemberId].potentialCount += 1;
+          if (pc.is_converted) {
+            memberMetrics[assignedMemberId].convertedCount += 1;
+          }
+        }
+      });
     }
 
     const sorted = Object.values(memberMetrics).map(item => {
@@ -253,6 +299,9 @@ export default function StaffStats() {
         : 0;
 
       const totalPayout = earnedSalary + earnedCommission;
+      const potentialCount = (item as any).potentialCount || 0;
+      const convertedCount = (item as any).convertedCount || 0;
+      const conversionRate = potentialCount > 0 ? (convertedCount / potentialCount) * 100 : 0;
 
       return {
         ...item,
@@ -263,7 +312,10 @@ export default function StaffStats() {
         salaryType: config.salaryType,
         baseSalary: config.baseSalary,
         absentDays,
-        commissionPercentage
+        commissionPercentage,
+        potentialCount,
+        convertedCount,
+        conversionRate
       };
     }).sort((a, b) => b.customerCount - a.customerCount);
 
@@ -271,7 +323,7 @@ export default function StaffStats() {
       ...item,
       rank: index + 1
     }));
-  }, [team, customers, transactions, salaries, defaultAgencyFee]);
+  }, [team, customers, transactions, potentialCustomers, salaries, defaultAgencyFee]);
 
   const totalOfficeCustomers = customers.length;
   const topEmployee = stats.length > 0 ? stats[0] : null;
@@ -363,6 +415,25 @@ export default function StaffStats() {
             <div className="stat-value" style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>{averageCustomersPerEmployee}</div>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.25rem' }}>
               زبائن / موظف
+            </div>
+          </div>
+        </div>
+
+        <div className="stat-card glass" style={{ padding: '1.5rem', borderRadius: '12px', borderLeft: '4px solid #10b981', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '120px' }}>
+          <div className="stat-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-secondary)' }}>
+            <span className="stat-title" style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>معدل تحويل الزبائن</span>
+            <Target size={20} style={{ color: '#10b981' }} />
+          </div>
+          <div style={{ marginTop: '0.5rem' }}>
+            <div className="stat-value" style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+              {(() => {
+                const totalPot = potentialCustomers.length;
+                const totalConv = potentialCustomers.filter(c => c.is_converted).length;
+                return totalPot > 0 ? `${((totalConv / totalPot) * 100).toFixed(0)}%` : '0%';
+              })()}
+            </div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.25rem' }}>
+              تحويل الزبائن المحتملين إلى زبائن نشطين
             </div>
           </div>
         </div>
@@ -640,6 +711,8 @@ export default function StaffStats() {
                   </>
                 )}
                 <th style={{ textAlign: 'center' }}>الزبائن المسجلين</th>
+                <th style={{ textAlign: 'center' }}>الزبائن المحتملين</th>
+                <th style={{ textAlign: 'center' }}>معدل التحويل</th>
                 <th style={{ width: '180px' }}>نسبة المساهمة في الفرع</th>
                 <th style={{ textAlign: 'center' }}>معاملات نشطة</th>
                 <th style={{ textAlign: 'center' }}>معاملات منتهية</th>
@@ -701,6 +774,12 @@ export default function StaffStats() {
 
                     <td style={{ textAlign: 'center', fontWeight: 'bold', color: 'var(--text-primary)' }}>
                       {row.customerCount}
+                    </td>
+                    <td style={{ textAlign: 'center', fontWeight: 'bold', color: 'var(--text-secondary)' }}>
+                      {row.potentialCount}
+                    </td>
+                    <td style={{ textAlign: 'center', fontWeight: 'bold', color: row.conversionRate >= 50 ? 'var(--success)' : (row.conversionRate > 0 ? 'var(--warning)' : 'var(--text-tertiary)') }}>
+                      {row.conversionRate.toFixed(0)}%
                     </td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

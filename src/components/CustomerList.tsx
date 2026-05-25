@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { Search, User, Phone, Building2, Calculator as CalcIcon, Pencil, Trash2, FileText, Clock, Receipt, Printer, CheckCircle2, X, Car, Users, Hourglass, TrendingUp, XCircle, Coins, ShoppingBag } from 'lucide-react'
 import { maskPhone } from '../utils/masking'
+import { logAction } from '../utils/auditLogger'
 
 interface Customer {
   id: string
@@ -26,7 +27,7 @@ interface Props {
 }
 
 export default function CustomerList({ onSelect, onEdit, onDocuments, onSendToQueue }: Props) {
-  const { officeId, isManager, isAccountant, isAdmin, role } = useAuth()
+  const { officeId, isManager, isAccountant, isAdmin, role, displayName, user } = useAuth()
   const showFullPhone = isManager || isAccountant || isAdmin || role === 'admin';
   const [customers, setCustomers] = useState<Customer[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -44,10 +45,41 @@ export default function CustomerList({ onSelect, onEdit, onDocuments, onSendToQu
   const [showStatementModal, setShowStatementModal] = useState(false)
 
   const [copiedId, setCopiedId] = useState<string | null>(null)
-  const handleCopy = (text: string, id: string) => {
+  const handleCopy = (text: string, id: string, customerName?: string) => {
     navigator.clipboard.writeText(text)
     setCopiedId(id)
     setTimeout(() => setCopiedId(null), 1500)
+
+    // Log the copy event as a security audit
+    const isNid = id.endsWith('-nid')
+    const isPhone = id.endsWith('-phone')
+    const isTx = id.endsWith('-txid')
+    
+    if (officeId) {
+      let action = 'COPY_DATA';
+      let details = `نسخ بيانات: ${text}`;
+      
+      if (isNid) {
+        action = 'COPY_NATIONAL_ID';
+        details = customerName ? `نسخ الرقم الوطني للزبون: ${customerName}` : `نسخ رقم وطني للزبون: ${text}`;
+      } else if (isPhone) {
+        action = 'COPY_PHONE_NUMBER';
+        details = customerName ? `نسخ رقم الهاتف للزبون: ${customerName}` : `نسخ رقم هاتف للزبون: ${text}`;
+      } else if (isTx) {
+        action = 'COPY_TRANSACTION_ID';
+        details = `نسخ الرقم التعريفي للمعاملة: ${text}`;
+      }
+
+      logAction({
+        officeId,
+        userId: user?.id,
+        userName: displayName || user?.email || 'موظف المكتب',
+        action,
+        entityType: 'customer',
+        details,
+        severity: 'INFO'
+      })
+    }
   }
 
   const highlightText = (text: string | null | undefined, search: string) => {
@@ -162,11 +194,26 @@ export default function CustomerList({ onSelect, onEdit, onDocuments, onSendToQu
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('هل أنت متأكد من حذف هذا الزبون؟')) return
-    const { error } = await supabase.from('customers').delete().eq('id', id)
-    if (error) alert('خطأ في الحذف')
-    else fetchCustomers()
+  const handleDelete = async (customer: Customer) => {
+    if (!confirm(`هل أنت متأكد من حذف الزبون: ${customer.name}؟`)) return
+    const { error } = await supabase.from('customers').delete().eq('id', customer.id)
+    if (error) {
+      alert('خطأ في الحذف')
+    } else {
+      if (officeId) {
+        logAction({
+          officeId,
+          userId: user?.id,
+          userName: displayName || user?.email || 'موظف المكتب',
+          action: 'DELETE_CUSTOMER',
+          entityType: 'customer',
+          entityId: customer.id,
+          details: `حذف ملف الزبون بالكامل: ${customer.name} (الرقم الوطني: ${customer.national_id})`,
+          severity: 'WARNING'
+        })
+      }
+      fetchCustomers()
+    }
   }
 
   const handleSendToQueue = async (customer: Customer) => {
@@ -199,6 +246,20 @@ export default function CustomerList({ onSelect, onEdit, onDocuments, onSendToQu
       if (error) throw error
 
       alert('✅ تم إرسال الزبون لقائمة الانتظار بنجاح')
+      
+      // Log starting a transaction
+      if (officeId) {
+        logAction({
+          officeId,
+          userId: user?.id,
+          userName: displayName || user?.email || 'موظف المكتب',
+          action: 'START_TRANSACTION',
+          entityType: 'transaction',
+          details: `بدء معاملة جديدة وإرسال الزبون ${customer.name} إلى قائمة الانتظار`,
+          severity: 'INFO'
+        })
+      }
+      
       fetchCustomers() // Refresh to update button visibility
       
       if (onSendToQueue) onSendToQueue(customer.id)
@@ -673,7 +734,7 @@ export default function CustomerList({ onSelect, onEdit, onDocuments, onSendToQu
                     {/* Chips row */}
                     <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
                       <div 
-                        onClick={() => handleCopy(customer.national_id, `${customer.id}-nid`)}
+                        onClick={() => handleCopy(customer.national_id, `${customer.id}-nid`, customer.name)}
                         style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', color: 'var(--text-secondary)', background: 'var(--surface-card)', padding: '0.25rem 0.6rem', borderRadius: '8px', border: '1px solid var(--glass-border)', cursor: 'pointer', transition: 'all 0.2s' }}
                         className="chip-hover-premium"
                         title="انقر لنسخ الرقم الوطني"
@@ -685,7 +746,7 @@ export default function CustomerList({ onSelect, onEdit, onDocuments, onSendToQu
                         </span>
                       </div>
                       <div 
-                        onClick={() => handleCopy(showFullPhone ? (customer.phone || '') : maskPhone(customer.phone), `${customer.id}-phone`)}
+                        onClick={() => handleCopy(showFullPhone ? (customer.phone || '') : maskPhone(customer.phone), `${customer.id}-phone`, customer.name)}
                         style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', color: 'var(--text-secondary)', background: 'var(--surface-card)', padding: '0.25rem 0.6rem', borderRadius: '8px', border: '1px solid var(--glass-border)', cursor: 'pointer', transition: 'all 0.2s' }}
                         className="chip-hover-premium"
                         title="انقر لنسخ رقم الهاتف"
@@ -788,7 +849,7 @@ export default function CustomerList({ onSelect, onEdit, onDocuments, onSendToQu
                         justifyContent: 'center',
                         transition: 'all 0.2s'
                       }}
-                      onClick={() => handleDelete(customer.id)}
+                      onClick={() => handleDelete(customer)}
                       title="حذف الزبون نهائياً"
                       className="action-btn-hover"
                     >
