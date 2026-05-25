@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { Settings, Users, Shield } from 'lucide-react';
 import SettingsPanel from './SettingsPanel';
 import OfficeTeamManagement from './OfficeTeamManagement';
+import { useAuth } from '../contexts/AuthContext';
 
 const OfficeSettings: React.FC = () => {
+  const { isManager } = useAuth();
   const [activeTab, setActiveTab] = useState<'account' | 'team'>('account');
 
   return (
@@ -19,29 +21,31 @@ const OfficeSettings: React.FC = () => {
       </div>
 
       {/* Internal Tabs */}
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1rem' }}>
-        <button
-          onClick={() => setActiveTab('account')}
-          className={`btn ${activeTab === 'account' ? 'btn-primary' : 'btn-ghost'}`}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderRadius: '8px', padding: '0.75rem 1.5rem', flex: 1, justifyContent: 'center' }}
-        >
-          <Shield size={18} />
-          إعدادات الحساب والمظهر
-        </button>
-        <button
-          onClick={() => setActiveTab('team')}
-          className={`btn ${activeTab === 'team' ? 'btn-primary' : 'btn-ghost'}`}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderRadius: '8px', padding: '0.75rem 1.5rem', flex: 1, justifyContent: 'center' }}
-        >
-          <Users size={18} />
-          إدارة فريق العمل
-        </button>
-      </div>
+      {isManager && (
+        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1rem' }}>
+          <button
+            onClick={() => setActiveTab('account')}
+            className={`btn ${activeTab === 'account' ? 'btn-primary' : 'btn-ghost'}`}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderRadius: '8px', padding: '0.75rem 1.5rem', flex: 1, justifyContent: 'center' }}
+          >
+            <Shield size={18} />
+            إعدادات الحساب والمظهر
+          </button>
+          <button
+            onClick={() => setActiveTab('team')}
+            className={`btn ${activeTab === 'team' ? 'btn-primary' : 'btn-ghost'}`}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderRadius: '8px', padding: '0.75rem 1.5rem', flex: 1, justifyContent: 'center' }}
+          >
+            <Users size={18} />
+            إدارة فريق العمل
+          </button>
+        </div>
+      )}
 
       {/* Content */}
       <div style={{ minHeight: '500px' }}>
-        {activeTab === 'account' && <SettingsPanel />}
-        {activeTab === 'team' && <OfficeTeamManagement />}
+        {(!isManager || activeTab === 'account') && <SettingsPanel />}
+        {isManager && activeTab === 'team' && <OfficeTeamManagement />}
       </div>
     </div>
   );

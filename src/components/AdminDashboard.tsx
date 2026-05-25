@@ -82,8 +82,13 @@ export default function AdminDashboard() {
   const [workplaceSearch, setWorkplaceSearch] = useState('')
   const [bankSearch, setBankSearch] = useState('')
   const [branchSearch, setBranchSearch] = useState('')
+  const [adminUserSearch, setAdminUserSearch] = useState('')
+  const [adminRoleFilter, setAdminRoleFilter] = useState('ALL')
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
+  const [selectedUserForPassword, setSelectedUserForPassword] = useState<{ id: string; name: string } | null>(null)
+  const [newPassword, setNewPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
 
   // Advanced SaaS feature states
   const [resellers, setResellers] = useState<any[]>([])
@@ -514,6 +519,24 @@ export default function AdminDashboard() {
   }
 
   const updateRole = async (userId: string, newRole: string) => {
+    const targetUser = users.find(u => u.id === userId)
+    if (targetUser && targetUser.office_id) {
+      if (newRole === 'manager') {
+        const hasActiveManager = users.some(u => u.office_id === targetUser.office_id && u.role === 'manager' && u.is_active && u.id !== userId)
+        if (hasActiveManager) {
+          alert('لقد بلغت الحد الأقصى (مدير واحد فقط لكل مكتب)')
+          return
+        }
+      }
+      if (newRole === 'accountant') {
+        const hasActiveAccountant = users.some(u => u.office_id === targetUser.office_id && u.role === 'accountant' && u.is_active && u.id !== userId)
+        if (hasActiveAccountant) {
+          alert('لقد بلغت الحد الأقصى (محاسب واحد فقط لكل مكتب)')
+          return
+        }
+      }
+    }
+
     setActionLoading(`role-${userId}`)
     try {
       await adminCall({ action: 'update_role', user_id: userId, new_role: newRole })
@@ -534,14 +557,31 @@ export default function AdminDashboard() {
     setActionLoading(null)
   }
 
-  const resetPassword = async (userId: string, displayName: string) => {
-    const newPass = prompt(`كلمة مرور جديدة لـ ${displayName}:`)
-    if (!newPass || newPass.length < 6) { alert('كلمة المرور يجب أن تكون 6 أحرف على الأقل'); return }
-    setActionLoading(`pw-${userId}`)
+  const resetPassword = (userId: string, displayName: string) => {
+    setSelectedUserForPassword({ id: userId, name: displayName })
+    setNewPassword('')
+    setPasswordError('')
+  }
+
+  const handleResetPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPasswordError('')
+    if (!selectedUserForPassword) return
+    
+    if (newPassword.length < 6) {
+      setPasswordError('كلمة المرور يجب أن تكون 6 أحرف على الأقل')
+      return
+    }
+
+    setActionLoading(`pw-${selectedUserForPassword.id}`)
     try {
-      await adminCall({ action: 'reset_password', user_id: userId, new_password: newPass })
-      alert('تم تغيير كلمة المرور بنجاح')
-    } catch (err) { alert((err as Error).message) }
+      await adminCall({ action: 'reset_password', user_id: selectedUserForPassword.id, new_password: newPassword })
+      alert(`تم تعيين كلمة المرور الجديدة للمستخدم ${selectedUserForPassword.name} بنجاح!`)
+      setSelectedUserForPassword(null)
+      setNewPassword('')
+    } catch (err) {
+      setPasswordError((err as Error).message)
+    }
     setActionLoading(null)
   }
 
@@ -692,7 +732,8 @@ export default function AdminDashboard() {
         .from('broadcasts')
         .insert({
           message: newBroadcastMessage.trim(),
-          created_by: session?.user?.id || null
+          created_by: session?.user?.id || null,
+          created_by_role: 'admin'
         })
 
       if (error) throw error
@@ -982,8 +1023,15 @@ export default function AdminDashboard() {
 
             {/* Group 3: System & Communication */}
             <div className="nav-dropdown-group">
-              <button className="nav-dropdown-btn" style={{ background: ['broadcasts', 'tickets', 'health', 'system-logs', 'security'].includes(activeTab) ? '#0f172a' : 'transparent', color: ['broadcasts', 'tickets', 'health', 'system-logs', 'security'].includes(activeTab) ? '#fef08a' : '#0f172a' }}>
-                <Megaphone size={16} />
+              <button className="nav-dropdown-btn" style={{ background: ['broadcasts', 'tickets', 'health', 'system-logs', 'security'].includes(activeTab) ? '#0f172a' : 'transparent', color: ['broadcasts', 'tickets', 'health', 'system-logs', 'security'].includes(activeTab) ? '#fef08a' : '#0f172a', position: 'relative' }}>
+                <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Megaphone size={16} />
+                  {tickets.filter(t => t.status !== 'RESOLVED').length > 0 && (
+                    <span className="tab-badge-floating" style={{ top: '-6px', right: '-6px' }}>
+                      {tickets.filter(t => t.status !== 'RESOLVED').length}
+                    </span>
+                  )}
+                </div>
                 <span>النظام والاتصال</span>
               </button>
               <div className="nav-dropdown-menu">
@@ -997,9 +1045,15 @@ export default function AdminDashboard() {
                 <button 
                   onClick={() => setActiveTab('tickets')} 
                   className={`nav-dropdown-item ${activeTab === 'tickets' ? 'active' : ''}`}
+                  style={{ position: 'relative' }}
                 >
                   <Activity size={14} style={{ color: activeTab === 'tickets' ? '#fef08a' : '#d97706' }} />
                   <span>تذاكر الدعم الفني ({tickets.length})</span>
+                  {tickets.filter(t => t.status !== 'RESOLVED').length > 0 && (
+                    <span className="tab-badge-floating" style={{ top: '2px', right: 'auto', left: '6px' }}>
+                      {tickets.filter(t => t.status !== 'RESOLVED').length}
+                    </span>
+                  )}
                 </button>
                 <button 
                   onClick={() => setActiveTab('health')} 
@@ -1310,149 +1364,228 @@ export default function AdminDashboard() {
 
       {/* ===================== USERS TAB ===================== */}
       {activeTab === 'users' && (
-        <div className="admin-table-wrap">
-          <table className="monitor-table compact-table">
-          <thead>
-            <tr>
-              <th>الاسم</th>
-              <th>اسم المستخدم</th>
-              <th>رقم الهاتف</th>
-              <th>المكتب</th>
-              <th>الدور</th>
-              <th>الحالة</th>
-              <th style={{ textAlign: 'center' }}>الإجراءات</th>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          {/* Search and Role Filter Bar */}
+          <div style={{ 
+            display: 'flex', 
+            gap: '1rem', 
+            flexWrap: 'wrap', 
+            background: 'var(--surface)', 
+            padding: '1.25rem', 
+            borderRadius: '16px', 
+            border: '1.5px solid var(--glass-border)',
+            boxShadow: 'var(--shadow-sm)',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <div style={{ position: 'relative', flex: '1 1 350px' }}>
+              <Search size={18} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)', pointerEvents: 'none' }} />
+              <input
+                type="text"
+                placeholder="ابحث باسم المستخدم، البريد، الهاتف، أو اسم المكتب..."
+                value={adminUserSearch}
+                onChange={(e) => setAdminUserSearch(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.65rem 2.8rem 0.65rem 1rem',
+                  borderRadius: '8px',
+                  border: '1px solid var(--glass-border)',
+                  background: 'var(--bg-primary)',
+                  color: 'var(--text-primary)',
+                  fontSize: '0.88rem',
+                  outline: 'none',
+                  transition: 'all 0.3s ease'
+                }}
+              />
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: '0 1 300px' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>الوظيفة في المكاتب:</span>
+              <select
+                value={adminRoleFilter}
+                onChange={(e) => setAdminRoleFilter(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.65rem 1rem',
+                  borderRadius: '8px',
+                  border: '1px solid var(--glass-border)',
+                  background: 'var(--bg-primary)',
+                  color: 'var(--text-primary)',
+                  fontSize: '0.88rem',
+                  outline: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="ALL">الكل (جميع الوظائف)</option>
+                <option value="manager">مدير مكتب</option>
+                <option value="accountant">محاسب</option>
+                <option value="staff">إدخال بيانات</option>
+                <option value="monitor">مراقب</option>
+                <option value="car_agent">وكيل سيارات</option>
+                <option value="car_agent_assistant">مساعد وكيل</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="admin-table-wrap">
+            <table className="monitor-table compact-table">
+            <thead>
+              <tr>
+                <th>الاسم</th>
+                <th>اسم المستخدم</th>
+                <th>رقم الهاتف</th>
+                <th>المكتب</th>
+                <th>الدور</th>
+                <th>الحالة</th>
+                <th style={{ textAlign: 'center' }}>الإجراءات</th>
               </tr>
             </thead>
             <tbody>
-              {users.map(u => {
-                const rl = ROLE_LABELS[u.role] || { label: u.role, color: 'var(--text-tertiary)' }
-                return (
-                  <tr key={u.id} className={!u.is_active ? 'row-disabled' : ''}>
-                    <td className="cell-name" style={{ fontWeight: 'bold' }}>{u.display_name}</td>
-                    <td style={{ color: 'var(--primary)', fontFamily: 'monospace', fontWeight: 'bold' }}>
-                      {u.email || u.username || u.phone || '—'}
-                    </td>
-                    <td dir="ltr" style={{ textAlign: 'right' }}>{u.phone || '—'}</td>
-                    <td>
-                      {u.office_name ? (
-                        <span className="badge" style={{ background: 'rgba(191, 149, 63, 0.1)', color: 'var(--primary)', border: '1px solid rgba(191, 149, 63, 0.2)' }}>
-                          {u.office_name}
-                        </span>
-                      ) : (
-                        <span style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>مستقل / عام</span>
-                      )}
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span className="badge" style={{ background: `${rl.color}15`, color: rl.color, fontWeight: 'bold' }}>{rl.label}</span>
-                        {u.is_active && u.role !== 'admin' && (
-                          <div style={{ position: 'relative' }}>
-                            <select
-                              value={u.role}
-                              onChange={e => updateRole(u.id, e.target.value)}
-                              disabled={actionLoading === `role-${u.id}`}
-                              style={{ opacity: 0, position: 'absolute', inset: 0, cursor: 'pointer', width: '100%' }}
-                            >
-                              {u.office_id ? (
-                                <>
-                                  <option value="manager">مدير مكتب</option>
-                                  <option value="accountant">محاسب</option>
-                                  <option value="staff">إدخال بيانات</option>
-                                </>
-                              ) : (
-                                <>
-                                  <option value="monitor">مراقب</option>
-                                  <option value="car_agent">🚗 وكيل سيارات</option>
-                                  <option value="car_agent_assistant">🔑 مساعد وكيل</option>
-                                  <option value="admin">مدير عام</option>
-                                </>
-                              )}
-                            </select>
-                            <ChevronDown size={14} style={{ color: 'var(--text-tertiary)', cursor: 'pointer' }} />
-                          </div>
+              {users
+                .filter(u => {
+                  const matchesSearch = 
+                    u.display_name.toLowerCase().includes(adminUserSearch.toLowerCase()) ||
+                    (u.email || '').toLowerCase().includes(adminUserSearch.toLowerCase()) ||
+                    (u.username || '').toLowerCase().includes(adminUserSearch.toLowerCase()) ||
+                    (u.phone || '').includes(adminUserSearch) ||
+                    (u.office_name || '').toLowerCase().includes(adminUserSearch.toLowerCase());
+                    
+                  const matchesRole = 
+                    adminRoleFilter === 'ALL' || 
+                    u.role === adminRoleFilter;
+                    
+                  return matchesSearch && matchesRole;
+                })
+                .map(u => {
+                  const rl = ROLE_LABELS[u.role] || { label: u.role, color: 'var(--text-tertiary)' }
+                  return (
+                    <tr key={u.id} className={!u.is_active ? 'row-disabled' : ''}>
+                      <td className="cell-name" style={{ fontWeight: 'bold' }}>{u.display_name}</td>
+                      <td style={{ color: 'var(--primary)', fontFamily: 'monospace', fontWeight: 'bold' }}>
+                        {u.email || u.username || u.phone || '—'}
+                      </td>
+                      <td dir="ltr" style={{ textAlign: 'right' }}>{u.phone || '—'}</td>
+                      <td>
+                        {u.office_name ? (
+                          <span className="badge" style={{ background: 'rgba(191, 149, 63, 0.1)', color: 'var(--primary)', border: '1px solid rgba(191, 149, 63, 0.2)' }}>
+                            {u.office_name}
+                          </span>
+                        ) : (
+                          <span style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>مستقل / عام</span>
                         )}
-                      </div>
-                    </td>
-                    <td>
-                      {u.is_frozen ? (
-                        <span className="badge" style={{ background: 'rgba(217, 119, 6, 0.15)', color: '#d97706', fontWeight: 'bold' }}>
-                          ⚠️ مجمّد (دخول متكرر)
-                        </span>
-                      ) : u.is_active ? (
-                        <span className="badge" style={{ background: 'rgba(16, 185, 129, 0.15)', color: 'var(--success)', fontWeight: 'bold' }}>
-                          ✓ نشط
-                        </span>
-                      ) : (
-                        <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.15)', color: 'var(--error)', fontWeight: 'bold' }}>
-                          معطّل
-                        </span>
-                      )}
-                    </td>
-                    <td style={{ minWidth: '155px', textAlign: 'center' }}>
-                      <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center', justifyContent: 'center' }}>
-                        {u.role !== 'admin' && (
-                          <>
-                            {/* Terms of Service Acceptance Status */}
-                            <button 
-                              className="btn-icon btn-icon-compact" 
-                              onClick={() => setSelectedUserForReport(u)}
-                              title="عرض وتحميل تقرير قبول شروط وأحكام الخدمة"
-                              style={{ color: u.accepted_terms ? 'var(--success)' : 'var(--error)' }}
-                            >
-                              <ShieldCheck size={14} />
-                            </button>
-
-                            {/* Reset Password */}
-                            <button 
-                              className="btn-icon btn-icon-compact" 
-                              onClick={() => resetPassword(u.id, u.display_name)} 
-                              disabled={actionLoading === `pw-${u.id}`} 
-                              title="تعديل وإعادة تعيين كلمة المرور في حال نسيانها"
-                            >
-                              <Key size={14} style={{ color: 'var(--primary)' }} />
-                            </button>
-
-                            {/* Freeze/Unfreeze Account */}
-                            <button 
-                              className="btn-icon btn-icon-compact" 
-                              onClick={() => freezeUser(u.id, u.display_name, !!u.is_frozen)} 
-                              disabled={actionLoading === `freeze-${u.id}`} 
-                              title={u.is_frozen ? 'فك تجميد الحساب' : 'تجميد الحساب (بسبب تكرار محاولة الدخول الخاطئ)'} 
-                              style={{ color: u.is_frozen ? 'var(--success)' : '#d97706' }}
-                            >
-                              <ShieldAlert size={14} />
-                            </button>
-
-                            {/* Deactivate/Reactivate */}
-                            <button 
-                              className="btn-icon btn-icon-compact" 
-                              onClick={() => deactivateUser(u.id, u.display_name)} 
-                              disabled={actionLoading === `deact-${u.id}`} 
-                              title={u.is_active ? 'تعطيل الحساب' : 'تفعيل الحساب'} 
-                              style={{ color: u.is_active ? 'var(--error)' : 'var(--text-tertiary)' }}
-                            >
-                              <UserX size={14} />
-                            </button>
-
-                            {/* Permanent Delete */}
-                            <button 
-                              className="btn-icon btn-icon-compact" 
-                              onClick={() => deleteUser(u.id, u.display_name)} 
-                              disabled={actionLoading === `del-user-${u.id}`} 
-                              title="حذف حساب المستخدم نهائياً" 
-                              style={{ color: 'var(--error)' }}
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span className="badge" style={{ background: `${rl.color}15`, color: rl.color, fontWeight: 'bold' }}>{rl.label}</span>
+                          {u.is_active && u.role !== 'admin' && (
+                            <div style={{ position: 'relative' }}>
+                              <select
+                                value={u.role}
+                                onChange={e => updateRole(u.id, e.target.value)}
+                                disabled={actionLoading === `role-${u.id}`}
+                                style={{ opacity: 0, position: 'absolute', inset: 0, cursor: 'pointer', width: '100%' }}
+                              >
+                                {u.office_id ? (
+                                  <>
+                                    <option value="manager">مدير مكتب</option>
+                                    <option value="accountant">محاسب</option>
+                                    <option value="staff">إدخال بيانات</option>
+                                  </>
+                                ) : (
+                                  <>
+                                    <option value="monitor">مراقب</option>
+                                    <option value="car_agent">🚗 وكيل سيارات</option>
+                                    <option value="car_agent_assistant">🔑 مساعد وكيل</option>
+                                    <option value="admin">مدير عام</option>
+                                  </>
+                                )}
+                              </select>
+                              <ChevronDown size={14} style={{ color: 'var(--text-tertiary)', cursor: 'pointer' }} />
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td>
+                        {u.is_frozen ? (
+                          <span className="badge" style={{ background: 'rgba(217, 119, 6, 0.15)', color: '#d97706', fontWeight: 'bold' }}>
+                            ⚠️ مجمّد (دخول متكرر)
+                          </span>
+                        ) : u.is_active ? (
+                          <span className="badge" style={{ background: 'rgba(16, 185, 129, 0.15)', color: 'var(--success)', fontWeight: 'bold' }}>
+                            ✓ نشط
+                          </span>
+                        ) : (
+                          <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.15)', color: 'var(--error)', fontWeight: 'bold' }}>
+                            معطّل
+                          </span>
                         )}
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
+                      </td>
+                      <td style={{ minWidth: '155px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center', justifyContent: 'center' }}>
+                          {u.role !== 'admin' && (
+                            <>
+                              {/* Terms of Service Acceptance Status */}
+                              <button 
+                                className="btn-icon btn-icon-compact" 
+                                onClick={() => setSelectedUserForReport(u)}
+                                title="عرض وتحميل تقرير قبول شروط وأحكام الخدمة"
+                                style={{ color: u.accepted_terms ? 'var(--success)' : 'var(--error)' }}
+                              >
+                                <ShieldCheck size={14} />
+                              </button>
+
+                              {/* Reset Password */}
+                              <button 
+                                className="btn-icon btn-icon-compact" 
+                                onClick={() => resetPassword(u.id, u.display_name)} 
+                                disabled={actionLoading === `pw-${u.id}`} 
+                                title="تعديل وإعادة تعيين كلمة المرور في حال نسيانها"
+                              >
+                                <Key size={14} style={{ color: 'var(--primary)' }} />
+                              </button>
+
+                              {/* Freeze/Unfreeze Account */}
+                              <button 
+                                className="btn-icon btn-icon-compact" 
+                                onClick={() => freezeUser(u.id, u.display_name, !!u.is_frozen)} 
+                                disabled={actionLoading === `freeze-${u.id}`} 
+                                title={u.is_frozen ? 'فك تجميد الحساب' : 'تجميد الحساب (بسبب تكرار محاولة الدخول الخاطئ)'} 
+                                style={{ color: u.is_frozen ? 'var(--success)' : '#d97706' }}
+                              >
+                                <ShieldAlert size={14} />
+                              </button>
+
+                              {/* Deactivate/Reactivate */}
+                              <button 
+                                className="btn-icon btn-icon-compact" 
+                                onClick={() => deactivateUser(u.id, u.display_name)} 
+                                disabled={actionLoading === `deact-${u.id}`} 
+                                title={u.is_active ? 'تعطيل الحساب' : 'تفعيل الحساب'} 
+                                style={{ color: u.is_active ? 'var(--error)' : 'var(--text-tertiary)' }}
+                              >
+                                <UserX size={14} />
+                              </button>
+
+                              {/* Permanent Delete */}
+                              <button 
+                                className="btn-icon btn-icon-compact" 
+                                onClick={() => deleteUser(u.id, u.display_name)} 
+                                disabled={actionLoading === `del-user-${u.id}`} 
+                                title="حذف حساب المستخدم نهائياً" 
+                                style={{ color: 'var(--error)' }}
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
             </tbody>
           </table>
+          </div>
         </div>
       )}      {/* ===================== SYSTEM OWNERS & AUDIT LOGS TAB ===================== */}
       {activeTab === 'system-owners' && (
@@ -3530,6 +3663,88 @@ export default function AdminDashboard() {
               </button>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Custom Reset Password Modal */}
+      {selectedUserForPassword && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.65)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999,
+          padding: '1rem'
+        }}>
+          <div style={{
+            background: 'var(--surface)',
+            border: '2px solid var(--glass-border)',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '450px',
+            padding: '2rem',
+            boxShadow: 'var(--shadow-lg)',
+            position: 'relative',
+            direction: 'rtl'
+          }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '1.5rem', borderBottom: '2px solid var(--glass-border)', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Key size={20} style={{ color: 'var(--primary)' }} />
+              <span>تعيين كلمة مرور جديدة</span>
+            </h3>
+
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
+              أدخل كلمة المرور الجديدة للمستخدم: <strong style={{ color: 'var(--primary)' }}>{selectedUserForPassword.name}</strong>
+            </p>
+
+            <form onSubmit={handleResetPasswordSubmit}>
+              <div className="input-group" style={{ marginBottom: '1.25rem' }}>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+                  كلمة المرور الجديدة
+                </label>
+                <input
+                  type="password"
+                  placeholder="أدخل 6 أرقام أو حروف على الأقل..."
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  className="input-field"
+                  style={{ width: '100%', padding: '0.7rem 0.9rem', borderRadius: '8px', border: '1.5px solid var(--glass-border)', background: 'var(--bg-primary)', color: 'var(--text-primary)', outline: 'none', textAlign: 'right' }}
+                  autoFocus
+                  required
+                />
+              </div>
+
+              {passwordError && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', fontSize: '0.82rem', marginBottom: '1.25rem' }}>
+                  <span>{passwordError}</span>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '0.75rem', width: '100%', marginTop: '1.5rem' }}>
+                <button
+                  type="submit"
+                  disabled={actionLoading === `pw-${selectedUserForPassword.id}`}
+                  className="btn btn-primary"
+                  style={{ flex: 1, padding: '0.65rem 1rem', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  {actionLoading === `pw-${selectedUserForPassword.id}` ? 'جاري الحفظ...' : 'تأكيد الحفظ'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedUserForPassword(null)}
+                  className="btn btn-outline"
+                  style={{ flex: 1, padding: '0.65rem 1rem', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', borderRadius: '8px', background: 'transparent', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  إلغاء
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

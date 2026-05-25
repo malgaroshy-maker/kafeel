@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-import { Search, User, Phone, Building2, Calculator as CalcIcon, Pencil, Trash2, FileText, Clock, Receipt, Printer, CheckCircle2, X, Car } from 'lucide-react'
+import { Search, User, Phone, Building2, Calculator as CalcIcon, Pencil, Trash2, FileText, Clock, Receipt, Printer, CheckCircle2, X, Car, Users, Hourglass, TrendingUp, XCircle, Coins, ShoppingBag } from 'lucide-react'
 import { maskPhone } from '../utils/masking'
 
 interface Customer {
@@ -333,76 +333,134 @@ export default function CustomerList({ onSelect, onEdit, onDocuments, onSendToQu
       
       {/* Dynamic Sub-Filters for Current Customers */}
       {activeTab === 'current' && (
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.8rem', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginLeft: '0.5rem', fontWeight: 'bold' }}>حالة المعاملة:</span>
+        <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', marginBottom: '1.8rem', alignItems: 'center' }}>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginLeft: '0.5rem', fontWeight: '800' }}>حالة المعاملة:</span>
           {[
-            { id: 'ALL', label: 'الكل', count: customers.length },
-            { id: 'WAITING_MATCH', label: 'في الانتظار ⏳', count: customers.filter(c => c.transactionStatus === 'WAITING_MATCH').length },
-            { id: 'MATCHED', label: 'تم التطابق 🤝', count: customers.filter(c => c.transactionStatus === 'MATCHED').length },
-            { id: 'ACTIVE', label: 'نشطة 💸', count: customers.filter(c => c.transactionStatus === 'ACTIVE').length },
-            { id: 'REJECTED', label: 'مستندات مرفوضة ❌', count: customers.filter(c => c.transactionStatus === 'REJECTED').length }
-          ].map(opt => (
-            <button
-              key={opt.id}
-              onClick={() => setCurrentFilter(opt.id as any)}
-              style={{
-                background: currentFilter === opt.id ? 'rgba(191, 149, 63, 0.15)' : 'var(--surface-hover)',
-                color: currentFilter === opt.id ? 'var(--primary)' : 'var(--text-secondary)',
-                border: `1px solid ${currentFilter === opt.id ? 'var(--primary)' : 'var(--glass-border)'}`,
-                padding: '0.35rem 0.8rem',
-                borderRadius: '8px',
-                fontSize: '0.76rem',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                transition: 'all 0.2s ease',
-                boxShadow: currentFilter === opt.id ? '0 2px 8px rgba(191, 149, 63, 0.08)' : 'none'
-              }}
-              className="chip-hover-premium"
-            >
-              <span>{opt.label}</span>
-              <span style={{ fontSize: '0.68rem', padding: '0.05rem 0.35rem', borderRadius: '4px', background: currentFilter === opt.id ? 'rgba(191, 149, 63, 0.25)' : 'rgba(255,255,255,0.06)', color: currentFilter === opt.id ? 'var(--primary)' : 'var(--text-tertiary)' }}>{opt.count}</span>
-            </button>
-          ))}
+            { id: 'ALL', label: 'الكل', count: customers.length, icon: <Users size={14} />, activeColor: 'var(--primary)', bgGlow: 'rgba(191, 149, 63, 0.15)', borderColor: 'rgba(191, 149, 63, 0.25)' },
+            { id: 'WAITING_MATCH', label: 'في الانتظار', count: customers.filter(c => c.transactionStatus === 'WAITING_MATCH').length, icon: <Hourglass size={14} />, activeColor: '#fbbf24', bgGlow: 'rgba(251, 191, 36, 0.12)', borderColor: 'rgba(251, 191, 36, 0.25)' },
+            { id: 'MATCHED', label: 'تم التطابق', count: customers.filter(c => c.transactionStatus === 'MATCHED').length, icon: <CheckCircle2 size={14} />, activeColor: '#34d399', bgGlow: 'rgba(52, 211, 153, 0.12)', borderColor: 'rgba(52, 211, 153, 0.25)' },
+            { id: 'ACTIVE', label: 'نشطة', count: customers.filter(c => c.transactionStatus === 'ACTIVE').length, icon: <TrendingUp size={14} />, activeColor: '#60a5fa', bgGlow: 'rgba(96, 165, 250, 0.12)', borderColor: 'rgba(96, 165, 250, 0.25)' },
+            { id: 'REJECTED', label: 'مستندات مرفوضة', count: customers.filter(c => c.transactionStatus === 'REJECTED').length, icon: <XCircle size={14} />, activeColor: '#f87171', bgGlow: 'rgba(248, 113, 113, 0.12)', borderColor: 'rgba(248, 113, 113, 0.25)' }
+          ].map(opt => {
+            const isActive = currentFilter === opt.id;
+            return (
+              <button
+                key={opt.id}
+                onClick={() => setCurrentFilter(opt.id as any)}
+                style={{
+                  background: isActive ? opt.bgGlow : 'var(--surface-hover)',
+                  color: isActive ? '#ffffff' : 'var(--text-secondary)',
+                  border: `1px solid ${isActive ? opt.activeColor : 'var(--glass-border)'}`,
+                  padding: '0.45rem 0.95rem',
+                  borderRadius: '30px',
+                  fontSize: '0.78rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: isActive ? `0 0 12px ${opt.bgGlow}` : 'none',
+                  outline: 'none',
+                }}
+                className="chip-hover-premium"
+              >
+                <span style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  color: isActive ? opt.activeColor : 'var(--text-tertiary)',
+                  transition: 'transform 0.25s ease'
+                }} className="filter-icon-container">
+                  {opt.icon}
+                </span>
+                <span>{opt.label}</span>
+                <span style={{ 
+                  fontSize: '0.7rem', 
+                  minWidth: '1.25rem',
+                  height: '1.25rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0 0.25rem', 
+                  borderRadius: '50%', 
+                  background: isActive ? opt.bgGlow : 'rgba(255,255,255,0.06)', 
+                  color: isActive ? opt.activeColor : 'var(--text-tertiary)',
+                  fontWeight: '800',
+                  border: `1px solid ${isActive ? opt.borderColor : 'transparent'}`,
+                  transition: 'all 0.25s ease'
+                }}>
+                  {opt.count}
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
 
       {/* Dynamic Sub-Filters for Completed Transactions */}
       {activeTab === 'completed' && (
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.8rem', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginLeft: '0.5rem', fontWeight: 'bold' }}>نوع التسوية المالية:</span>
+        <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', marginBottom: '1.8rem', alignItems: 'center' }}>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginLeft: '0.5rem', fontWeight: '800' }}>نوع التسوية المالية:</span>
           {[
-            { id: 'ALL', label: 'الكل', count: completedTxs.length },
-            { id: 'PERSONAL_USE', label: 'استعمال شخصي 🚗', count: completedTxs.filter(tx => tx.settlements?.[0]?.settlement_type === 'PERSONAL_USE').length },
-            { id: 'CASH_OUT', label: 'تسييل للمكتب 💰', count: completedTxs.filter(tx => tx.settlements?.[0]?.settlement_type === 'CASH_OUT').length },
-            { id: 'EXTERNAL_SALE', label: 'بيع خارجي 🛒', count: completedTxs.filter(tx => tx.settlements?.[0]?.settlement_type === 'EXTERNAL_SALE').length }
-          ].map(opt => (
-            <button
-              key={opt.id}
-              onClick={() => setCompletedFilter(opt.id as any)}
-              style={{
-                background: completedFilter === opt.id ? 'rgba(191, 149, 63, 0.15)' : 'var(--surface-hover)',
-                color: completedFilter === opt.id ? 'var(--primary)' : 'var(--text-secondary)',
-                border: `1px solid ${completedFilter === opt.id ? 'var(--primary)' : 'var(--glass-border)'}`,
-                padding: '0.35rem 0.8rem',
-                borderRadius: '8px',
-                fontSize: '0.76rem',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                transition: 'all 0.2s ease',
-                boxShadow: completedFilter === opt.id ? '0 2px 8px rgba(191, 149, 63, 0.08)' : 'none'
-              }}
-              className="chip-hover-premium"
-            >
-              <span>{opt.label}</span>
-              <span style={{ fontSize: '0.68rem', padding: '0.05rem 0.35rem', borderRadius: '4px', background: completedFilter === opt.id ? 'rgba(191, 149, 63, 0.25)' : 'rgba(255,255,255,0.06)', color: completedFilter === opt.id ? 'var(--primary)' : 'var(--text-tertiary)' }}>{opt.count}</span>
-            </button>
-          ))}
+            { id: 'ALL', label: 'الكل', count: completedTxs.length, icon: <FileText size={14} />, activeColor: 'var(--primary)', bgGlow: 'rgba(191, 149, 63, 0.15)', borderColor: 'rgba(191, 149, 63, 0.25)' },
+            { id: 'PERSONAL_USE', label: 'استعمال شخصي', count: completedTxs.filter(tx => tx.settlements?.[0]?.settlement_type === 'PERSONAL_USE').length, icon: <Car size={14} />, activeColor: '#34d399', bgGlow: 'rgba(52, 211, 153, 0.12)', borderColor: 'rgba(52, 211, 153, 0.25)' },
+            { id: 'CASH_OUT', label: 'تسييل للمكتب', count: completedTxs.filter(tx => tx.settlements?.[0]?.settlement_type === 'CASH_OUT').length, icon: <Coins size={14} />, activeColor: '#60a5fa', bgGlow: 'rgba(96, 165, 250, 0.12)', borderColor: 'rgba(96, 165, 250, 0.25)' },
+            { id: 'EXTERNAL_SALE', label: 'بيع خارجي', count: completedTxs.filter(tx => tx.settlements?.[0]?.settlement_type === 'EXTERNAL_SALE').length, icon: <ShoppingBag size={14} />, activeColor: '#c084fc', bgGlow: 'rgba(192, 132, 252, 0.12)', borderColor: 'rgba(192, 132, 252, 0.25)' }
+          ].map(opt => {
+            const isActive = completedFilter === opt.id;
+            return (
+              <button
+                key={opt.id}
+                onClick={() => setCompletedFilter(opt.id as any)}
+                style={{
+                  background: isActive ? opt.bgGlow : 'var(--surface-hover)',
+                  color: isActive ? '#ffffff' : 'var(--text-secondary)',
+                  border: `1px solid ${isActive ? opt.activeColor : 'var(--glass-border)'}`,
+                  padding: '0.45rem 0.95rem',
+                  borderRadius: '30px',
+                  fontSize: '0.78rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: isActive ? `0 0 12px ${opt.bgGlow}` : 'none',
+                  outline: 'none',
+                }}
+                className="chip-hover-premium"
+              >
+                <span style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  color: isActive ? opt.activeColor : 'var(--text-tertiary)',
+                  transition: 'transform 0.25s ease'
+                }} className="filter-icon-container">
+                  {opt.icon}
+                </span>
+                <span>{opt.label}</span>
+                <span style={{ 
+                  fontSize: '0.7rem', 
+                  minWidth: '1.25rem',
+                  height: '1.25rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0 0.25rem', 
+                  borderRadius: '50%', 
+                  background: isActive ? opt.bgGlow : 'rgba(255,255,255,0.06)', 
+                  color: isActive ? opt.activeColor : 'var(--text-tertiary)',
+                  fontWeight: '800',
+                  border: `1px solid ${isActive ? opt.borderColor : 'transparent'}`,
+                  transition: 'all 0.25s ease'
+                }}>
+                  {opt.count}
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
 

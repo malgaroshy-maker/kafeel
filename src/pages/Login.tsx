@@ -92,8 +92,8 @@ export default function Login() {
     setLoading(false);
   };
 
-  const adminBroadcasts = broadcasts.filter(b => b.created_by_role === 'admin' || !b.created_by_role);
-  const dealerBroadcasts = broadcasts.filter(b => b.created_by_role === 'monitor' || !b.created_by_role);
+  const adminBroadcasts = broadcasts.filter(b => b.created_by_role === 'admin' || (!b.created_by_role && !b.message.startsWith('DEALER_ALERT:')));
+  const dealerBroadcasts = broadcasts.filter(b => b.created_by_role === 'monitor' || b.created_by_role === 'car_agent' || b.message.startsWith('DEALER_ALERT:'));
 
   return (
     <div className="join-page" style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: '2rem', padding: '2rem', flexWrap: 'wrap', overflowY: 'auto' }}>
@@ -103,7 +103,7 @@ export default function Login() {
       {broadcasts.length > 0 && (
         <div className="glass" style={{ flex: '1 1 280px', maxWidth: '360px', padding: '1.5rem', borderRight: '4px solid var(--error)', background: 'linear-gradient(to bottom left, rgba(239, 68, 68, 0.05), transparent)', alignSelf: 'stretch' }}>
           <h3 style={{ color: 'var(--error)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}>
-            <ShieldCheck size={20} /> إشعار الإدارة العامة
+            <ShieldCheck size={20} /> إشعار مصممي النظام
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '400px', overflowY: 'auto' }} className="custom-scroll">
             {adminBroadcasts.length > 0 ? adminBroadcasts.map(b => (
@@ -211,7 +211,9 @@ export default function Login() {
                 <div style={{ fontSize: '0.75rem', color: 'var(--accent)', marginBottom: '0.25rem' }}>
                   {new Date(b.created_at).toLocaleDateString('en-GB')}
                 </div>
-                <p style={{ margin: 0, color: 'var(--text-primary)', lineHeight: 1.5, fontSize: '0.9rem' }}>{b.message}</p>
+                <p style={{ margin: 0, color: 'var(--text-primary)', lineHeight: 1.5, fontSize: '0.9rem' }}>
+                  {b.message.startsWith('DEALER_ALERT:') ? b.message.replace(/^DEALER_ALERT:\s*/, '') : b.message}
+                </p>
               </div>
             )) : (
               <p style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>لا توجد إعلانات من الوكيل حالياً</p>

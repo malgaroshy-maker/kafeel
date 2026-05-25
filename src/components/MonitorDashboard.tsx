@@ -216,7 +216,11 @@ export default function MonitorDashboard({ activeSubTab }: MonitorDashboardProps
       const prefix = companyName.trim() ? `[${companyName.trim()}] ` : ''
       const formattedMessage = `DEALER_ALERT: ${prefix}${broadcastMessage.trim()}`
       const expiresAt = new Date(Date.now() + broadcastDuration * 3600000).toISOString()
-      const { error } = await supabase.from('broadcasts').insert({ message: formattedMessage, expires_at: expiresAt })
+      const { error } = await supabase.from('broadcasts').insert({
+        message: formattedMessage,
+        expires_at: expiresAt,
+        created_by_role: 'monitor'
+      })
       if (error) throw error
       setBroadcastSuccess('✅ تم بث الإعلان بنجاح!')
       setBroadcastMessage('')

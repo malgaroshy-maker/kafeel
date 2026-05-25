@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-import { Search, User, Phone, Building2, Trash2, Clock, Plus, AlertCircle, RefreshCw, Clipboard, Check, BookOpen } from 'lucide-react'
+import { Search, User, Phone, Building2, Trash2, Clock, Plus, AlertCircle, RefreshCw, Clipboard, Check, BookOpen, Users, AlertTriangle, Calendar, Hourglass } from 'lucide-react'
 import { maskPhone } from '../utils/masking'
 
 interface Workplace {
@@ -713,43 +713,68 @@ export default function PotentialCustomers({ onConvert }: Props) {
       )}
 
       {/* Smart Calendar Filters Tabs */}
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', borderBottom: '1px solid rgba(191, 149, 63, 0.1)', paddingBottom: '0.75rem', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '0.65rem', marginBottom: '1.8rem', borderBottom: '1px solid rgba(191, 149, 63, 0.15)', paddingBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginLeft: '0.5rem', fontWeight: '800' }}>تصنيفات المتابعة:</span>
         {[
-          { id: 'all', label: 'الكل', count: customers.length, color: 'var(--text-primary)' },
-          { id: 'overdue', label: 'مراجعة متأخرة ⚠️', count: customers.filter(c => isOverdue(c.callback_date)).length, color: '#f87171' },
-          { id: 'today', label: 'مراجعة اليوم 📅', count: customers.filter(c => isToday(c.callback_date)).length, color: '#34d399' },
-          { id: 'scheduled', label: 'مراجعة مجدولة ⏳', count: customers.filter(c => isScheduled(c.callback_date)).length, color: '#60a5fa' }
-        ].map(tab => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setFilterTab(tab.id as any)}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: '8px',
-              border: filterTab === tab.id ? '1px solid var(--primary)' : '1px solid rgba(255, 255, 255, 0.05)',
-              background: filterTab === tab.id ? 'linear-gradient(135deg, rgba(191, 149, 63, 0.15) 0%, rgba(170, 119, 28, 0.05) 100%)' : 'var(--surface-hover)',
-              color: filterTab === tab.id ? 'var(--primary)' : 'var(--text-secondary)',
-              fontWeight: filterTab === tab.id ? 'bold' : 'normal',
-              cursor: 'pointer',
-              fontSize: '0.82rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              transition: 'all 0.2s ease-in-out',
-            }}
-          >
-            <span style={{ color: filterTab === tab.id ? 'var(--primary)' : tab.color }}>{tab.label}</span>
-            <span style={{ 
-              background: filterTab === tab.id ? 'rgba(191, 149, 63, 0.2)' : 'rgba(255, 255, 255, 0.05)', 
-              padding: '0.1rem 0.4rem', 
-              borderRadius: '6px', 
-              fontSize: '0.72rem',
-              color: filterTab === tab.id ? 'var(--primary)' : 'var(--text-tertiary)',
-              fontWeight: 'bold'
-            }}>{tab.count}</span>
-          </button>
-        ))}
+          { id: 'all', label: 'الكل', count: customers.length, icon: <Users size={14} />, activeColor: 'var(--primary)', bgGlow: 'rgba(191, 149, 63, 0.15)', borderColor: 'rgba(191, 149, 63, 0.25)' },
+          { id: 'overdue', label: 'مراجعة متأخرة', count: customers.filter(c => isOverdue(c.callback_date)).length, icon: <AlertTriangle size={14} />, activeColor: '#f87171', bgGlow: 'rgba(248, 113, 113, 0.12)', borderColor: 'rgba(248, 113, 113, 0.25)' },
+          { id: 'today', label: 'مراجعة اليوم', count: customers.filter(c => isToday(c.callback_date)).length, icon: <Calendar size={14} />, activeColor: '#34d399', bgGlow: 'rgba(52, 211, 153, 0.12)', borderColor: 'rgba(52, 211, 153, 0.25)' },
+          { id: 'scheduled', label: 'مراجعة مجدولة', count: customers.filter(c => isScheduled(c.callback_date)).length, icon: <Hourglass size={14} />, activeColor: '#60a5fa', bgGlow: 'rgba(96, 165, 250, 0.12)', borderColor: 'rgba(96, 165, 250, 0.25)' }
+        ].map(tab => {
+          const isActive = filterTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setFilterTab(tab.id as any)}
+              style={{
+                background: isActive ? tab.bgGlow : 'var(--surface-hover)',
+                color: isActive ? '#ffffff' : 'var(--text-secondary)',
+                border: `1px solid ${isActive ? tab.activeColor : 'var(--glass-border)'}`,
+                padding: '0.45rem 0.95rem',
+                borderRadius: '30px',
+                fontSize: '0.78rem',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: isActive ? `0 0 12px ${tab.bgGlow}` : 'none',
+                outline: 'none',
+              }}
+              className="chip-hover-premium"
+            >
+              <span style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                color: isActive ? tab.activeColor : 'var(--text-tertiary)',
+                transition: 'transform 0.25s ease'
+              }} className="filter-icon-container">
+                {tab.icon}
+              </span>
+              <span>{tab.label}</span>
+              <span style={{ 
+                fontSize: '0.7rem', 
+                minWidth: '1.25rem',
+                height: '1.25rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0 0.25rem', 
+                borderRadius: '50%', 
+                background: isActive ? tab.bgGlow : 'rgba(255,255,255,0.06)', 
+                color: isActive ? tab.activeColor : 'var(--text-tertiary)',
+                fontWeight: '800',
+                border: `1px solid ${isActive ? tab.borderColor : 'transparent'}`,
+                transition: 'all 0.25s ease'
+              }}>
+                {tab.count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Main List */}

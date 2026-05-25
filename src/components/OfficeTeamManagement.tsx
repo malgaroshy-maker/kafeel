@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Users, Shield, ToggleLeft, ToggleRight, Search, ChevronDown } from 'lucide-react'
+import { Users, Shield, ToggleLeft, ToggleRight, Search, ChevronDown, Key } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -23,6 +23,9 @@ export default function OfficeTeamManagement() {
   const [team, setTeam] = useState<UserProfile[]>([])
   const [search, setSearch] = useState('')
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [selectedUserForPassword, setSelectedUserForPassword] = useState<{ id: string; name: string } | null>(null)
+  const [newPassword, setNewPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
 
   const loadTeam = useCallback(async () => {
     if (!officeId) return
@@ -66,18 +69,37 @@ export default function OfficeTeamManagement() {
   const toggleUserStatus = async (userId: string, currentStatus: boolean, name: string) => {
     if (currentStatus && !confirm(`هل أنت متأكد من تعطيل حساب ${name}؟ لن يتمكن من الدخول للمنظومة.`)) return
     
+    // Limit checks during activation (switching from deactivated to active)
+    if (!currentStatus) {
+      const targetUser = team.find(u => u.id === userId)
+      if (targetUser) {
+        if (targetUser.role === 'manager') {
+          const hasActiveManager = team.some(u => u.role === 'manager' && u.is_active && u.id !== userId)
+          if (hasActiveManager) {
+            alert('لقد بلغت الحد الأقصى (مدير نشط واحد فقط للمكتب حالياً)')
+            return
+          }
+        }
+        if (targetUser.role === 'accountant') {
+          const hasActiveAccountant = team.some(u => u.role === 'accountant' && u.is_active && u.id !== userId)
+          if (hasActiveAccountant) {
+            alert('لقد بلغت الحد الأقصى (محاسب نشط واحد فقط للمكتب حالياً)')
+            return
+          }
+        }
+      }
+    }
+
     setActionLoading(`status-${userId}`)
     try {
       if (currentStatus) {
         // Deactivate via Edge Function
         await manageUserCall({ action: 'deactivate_user', user_id: userId })
       } else {
-        // Activate (we can just update user_profiles if RLS allows, or add an activate action. Let's assume we can update user_profiles since managers can update... wait! RLS might not allow. For now we use standard update if possible, or we need to add activate to Edge Function)
+        // Activate
         const { error } = await supabase.from('user_profiles').update({ is_active: true }).eq('id', userId)
         if (error) {
-           // Fallback to edge function if RLS blocks
-           await manageUserCall({ action: 'update_role', user_id: userId, new_role: team.find(t=>t.id===userId)?.role }) // Hacky way or add proper action
-           // Actually, let's just alert that they need admin to activate for now if it fails.
+           await manageUserCall({ action: 'update_role', user_id: userId, new_role: team.find(t=>t.id===userId)?.role })
            alert('تفعيل الحسابات المعطلة يحتاج صلاحية المالك حالياً.')
            throw error;
         }
@@ -90,12 +112,56 @@ export default function OfficeTeamManagement() {
   }
 
   const updateRole = async (userId: string, newRole: string) => {
+    // Role changes limits verification
+    if (newRole === 'manager') {
+      const hasActiveManager = team.some(u => u.role === 'manager' && u.is_active && u.id !== userId)
+      if (hasActiveManager) {
+        alert('لقد بلغت الحد الأقصى (مدير واحد فقط للمكتب)')
+        return
+      }
+    }
+    if (newRole === 'accountant') {
+      const hasActiveAccountant = team.some(u => u.role === 'accountant' && u.is_active && u.id !== userId)
+      if (hasActiveAccountant) {
+        alert('لقد بلغت الحد الأقصى (محاسب واحد فقط للمكتب)')
+        return
+      }
+    }
+
     setActionLoading(`role-${userId}`)
     try {
       await manageUserCall({ action: 'update_role', user_id: userId, new_role: newRole })
       setTeam(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u))
     } catch (err) { 
       alert((err as Error).message) 
+    }
+    setActionLoading(null)
+  }
+
+  const resetPassword = (userId: string, displayName: string) => {
+    setSelectedUserForPassword({ id: userId, name: displayName })
+    setNewPassword('')
+    setPasswordError('')
+  }
+
+  const handleResetPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPasswordError('')
+    if (!selectedUserForPassword) return
+    
+    if (newPassword.length < 6) {
+      setPasswordError('كلمة المرور يجب أن تكون 6 أحرف على الأقل')
+      return
+    }
+
+    setActionLoading(`pw-${selectedUserForPassword.id}`)
+    try {
+      await manageUserCall({ action: 'reset_password', user_id: selectedUserForPassword.id, new_password: newPassword })
+      alert(`تم تعيين كلمة المرور الجديدة للموظف ${selectedUserForPassword.name} بنجاح!`)
+      setSelectedUserForPassword(null)
+      setNewPassword('')
+    } catch (err) {
+      setPasswordError((err as Error).message)
     }
     setActionLoading(null)
   }
@@ -145,6 +211,7 @@ export default function OfficeTeamManagement() {
                 <th>تاريخ الانضمام</th>
                 <th>الصلاحية (الدور)</th>
                 <th>حالة الحساب</th>
+                <th style={{ textAlign: 'center' }}>كلمة المرور</th>
               </tr>
             </thead>
             <tbody>
@@ -195,12 +262,33 @@ export default function OfficeTeamManagement() {
                         </button>
                       </div>
                     </td>
+                    <td style={{ textAlign: 'center' }}>
+                      {user.is_active && (
+                        <button 
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => resetPassword(user.id, user.display_name)}
+                          disabled={actionLoading === `pw-${user.id}`}
+                          style={{ 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '0.35rem', 
+                            padding: '0.35rem 0.75rem',
+                            fontSize: '0.8rem',
+                            border: '1px solid var(--glass-border)',
+                            color: 'var(--primary)'
+                          }}
+                        >
+                          <Key size={14} />
+                          <span>تعيين كلمة المرور</span>
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 )
               })}
               {team.length === 0 && (
                 <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>
                     لا يوجد موظفين مسجلين حالياً
                   </td>
                 </tr>
@@ -209,6 +297,88 @@ export default function OfficeTeamManagement() {
           </table>
         </div>
       </div>
+
+      {/* Custom Reset Password Modal */}
+      {selectedUserForPassword && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.65)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999,
+          padding: '1rem'
+        }}>
+          <div style={{
+            background: 'var(--surface)',
+            border: '2px solid var(--glass-border)',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '450px',
+            padding: '2rem',
+            boxShadow: 'var(--shadow-lg)',
+            position: 'relative',
+            direction: 'rtl'
+          }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '1.5rem', borderBottom: '2px solid var(--glass-border)', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Key size={20} style={{ color: 'var(--primary)' }} />
+              <span>تعيين كلمة مرور جديدة</span>
+            </h3>
+
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
+              أدخل كلمة المرور الجديدة للموظف: <strong style={{ color: 'var(--primary)' }}>{selectedUserForPassword.name}</strong>
+            </p>
+
+            <form onSubmit={handleResetPasswordSubmit}>
+              <div className="input-group" style={{ marginBottom: '1.25rem' }}>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+                  كلمة المرور الجديدة
+                </label>
+                <input
+                  type="password"
+                  placeholder="أدخل 6 أرقام أو حروف على الأقل..."
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  className="input-field"
+                  style={{ width: '100%', padding: '0.7rem 0.9rem', borderRadius: '8px', border: '1.5px solid var(--glass-border)', background: 'var(--bg-primary)', color: 'var(--text-primary)', outline: 'none', textAlign: 'right' }}
+                  autoFocus
+                  required
+                />
+              </div>
+
+              {passwordError && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', fontSize: '0.82rem', marginBottom: '1.25rem' }}>
+                  <span>{passwordError}</span>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '0.75rem', width: '100%', marginTop: '1.5rem' }}>
+                <button
+                  type="submit"
+                  disabled={actionLoading === `pw-${selectedUserForPassword.id}`}
+                  className="btn btn-primary"
+                  style={{ flex: 1, padding: '0.65rem 1rem', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  {actionLoading === `pw-${selectedUserForPassword.id}` ? 'جاري الحفظ...' : 'تأكيد الحفظ'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedUserForPassword(null)}
+                  className="btn btn-outline"
+                  style={{ flex: 1, padding: '0.65rem 1rem', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', borderRadius: '8px', background: 'transparent', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  إلغاء
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

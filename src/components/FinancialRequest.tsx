@@ -10,7 +10,7 @@ interface Props {
 }
 
 export default function FinancialRequest({ beneficiaryId, onProceedToDocs }: Props) {
-  const { isManager, isStaff, isAccountant, isAdmin, role, officeId } = useAuth();
+  const { isManager, isStaff, isAccountant, isAdmin, role, officeId, displayName, user } = useAuth();
   const showFullPhone = isManager || isAccountant || isAdmin || role === 'admin';
   const [requests, setRequests] = useState<any[]>([]);
   const [useFallback, setUseFallback] = useState(false);
@@ -31,7 +31,11 @@ export default function FinancialRequest({ beneficiaryId, onProceedToDocs }: Pro
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const sqlCode = `-- SQL Command to create the financial_requests table. Copy and run this in Supabase SQL Editor:
+  const sqlCode = `-- SQL Command to update the financial_requests table. Copy and run this in Supabase SQL Editor:
+ALTER TABLE public.financial_requests ADD COLUMN IF NOT EXISTS created_by_name TEXT;
+ALTER TABLE public.financial_requests ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ;
+
+-- Re-create or run the table creation script:
 CREATE TABLE IF NOT EXISTS public.financial_requests (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     office_id UUID NOT NULL REFERENCES public.offices(id) ON DELETE CASCADE,
@@ -41,36 +45,10 @@ CREATE TABLE IF NOT EXISTS public.financial_requests (
     amount NUMERIC NOT NULL DEFAULT 0,
     notes TEXT,
     status TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
+    created_by_name TEXT,
+    approved_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- Enable Row Level Security (RLS)
-ALTER TABLE public.financial_requests ENABLE ROW LEVEL SECURITY;
-
--- Create Policies
-CREATE POLICY "Offices can SELECT own financial requests"
-    ON public.financial_requests FOR SELECT
-    TO public
-    USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
-
-CREATE POLICY "Offices can INSERT own financial requests"
-    ON public.financial_requests FOR INSERT
-    TO public
-    WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
-
-CREATE POLICY "Offices can UPDATE own financial requests"
-    ON public.financial_requests FOR UPDATE
-    TO public
-    USING (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid))
-    WITH CHECK (office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid));
-
-CREATE POLICY "Only managers can DELETE own financial requests"
-    ON public.financial_requests FOR DELETE
-    TO public
-    USING (
-        office_id = ((auth.jwt() -> 'app_metadata' ->> 'office_id')::uuid)
-        AND ((auth.jwt() -> 'app_metadata' ->> 'role') = 'manager')
-    );`;
+);`;
 
   useEffect(() => {
     fetchRequests();
@@ -189,6 +167,8 @@ CREATE POLICY "Only managers can DELETE own financial requests"
       return;
     }
 
+    const creatorName = displayName || user?.user_metadata?.name || user?.email || 'موظف المكتب';
+
     const newRequest = {
       office_id: officeId,
       transaction_id: transactionId,
@@ -197,6 +177,7 @@ CREATE POLICY "Only managers can DELETE own financial requests"
       amount: parseFloat(amount),
       notes: notes,
       status: 'PENDING',
+      created_by_name: creatorName,
       created_at: new Date().toISOString()
     };
 
@@ -223,12 +204,44 @@ CREATE POLICY "Only managers can DELETE own financial requests"
             customer:customer_id(name, phone, salary),
             transaction:transaction_id(car_model, car_price)
           `)
-          .single();
+          .maybeSingle();
 
-        if (error) throw error;
-        setRequests(prev => [data, ...prev]);
-        alert('تم تقديم طلب القيمة المالية للمدير بنجاح!');
-        resetForm();
+        if (error) {
+          // If created_by_name doesn't exist in Supabase cache yet, fallback to inserting core fields
+          if (error.message.includes('created_by_name') || error.code === 'PGRST102' || error.message.includes('column')) {
+            const coreRequest = {
+              office_id: officeId,
+              transaction_id: transactionId,
+              customer_id: customerId,
+              request_type: requestType,
+              amount: parseFloat(amount),
+              notes: notes,
+              status: 'PENDING',
+              created_at: new Date().toISOString()
+            };
+            
+            const { data: retryData, error: retryError } = await supabase
+              .from('financial_requests')
+              .insert(coreRequest)
+              .select(`
+                *,
+                customer:customer_id(name, phone, salary),
+                transaction:transaction_id(car_model, car_price)
+              `)
+              .maybeSingle();
+              
+            if (retryError) throw retryError;
+            setRequests(prev => [retryData, ...prev]);
+            alert('تم تقديم طلب القيمة المالية للمدير بنجاح! (تم التجاوز لعدم اكتمال الهيكل السحابي للجدول)');
+            resetForm();
+          } else {
+            throw error;
+          }
+        } else {
+          setRequests(prev => [data, ...prev]);
+          alert('تم تقديم طلب القيمة المالية للمدير بنجاح!');
+          resetForm();
+        }
       }
     } catch (err: any) {
       console.error(err);
@@ -237,11 +250,12 @@ CREATE POLICY "Only managers can DELETE own financial requests"
   };
 
   const handleUpdateStatus = async (id: string, status: 'APPROVED' | 'REJECTED') => {
+    const approvedAt = status === 'APPROVED' ? new Date().toISOString() : null;
     try {
       if (useFallback) {
         const updated = requests.map(req => {
           if (req.id === id) {
-            return { ...req, status };
+            return { ...req, status, approved_at: approvedAt };
           }
           return req;
         });
@@ -249,14 +263,30 @@ CREATE POLICY "Only managers can DELETE own financial requests"
         setRequests(updated);
         alert(`تم تحديث حالة الطلب إلى: ${status === 'APPROVED' ? 'مقبول' : 'مرفوض'}`);
       } else {
+        // Try updating all columns first
         const { error } = await supabase
           .from('financial_requests')
-          .update({ status })
+          .update({ status, approved_at: approvedAt })
           .eq('id', id);
 
-        if (error) throw error;
-        setRequests(prev => prev.map(req => req.id === id ? { ...req, status } : req));
-        alert(`تم تحديث حالة الطلب إلى: ${status === 'APPROVED' ? 'مقبول' : 'مرفوض'}`);
+        if (error) {
+          // If approved_at does not exist in schema cache, fallback to updating ONLY status
+          if (error.message.includes('approved_at') || error.code === 'PGRST102' || error.message.includes('column')) {
+            const { error: retryError } = await supabase
+              .from('financial_requests')
+              .update({ status })
+              .eq('id', id);
+            
+            if (retryError) throw retryError;
+            setRequests(prev => prev.map(req => req.id === id ? { ...req, status } : req));
+            alert(`تم تحديث حالة الطلب إلى: ${status === 'APPROVED' ? 'مقبول' : 'مرفوض'} (تم التجاوز لعدم اكتمال الهيكل السحابي للجدول)`);
+          } else {
+            throw error;
+          }
+        } else {
+          setRequests(prev => prev.map(req => req.id === id ? { ...req, status, approved_at: approvedAt } : req));
+          alert(`تم تحديث حالة الطلب إلى: ${status === 'APPROVED' ? 'مقبول' : 'مرفوض'}`);
+        }
       }
     } catch (err: any) {
       console.error(err);
@@ -289,7 +319,7 @@ CREATE POLICY "Only managers can DELETE own financial requests"
             <span>نظام محاكاة قاعدة البيانات نشط (مستودع محلي)</span>
           </div>
           <p style={{ fontSize: '0.85rem', margin: 0, lineHeight: 1.5 }}>
-            جدول <code>financial_requests</code> غير موجود بقاعدة بيانات Supabase الخاصة بك حتى الآن. يمكنك تشغيل النظام بشكل طبيعي باستخدام الحفظ المحلي المدمج حالياً، أو تفعيله سحابياً بنسخ الأمر التالي وتشغيله في نافذة <strong>SQL Editor</strong> داخل لوحة تحكم Supabase:
+            جدول <code>financial_requests</code> غير موجود بقاعدة بيانات Supabase الخاصة بك حتى الآن أو ينقصه أعمدة إضافية. يمكنك تشغيل النظام بشكل طبيعي باستخدام الحفظ المحلي المدمج حالياً، أو تفعيله سحابياً بنسخ الأمر التالي وتشغيله في نافذة <strong>SQL Editor</strong> داخل لوحة تحكم Supabase:
           </p>
           <details style={{ marginTop: '0.5rem' }}>
             <summary style={{ cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}>عرض كود SQL لإنشاء الجدول</summary>
@@ -435,7 +465,7 @@ CREATE POLICY "Only managers can DELETE own financial requests"
         )}
 
         {/* Requests List */}
-        <div className="card" style={{ padding: '1.5rem', background: 'var(--surface)', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
+        <div className="card" style={{ padding: '1.5rem', background: 'var(--surface)', borderRadius: '12px', border: '1px solid var(--glass-border)', overflow: 'hidden' }}>
           <h3 style={{ marginTop: 0, color: 'var(--primary-light)' }}>قائمة طلبات المكتب الحالية</h3>
 
           {loading ? (
@@ -446,67 +476,81 @@ CREATE POLICY "Only managers can DELETE own financial requests"
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', minWidth: '700px' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
                     <th style={{ padding: '0.75rem' }}>الزبون</th>
+                    <th style={{ padding: '0.75rem' }}>السيارة</th>
                     <th style={{ padding: '0.75rem' }}>نوع الطلب</th>
                     <th style={{ padding: '0.75rem' }}>القيمة</th>
+                    <th style={{ padding: '0.75rem' }}>مقدم الطلب</th>
+                    <th style={{ padding: '0.75rem' }}>التاريخ</th>
                     <th style={{ padding: '0.75rem' }}>الملاحظات</th>
                     <th style={{ padding: '0.75rem' }}>الحالة</th>
                     {isManager && <th style={{ padding: '0.75rem', textAlign: 'center' }}>الإجراءات</th>}
                   </tr>
                 </thead>
                 <tbody>
-                  {requests.map((req) => (
-                    <tr key={req.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
-                      <td style={{ padding: '0.75rem', fontWeight: 'bold' }}>{req.customer?.name || 'زبون غير معروف'}</td>
-                      <td style={{ padding: '0.75rem' }}>
-                        <span className="badge" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)' }}>
-                          {getRequestTypeName(req.request_type)}
-                        </span>
-                      </td>
-                      <td style={{ padding: '0.75rem', color: 'var(--primary-light)', fontWeight: 'bold' }}>{req.amount.toLocaleString()} د.ل</td>
-                      <td style={{ padding: '0.75rem', fontSize: '0.85rem', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={req.notes}>
-                        {req.notes || 'لا توجد ملاحظات'}
-                      </td>
-                      <td style={{ padding: '0.75rem' }}>
-                        <span className="badge" style={{
-                          background: req.status === 'APPROVED' ? 'rgba(16, 185, 129, 0.15)' : req.status === 'REJECTED' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                          color: req.status === 'APPROVED' ? '#10b981' : req.status === 'REJECTED' ? '#ef4444' : '#f59e0b',
-                          fontWeight: 'bold'
-                        }}>
-                          {req.status === 'APPROVED' ? 'تم القبول' : req.status === 'REJECTED' ? 'تم الرفض' : 'قيد الانتظار'}
-                        </span>
-                      </td>
-                      {isManager && (
-                        <td style={{ padding: '0.75rem', display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                          {req.status === 'PENDING' ? (
-                            <>
-                              <button 
-                                onClick={() => handleUpdateStatus(req.id, 'APPROVED')} 
-                                className="btn btn-success" 
-                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-                              >
-                                <CheckCircle size={14} />
-                                موافقة
-                              </button>
-                              <button 
-                                onClick={() => handleUpdateStatus(req.id, 'REJECTED')} 
-                                className="btn btn-danger" 
-                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-                              >
-                                <XCircle size={14} />
-                                رفض
-                              </button>
-                            </>
-                          ) : (
-                            <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>مكتمل</span>
-                          )}
+                  {requests.map((req) => {
+                    const displayDate = req.status === 'APPROVED' && req.approved_at
+                      ? new Date(req.approved_at).toLocaleDateString('en-GB') + ' (موافقة)'
+                      : new Date(req.created_at).toLocaleDateString('en-GB') + ' (تقديم)';
+
+                    return (
+                      <tr key={req.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                        <td style={{ padding: '0.75rem', fontWeight: 'bold' }}>{req.customer?.name || 'زبون غير معروف'}</td>
+                        <td style={{ padding: '0.75rem', color: 'var(--text-secondary)' }}>{req.transaction?.car_model || 'غير محدد'}</td>
+                        <td style={{ padding: '0.75rem' }}>
+                          <span className="badge" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)' }}>
+                            {getRequestTypeName(req.request_type)}
+                          </span>
                         </td>
-                      )}
-                    </tr>
-                  ))}
+                        <td style={{ padding: '0.75rem', color: 'var(--primary-light)', fontWeight: 'bold' }}>{req.amount.toLocaleString()} د.ل</td>
+                        <td style={{ padding: '0.75rem', fontSize: '0.85rem' }}>{req.created_by_name || (displayName ? displayName : 'موظف المكتب')}</td>
+                        <td style={{ padding: '0.75rem', fontSize: '0.8rem', color: req.status === 'APPROVED' ? '#10b981' : 'var(--text-secondary)' }}>
+                          {displayDate}
+                        </td>
+                        <td style={{ padding: '0.75rem', fontSize: '0.85rem', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={req.notes}>
+                          {req.notes || 'لا توجد ملاحظات'}
+                        </td>
+                        <td style={{ padding: '0.75rem' }}>
+                          <span className="badge" style={{
+                            background: req.status === 'APPROVED' ? 'rgba(16, 185, 129, 0.15)' : req.status === 'REJECTED' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                            color: req.status === 'APPROVED' ? '#10b981' : req.status === 'REJECTED' ? '#ef4444' : '#f59e0b',
+                            fontWeight: 'bold'
+                          }}>
+                            {req.status === 'APPROVED' ? 'تم القبول' : req.status === 'REJECTED' ? 'تم الرفض' : 'قيد الانتظار'}
+                          </span>
+                        </td>
+                        {isManager && (
+                          <td style={{ padding: '0.75rem', display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                            {req.status === 'PENDING' ? (
+                              <>
+                                <button 
+                                  onClick={() => handleUpdateStatus(req.id, 'APPROVED')} 
+                                  className="btn btn-success" 
+                                  style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                                >
+                                  <CheckCircle size={14} />
+                                  موافقة
+                                </button>
+                                <button 
+                                  onClick={() => handleUpdateStatus(req.id, 'REJECTED')} 
+                                  className="btn btn-danger" 
+                                  style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                                >
+                                  <XCircle size={14} />
+                                  رفض
+                                </button>
+                              </>
+                            ) : (
+                              <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>مكتمل</span>
+                            )}
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

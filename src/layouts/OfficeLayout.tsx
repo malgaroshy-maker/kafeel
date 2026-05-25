@@ -9,6 +9,7 @@ import WaitingQueue from '../components/WaitingQueue';
 import Settlements from '../components/Settlements';
 import ReportsDashboard from '../components/ReportsDashboard';
 import StaffDashboard from '../components/StaffDashboard';
+import ManagerDashboard from '../components/ManagerDashboard';
 import OfficeSettings from '../components/OfficeSettings';
 import StaffStats from '../components/StaffStats';
 import FinancialRequest from '../components/FinancialRequest';
@@ -33,13 +34,13 @@ const tabs: { id: Tab; label: string; icon: typeof Calculator }[] = [
 ];
 
 const OfficeLayout: React.FC = () => {
-  const { isManager, isStaff, isAccountant, signOut, officeName } = useAuth();
-  
+  const { isManager, isStaff, isAccountant, signOut, officeName, officeId } = useAuth();
+
   // Set default active tab based on role
   const [activeTab, setActiveTab] = useState<Tab>(
-    isStaff ? 'dashboard' : (isAccountant ? 'reports' : 'beneficiary')
+    isStaff ? 'dashboard' : (isManager ? 'dashboard' : (isAccountant ? 'reports' : 'beneficiary'))
   );
-  
+
   const [selectedBeneficiary, setSelectedBeneficiary] = useState<any>(null);
   const [selectedGuarantor, setSelectedGuarantor] = useState<any>(null);
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
@@ -75,7 +76,7 @@ const OfficeLayout: React.FC = () => {
     e.preventDefault();
     setPwError('');
     setPwSuccess('');
-    
+
     if (!currentPassword) {
       setPwError('يرجى إدخال كلمة المرور الحالية');
       return;
@@ -132,7 +133,105 @@ const OfficeLayout: React.FC = () => {
 
 
   const [broadcasts, setBroadcasts] = useState<any[]>([]);
-  const [isBannerClosed, setIsBannerClosed] = useState(false);
+  const [waitingQueueCount, setWaitingQueueCount] = useState(0);
+  const [rejectedDocsCount, setRejectedDocsCount] = useState(0);
+  const [financialRequestCount, setFinancialRequestCount] = useState(0);
+
+  const fetchNotificationCounts = async () => {
+    if (!officeId) return;
+    try {
+      // 1. Get queue count (WAITING_MATCH)
+      const { count: queueCount } = await supabase
+        .from('transactions')
+        .select('*', { count: 'exact', head: true })
+        .eq('office_id', officeId)
+        .eq('status', 'WAITING_MATCH');
+
+      // 2. Get rejected docs count (REJECTED or rejected verification status)
+      const { count: rejectedCount } = await supabase
+        .from('transactions')
+        .select('*', { count: 'exact', head: true })
+        .eq('office_id', officeId)
+        .or('status.eq.REJECTED,verification_status.eq.rejected');
+
+      // 3. Get pending financial requests count (PENDING)
+      let pendingFinCount = 0;
+      try {
+        const { count: finCount, error: finErr } = await supabase
+          .from('financial_requests')
+          .select('*', { count: 'exact', head: true })
+          .eq('office_id', officeId)
+          .eq('status', 'PENDING');
+
+        if (!finErr) {
+          pendingFinCount = finCount || 0;
+        } else {
+          // Fallback to local storage count if table doesn't exist
+          const localData = localStorage.getItem('kafeel_financial_requests_local');
+          if (localData) {
+            const localReqs = JSON.parse(localData);
+            pendingFinCount = localReqs.filter((r: any) => r.status === 'PENDING').length;
+          }
+        }
+      } catch (e) {
+        // Fallback
+        const localData = localStorage.getItem('kafeel_financial_requests_local');
+        if (localData) {
+          const localReqs = JSON.parse(localData);
+          pendingFinCount = localReqs.filter((r: any) => r.status === 'PENDING').length;
+        }
+      }
+
+      setWaitingQueueCount(queueCount || 0);
+      setRejectedDocsCount(rejectedCount || 0);
+      setFinancialRequestCount(pendingFinCount);
+    } catch (err) {
+      console.error('Error fetching layout notification counts:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (!officeId) return;
+    fetchNotificationCounts();
+
+    const channel = supabase
+      .channel('office-layout-notifications')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'transactions',
+        filter: `office_id=eq.${officeId}`
+      }, () => {
+        fetchNotificationCounts();
+      })
+      .subscribe();
+
+    const finChannel = supabase
+      .channel('office-layout-financial-notifications')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'financial_requests',
+        filter: `office_id=eq.${officeId}`
+      }, () => {
+        fetchNotificationCounts();
+      })
+      .subscribe();
+
+    // Listen to local changes via storage event (for local fallback updates)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'kafeel_financial_requests_local') {
+        fetchNotificationCounts();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      channel.unsubscribe();
+      finChannel.unsubscribe();
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [officeId]);
 
   useEffect(() => {
     supabase
@@ -157,8 +256,8 @@ const OfficeLayout: React.FC = () => {
   };
 
   let visibleTabs = tabs.filter(tab => {
-    if (tab.id === 'dashboard' && !isStaff) return false;
-    if (tab.id === 'settings' && !isManager) return false;
+    if (tab.id === 'dashboard' && !isStaff && !isManager) return false;
+    if (tab.id === 'settings') return false;
     if (tab.id === 'reports' && isStaff) return false;
     if (tab.id === 'settlements' && isStaff) return false;
     if (tab.id === 'beneficiary' && isAccountant) return false;
@@ -167,7 +266,7 @@ const OfficeLayout: React.FC = () => {
   });
 
   if (isManager) {
-    const managerOrder: Tab[] = ['calculator', 'financial-request', 'customers', 'queue', 'reports', 'staff-stats', 'settlements', 'beneficiary', 'documents', 'settings'];
+    const managerOrder: Tab[] = ['dashboard', 'customers', 'financial-request', 'queue', 'staff-stats', 'reports', 'calculator', 'settlements', 'beneficiary', 'documents'];
     visibleTabs = [...visibleTabs].sort((a, b) => {
       const idxA = managerOrder.indexOf(a.id);
       const idxB = managerOrder.indexOf(b.id);
@@ -201,25 +300,25 @@ const OfficeLayout: React.FC = () => {
       <header style={{ borderBottom: '2px solid #aa771c', background: 'linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%)', padding: '0.4rem 2rem', position: 'sticky', top: 0, zIndex: 100, boxShadow: '0 3px 15px rgba(170, 119, 28, 0.25)' }}>
         <div className="header-inner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '1200px', margin: '0 auto' }}>
           <div className="brand" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <img 
-              src="/logo.png" 
-              alt="كفيل" 
-              style={{ 
-                height: '52px', 
-                objectFit: 'contain', 
+            <img
+              src="/logo.png"
+              alt="كفيل"
+              style={{
+                height: '52px',
+                objectFit: 'contain',
                 filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.12))',
                 borderRadius: '6px'
-              }} 
+              }}
             />
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <h2 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.1 }}>
-                {isManager 
-                  ? `مرحبا مدير مكتب ( ${officeName || ''} )` 
-                  : isAccountant 
-                  ? `مرحبا محاسب مكتب ( ${officeName || ''} )` 
-                  : isStaff 
-                  ? `مرحبا موظف مكتب ( ${officeName || ''} )` 
-                  : 'بوابة مكاتب كفيل'}
+                {isManager
+                  ? `مرحبا مدير مكتب ( ${officeName || ''} )`
+                  : isAccountant
+                    ? `مرحبا محاسب مكتب ( ${officeName || ''} )`
+                    : isStaff
+                      ? `مرحبا موظف مكتب ( ${officeName || ''} )`
+                      : 'بوابة مكاتب كفيل'}
               </h2>
               <span style={{ fontSize: '0.7rem', color: '#b45309', fontWeight: 'bold' }}>منظومة المرابحة الإسلامية للسيارات</span>
             </div>
@@ -230,10 +329,10 @@ const OfficeLayout: React.FC = () => {
               </div>
             )}
           </div>
-          
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             {/* Theme Toggle Button (Sun and Moon sign next to settings) */}
-            <button 
+            <button
               onClick={toggleTheme}
               style={{
                 background: '#0f172a',
@@ -254,14 +353,17 @@ const OfficeLayout: React.FC = () => {
             </button>
 
             {/* Settings Button */}
-            <button 
-              className="btn" 
-              onClick={() => setShowSettingsModal(true)}
-              style={{ 
-                background: '#0f172a', 
-                color: '#fff', 
-                border: '1px solid #aa771c', 
-                padding: '0.45rem 1rem', 
+            <button
+              className="btn"
+              onClick={() => {
+                setCameFromRegistration(false);
+                setActiveTab('settings');
+              }}
+              style={{
+                background: activeTab === 'settings' ? 'var(--accent)' : '#0f172a',
+                color: '#fff',
+                border: '1px solid #aa771c',
+                padding: '0.45rem 1rem',
                 borderRadius: '8px',
                 fontWeight: 'bold',
                 cursor: 'pointer',
@@ -269,7 +371,8 @@ const OfficeLayout: React.FC = () => {
                 alignItems: 'center',
                 gap: '0.4rem',
                 fontSize: '0.85rem',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+                boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                transition: 'all 0.2s ease'
               }}
             >
               <Settings size={16} />
@@ -277,14 +380,14 @@ const OfficeLayout: React.FC = () => {
             </button>
 
             {/* Logout Button */}
-            <button 
-              className="btn" 
+            <button
+              className="btn"
               onClick={handleLogout}
-              style={{ 
-                background: '#7f1d1d', 
-                color: '#fff', 
-                border: 'none', 
-                padding: '0.45rem 1rem', 
+              style={{
+                background: '#7f1d1d',
+                color: '#fff',
+                border: 'none',
+                padding: '0.45rem 1rem',
                 borderRadius: '8px',
                 fontWeight: 'bold',
                 cursor: 'pointer',
@@ -302,27 +405,7 @@ const OfficeLayout: React.FC = () => {
         </div>
       </header>
 
-      {/* Broadcasts Marquee Banner */}
-      {broadcasts.length > 0 && !isBannerClosed && (() => {
-        const isArabicBroadcast = /[\u0600-\u06FF]/.test(broadcasts.map(b => b.message).join(' '));
-        return (
-          <div style={{ borderBottom: '1px solid var(--glass-border)', padding: '0.6rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', position: 'relative', overflow: 'hidden', zIndex: 90 }}>
-            <div style={{ overflow: 'hidden', whiteSpace: 'nowrap', flex: 1, marginRight: '1rem' }}>
-              <div style={{ display: 'inline-flex', gap: '3rem', animation: `${isArabicBroadcast ? 'marqueeLTR' : 'marqueeRTL'} 25s linear infinite` }}>
-                {broadcasts.map(b => (
-                  <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem', color: b.type === 'urgent' ? 'var(--error)' : b.type === 'warning' ? 'var(--warning)' : 'var(--primary)', fontWeight: 700 }}>
-                    <Megaphone size={18} />
-                    <span>{b.message}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <button onClick={() => setIsBannerClosed(true)} style={{ background: 'transparent', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', padding: '0.25rem', flexShrink: 0 }} title="إغلاق">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-          </div>
-        );
-      })()}
+
 
       {/* Tab Navigation */}
       <nav className="tab-nav">
@@ -330,6 +413,14 @@ const OfficeLayout: React.FC = () => {
           {visibleTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id || (tab.id === 'customers' && activeTab === 'potential-customers');
+            const count = tab.id === 'queue'
+              ? waitingQueueCount
+              : tab.id === 'documents'
+                ? rejectedDocsCount
+                : tab.id === 'financial-request'
+                  ? financialRequestCount
+                  : 0;
+            const badgeClass = tab.id === 'queue' ? 'tab-badge-floating amber' : 'tab-badge-floating';
             return (
               <button
                 key={tab.id}
@@ -342,7 +433,10 @@ const OfficeLayout: React.FC = () => {
                   setActiveTab(tab.id);
                 }}
               >
-                <Icon size={18} />
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon size={18} />
+                  {count > 0 && <span className={badgeClass}>{count}</span>}
+                </div>
                 <span>{tab.label}</span>
               </button>
             );
@@ -380,16 +474,35 @@ const OfficeLayout: React.FC = () => {
         </nav>
       )}
 
+      {/* Broadcasts Marquee Banner */}
+      {broadcasts.length > 0 && (() => {
+        const isArabicBroadcast = /[\u0600-\u06FF]/.test(broadcasts.map(b => b.message).join(' '));
+        return (
+          <div style={{ borderBottom: '1px solid var(--glass-border)', padding: '0.65rem 1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'var(--surface)', position: 'relative', overflow: 'hidden', zIndex: 90 }}>
+            <div style={{ overflow: 'hidden', whiteSpace: 'nowrap', flex: 1 }}>
+              <div style={{ display: 'inline-flex', gap: '15rem', animation: `${isArabicBroadcast ? 'marqueeLTR' : 'marqueeRTL'} 35s linear infinite` }}>
+                {broadcasts.map(b => (
+                  <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem', color: b.type === 'urgent' ? 'var(--error)' : b.type === 'warning' ? 'var(--warning)' : 'var(--primary)', fontWeight: 700 }}>
+                    <Megaphone size={18} />
+                    <span>{b.message}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Content */}
       <main className="app-main">
         <div className="main-inner">
           {activeTab === 'customers' && (
-            <CustomerList 
+            <CustomerList
               onSelect={async (id) => {
                 setSelectedBeneficiary(id);
                 setSelectedGuarantor(null); // Reset
                 setActiveTab('calculator');
-                
+
                 try {
                   const { data: tx } = await supabase
                     .from('transactions')
@@ -399,7 +512,7 @@ const OfficeLayout: React.FC = () => {
                     .order('created_at', { ascending: false })
                     .limit(1)
                     .maybeSingle();
-                    
+
                   if (tx && tx.transaction_guarantors && tx.transaction_guarantors.length > 0) {
                     const confirmedGuar = tx.transaction_guarantors.find((tg: any) => tg.match_status === 'CONFIRMED');
                     if (confirmedGuar) {
@@ -420,7 +533,7 @@ const OfficeLayout: React.FC = () => {
                 } catch (err) {
                   console.error('Error fetching linked guarantor for calculator:', err);
                 }
-              }} 
+              }}
               onEdit={(customer) => {
                 setEditingCustomer(customer);
                 setActiveTab('beneficiary');
@@ -436,7 +549,7 @@ const OfficeLayout: React.FC = () => {
             />
           )}
           {activeTab === 'potential-customers' && (
-            <PotentialCustomers 
+            <PotentialCustomers
               onConvert={(customer) => {
                 setEditingCustomer({
                   id: '',
@@ -451,9 +564,9 @@ const OfficeLayout: React.FC = () => {
             />
           )}
           {activeTab === 'calculator' && (
-            <FinancialCalculator 
-              beneficiaryId={selectedBeneficiary} 
-              guarantorId={selectedGuarantor} 
+            <FinancialCalculator
+              beneficiaryId={selectedBeneficiary}
+              guarantorId={selectedGuarantor}
               showSaveButton={cameFromRegistration}
               onSaveSuccess={(txId) => {
                 setActiveTransactionId(txId);
@@ -463,8 +576,8 @@ const OfficeLayout: React.FC = () => {
             />
           )}
           {activeTab === 'beneficiary' && (
-            <CustomerForm 
-              role="beneficiary" 
+            <CustomerForm
+              role="beneficiary"
               initialData={editingCustomer}
               onSuccess={(id, gIds) => {
                 setSelectedBeneficiary(id);
@@ -474,23 +587,29 @@ const OfficeLayout: React.FC = () => {
                 setEditingCustomer(null);
                 setCameFromRegistration(true);
                 setActiveTab('calculator');
-              }} 
+              }}
             />
           )}
           {activeTab === 'financial-request' && (
-            <FinancialRequest 
-              beneficiaryId={selectedBeneficiary} 
+            <FinancialRequest
+              beneficiaryId={selectedBeneficiary}
               onProceedToDocs={() => {
                 setDocCustomerId(selectedBeneficiary);
                 setActiveTab('documents');
-              }} 
+              }}
             />
           )}
           {activeTab === 'documents' && <DocumentUploader customerId={docCustomerId} transactionId={activeTransactionId} />}
           {activeTab === 'queue' && <WaitingQueue />}
           {activeTab === 'settlements' && <Settlements />}
           {activeTab === 'reports' && <ReportsDashboard onTabChange={setActiveTab} />}
-          {activeTab === 'dashboard' && <StaffDashboard onTabChange={setActiveTab} />}
+          {activeTab === 'dashboard' && (
+            isManager ? (
+              <ManagerDashboard onTabChange={setActiveTab} />
+            ) : (
+              <StaffDashboard onTabChange={setActiveTab} />
+            )
+          )}
           {activeTab === 'staff-stats' && <StaffStats />}
           {activeTab === 'settings' && <OfficeSettings />}
         </div>
@@ -524,7 +643,7 @@ const OfficeLayout: React.FC = () => {
             direction: 'rtl'
           }}>
             {/* Close Button */}
-            <button 
+            <button
               onClick={() => {
                 setShowSettingsModal(false);
                 setPwError('');
@@ -578,7 +697,7 @@ const OfficeLayout: React.FC = () => {
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
                     كلمة المرور الحالية
                   </label>
-                  <input 
+                  <input
                     type="password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
@@ -600,7 +719,7 @@ const OfficeLayout: React.FC = () => {
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
                     كلمة المرور الجديدة
                   </label>
-                  <input 
+                  <input
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
@@ -622,7 +741,7 @@ const OfficeLayout: React.FC = () => {
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '0.35rem', color: 'var(--text-secondary)' }}>
                     تأكيد كلمة المرور الجديدة
                   </label>
-                  <input 
+                  <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
