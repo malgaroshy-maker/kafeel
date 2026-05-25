@@ -1,0 +1,1965 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>دليل دورة حياة الزبون والربط المالي التفاعلي | منظومة كفيل 🚗</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=Tajawal:wght@300;400;500;700;800&family=Fira+Code:wght@400;500;700&display=swap');
+  </style>
+
+  <style>
+    /* Premium Luxury Glassmorphism Dark Gold Design System */
+    :root {
+      --bg-main: #030712;
+      --bg-card: rgba(17, 24, 39, 0.7);
+      --border-color: rgba(212, 175, 55, 0.15);
+      --border-hover: rgba(212, 175, 55, 0.45);
+      --gold: #d4af37;
+      --gold-light: #f3e5ab;
+      --gold-glow: rgba(212, 175, 55, 0.3);
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.15);
+      --crimson: #ef4444;
+      --crimson-glow: rgba(239, 68, 68, 0.15);
+      --blue-accent: #3b82f6;
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --font-main: 'Alexandria', 'Tajawal', sans-serif;
+      --font-code: 'Fira Code', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: var(--font-main);
+      overflow-x: hidden;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 5% 15%, rgba(30, 41, 59, 0.6) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(212, 175, 55, 0.06) 0%, transparent 45%);
+      background-attachment: fixed;
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-main);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(212, 175, 55, 0.2);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--gold);
+    }
+
+    /* Fixed Navigation Header */
+    header.top-nav {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      height: 75px;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      z-index: 1000;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-logo {
+      height: 44px;
+      width: 44px;
+      background: radial-gradient(circle, var(--gold) 0%, transparent 80%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--gold);
+      box-shadow: 0 0 15px var(--gold-glow);
+    }
+    .brand-logo svg {
+      width: 24px;
+      height: 24px;
+      fill: var(--gold-light);
+    }
+    .brand-title h2 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffffff 0%, var(--gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .brand-title span {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      display: block;
+      margin-top: 1px;
+    }
+
+    .view-selector {
+      background: rgba(17, 24, 39, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 14px;
+      padding: 4px;
+      display: flex;
+      gap: 4px;
+    }
+    .view-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 10px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .view-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+    .view-btn.active {
+      background: var(--gold);
+      color: #030712;
+      box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+      font-weight: 700;
+    }
+    .view-btn:hover:not(.active) {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Container for Views */
+    main.content-container {
+      margin-top: 110px;
+      padding: 20px;
+      min-height: calc(100vh - 130px);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* ========================================== */
+    /* VIEW 1: DETAILED REPORT VIEW               */
+    /* ========================================== */
+    #report-view {
+      max-width: 1200px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      padding-bottom: 80px;
+    }
+
+    .report-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 35px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .report-card:hover {
+      border-color: var(--border-hover);
+      box-shadow: 0 12px 40px rgba(212, 175, 55, 0.05);
+    }
+
+    .card-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 18px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      gap: 8px;
+      border: 1px solid transparent;
+    }
+    .badge-gold {
+      background: rgba(212, 175, 55, 0.1);
+      border-color: rgba(212, 175, 55, 0.3);
+      color: var(--gold-light);
+    }
+    .badge-blue {
+      background: rgba(59, 130, 246, 0.1);
+      border-color: rgba(59, 130, 246, 0.3);
+      color: var(--blue-accent);
+    }
+    .badge-emerald {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: var(--emerald);
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #ffffff;
+      border-right: 4px solid var(--gold);
+      padding-right: 12px;
+      margin-bottom: 8px;
+    }
+    .card-description {
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: var(--text-muted);
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+    }
+    @media (max-width: 900px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Custom Interactive Visual: Lifecycle Timeline */
+    .interactive-lifecycle {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .lifecycle-steps-row {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 8px;
+      background: rgba(0,0,0,0.3);
+      padding: 10px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    @media (max-width: 768px) {
+      .lifecycle-steps-row {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+      }
+    }
+    .lifecycle-step-node {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 12px 6px;
+      cursor: pointer;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .lifecycle-step-node:hover {
+      background: rgba(212, 175, 55, 0.05);
+      border-color: rgba(212, 175, 55, 0.3);
+    }
+    .lifecycle-step-node.active {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: #030712;
+      box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+    }
+    .step-number-bubble {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+    .lifecycle-step-node.active .step-number-bubble {
+      background: rgba(0,0,0,0.2);
+    }
+    .step-title-text {
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .lifecycle-details-card {
+      background: rgba(3, 7, 18, 0.6);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 16px;
+      padding: 24px;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    /* Custom Interactive Visual: Role Selector Matrix */
+    .role-matrix-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .role-tabs {
+      display: flex;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding-bottom: 8px;
+      overflow-x: auto;
+    }
+    .role-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: 600;
+      border-radius: 8px 8px 0 0;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+    }
+    .role-tab-btn.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+      background: rgba(212, 175, 55, 0.05);
+    }
+    .role-matrix-display {
+      display: grid;
+      grid-template-columns: 3fr 2fr;
+      gap: 24px;
+    }
+    @media (max-width: 900px) {
+      .role-matrix-display {
+        grid-template-columns: 1fr;
+      }
+    }
+    .role-capabilities-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .role-cap-item {
+      background: rgba(255,255,255,0.02);
+      padding: 12px 16px;
+      border-radius: 10px;
+      border-right: 4px solid var(--emerald);
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .role-cap-item.denied {
+      border-right-color: var(--crimson);
+    }
+    .role-mockup-visual {
+      background: #090d16;
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      justify-content: center;
+      min-height: 220px;
+    }
+    .blurred-data {
+      filter: blur(5px);
+      user-select: none;
+    }
+    .gold-lock-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(3, 7, 18, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      border: 1px solid rgba(212,175,55,0.3);
+      border-radius: 16px;
+      z-index: 5;
+      text-align: center;
+      padding: 16px;
+    }
+    .gold-lock-overlay svg {
+      width: 48px;
+      height: 48px;
+      fill: var(--gold);
+      animation: pulseGlow 1.5s infinite alternate;
+    }
+
+    /* Live Calculator Simulator Style */
+    .calc-sim-container {
+      background: rgba(3, 7, 18, 0.5);
+      border: 1px solid rgba(212,175,55,0.2);
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .calc-inputs-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 600px) {
+      .calc-inputs-row {
+        grid-template-columns: 1fr;
+      }
+    }
+    .calc-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .calc-input-group label {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .calc-slider-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(0,0,0,0.3);
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .calc-slider-box input[type="range"] {
+      flex-grow: 1;
+      accent-color: var(--gold);
+      cursor: pointer;
+    }
+    .calc-slider-val {
+      font-family: var(--font-code);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--gold-light);
+      min-width: 80px;
+      text-align: left;
+    }
+    .calc-results-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      background: rgba(255,255,255,0.02);
+      padding: 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    @media (max-width: 768px) {
+      .calc-results-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .calc-res-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 12px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 10px;
+    }
+    .calc-res-lbl {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .calc-res-val {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+    .calc-res-val.highlight {
+      color: var(--gold);
+      text-shadow: 0 0 10px var(--gold-glow);
+    }
+    .lowest-alert-bar {
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid transparent;
+      animation: fadeIn 0.3s ease-out;
+    }
+    .lowest-alert-bar.triggered {
+      background: rgba(212, 175, 55, 0.1);
+      border-color: rgba(212, 175, 55, 0.3);
+      color: var(--gold-light);
+    }
+    .lowest-alert-bar.normal {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: var(--emerald);
+    }
+
+    /* Cross Office Interactive Animation Visual */
+    .cross-office-visual {
+      display: grid;
+      grid-template-columns: 2fr 1fr 2fr;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      background: rgba(0,0,0,0.3);
+      padding: 24px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    @media (max-width: 600px) {
+      .cross-office-visual {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+    }
+    .office-bubble {
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .office-bubble.active {
+      border-color: var(--gold);
+      box-shadow: 0 0 15px var(--gold-glow);
+    }
+    .office-label {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--gold);
+    }
+    .office-lockbox {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      border: 1px dashed rgba(255,255,255,0.1);
+      padding: 8px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.2);
+    }
+    .office-lockbox.isolated {
+      border-color: var(--crimson);
+      color: var(--crimson);
+    }
+    .matching-pipe {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .pipe-line {
+      height: 4px;
+      background: linear-gradient(90deg, var(--gold) 0%, rgba(255,255,255,0.1) 50%, var(--gold) 100%);
+      width: 100%;
+      border-radius: 2px;
+      position: relative;
+    }
+    @media (max-width: 600px) {
+      .pipe-line {
+        height: 30px;
+        width: 4px;
+        background: linear-gradient(180deg, var(--gold) 0%, rgba(255,255,255,0.1) 50%, var(--gold) 100%);
+      }
+    }
+    .pipe-ball {
+      width: 12px;
+      height: 12px;
+      background: var(--gold-light);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--gold);
+      position: absolute;
+      top: -4px;
+      animation: slidePipe 2s infinite linear;
+    }
+    @keyframes slidePipe {
+      0% { left: 0%; }
+      100% { left: 100%; }
+    }
+
+
+
+    /* Detailed Data Tables */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(3, 7, 18, 0.4);
+    }
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: right;
+      font-size: 0.85rem;
+    }
+    table.data-table th, table.data-table td {
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    table.data-table th {
+      background: rgba(17, 24, 39, 0.8);
+      color: var(--gold);
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+    table.data-table tbody tr:hover {
+      background: rgba(255,255,255,0.02);
+    }
+    table.data-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ========================================== */
+    /* VIEW 2: CINEMATIC SLIDES VIEW              */
+    /* ========================================== */
+    #slides-view {
+      display: none;
+      width: 100%;
+      max-width: 1000px;
+      height: 520px;
+      margin: 20px auto 100px auto;
+      position: relative;
+      perspective: 1200px;
+    }
+
+    .slide-card {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-card);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 20px 80px rgba(0,0,0,0.6);
+      border-radius: 28px;
+      padding: 35px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      opacity: 0;
+      visibility: hidden;
+      transform: translate3d(0, 40px, -150px) rotateX(8deg);
+      transition: 
+        opacity 0.6s cubic-bezier(0.19, 1, 0.22, 1),
+        transform 0.6s cubic-bezier(0.19, 1, 0.22, 1),
+        visibility 0.6s ease;
+      z-index: 1;
+    }
+
+    .slide-card.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translate3d(0, 0, 0) rotateX(0deg);
+      z-index: 10;
+      border-color: var(--border-hover);
+      box-shadow: 0 0 45px var(--gold-glow);
+    }
+
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 15px;
+    }
+    .slide-header h3 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--gold-light);
+    }
+    .slide-header span.slide-index {
+      font-family: var(--font-code);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.05);
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .slide-body {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 16px;
+      padding: 16px 0;
+      overflow-y: auto;
+    }
+
+    .slide-body.welcome-body {
+      align-items: center;
+      text-align: center;
+      gap: 20px;
+    }
+    .slide-body.welcome-body h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffffff 0%, var(--gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .slide-body.welcome-body p {
+      max-width: 600px;
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 14px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .slide-bullets {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .slide-bullet-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+    .slide-bullet-item svg {
+      width: 18px;
+      height: 18px;
+      fill: var(--gold);
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+
+    /* Slide Controls */
+    .slide-nav-controls {
+      position: absolute;
+      bottom: -65px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 24px;
+      z-index: 100;
+    }
+    .slide-ctrl-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-main);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .slide-ctrl-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+      transform: scale(1.1);
+      box-shadow: 0 0 15px var(--gold-glow);
+    }
+    .slide-progress-dots {
+      display: flex;
+      gap: 8px;
+    }
+    .slide-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      cursor: pointer;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+    .slide-dot.active {
+      width: 24px;
+      border-radius: 4px;
+      background: var(--gold);
+    }
+
+    .slide-hint-toast {
+      position: absolute;
+      top: -35px;
+      background: rgba(212,175,55,0.1);
+      border: 1px solid rgba(212,175,55,0.25);
+      border-radius: 12px;
+      padding: 4px 12px;
+      font-size: 0.72rem;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    /* Print-only elements layout */
+    .print-lifecycle-section,
+    .print-roles-section {
+      display: none;
+    }
+
+    /* ========================================== */
+    /* PRINT MEDIA SPECIFIC STYLING (A4 PDF)      */
+    /* ========================================== */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-size: 11pt !important;
+        background-image: none !important;
+      }
+
+      /* Hide interactive elements, buttons, grids and transitions */
+      header.top-nav,
+      .view-selector,
+      #slides-view,
+      .slide-nav-controls,
+      .slide-hint-toast,
+      .lifecycle-steps-row,
+      #lifecycle-details-box,
+      .role-tabs,
+      .role-matrix-display,
+      .calc-slider-box input[type="range"],
+      .pipe-line,
+      .matching-pipe,
+      .lowest-alert-bar svg,
+      .copy-btn {
+        display: none !important;
+      }
+
+      /* Show print-only static lists representing full options */
+      .print-lifecycle-section,
+      .print-roles-section {
+        display: block !important;
+        margin-top: 15px !important;
+      }
+
+      .print-step-block,
+      .print-role-block {
+        border-bottom: 1px dashed #cccccc !important;
+        padding: 12px 0 !important;
+        page-break-inside: avoid !important;
+      }
+      .print-step-block:last-child,
+      .print-role-block:last-child {
+        border-bottom: none !important;
+      }
+      
+      .print-step-block h4,
+      .print-role-block h4 {
+        color: #d4af37 !important;
+        font-size: 1.1rem !important;
+        margin-bottom: 6px !important;
+      }
+
+      .print-role-block ul {
+        list-style-type: none !important;
+        padding-right: 15px !important;
+        margin-top: 6px !important;
+      }
+      .print-role-block ul li {
+        margin-bottom: 4px !important;
+        font-size: 0.9rem !important;
+      }
+
+      /* Force detailed report view to show and expand fully */
+      main.content-container {
+        margin-top: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+        min-height: auto !important;
+      }
+
+      #report-view {
+        display: flex !important;
+        max-width: 100% !important;
+        padding-bottom: 0 !important;
+        gap: 20px !important;
+      }
+
+      /* Save ink and present as clean report document */
+      .report-card {
+        background: #ffffff !important;
+        border: 1px solid #cccccc !important;
+        border-radius: 12px !important;
+        padding: 20px !important;
+        margin-bottom: 20px !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+      }
+
+      .card-meta-row {
+        border-bottom: 2px solid #333333 !important;
+        padding-bottom: 10px !important;
+        margin-bottom: 15px !important;
+      }
+
+      .badge {
+        background: #f3f4f6 !important;
+        border: 1px solid #d1d5db !important;
+        color: #000000 !important;
+        padding: 4px 10px !important;
+      }
+
+      .section-title {
+        color: #000000 !important;
+        border-right-color: #d4af37 !important;
+      }
+
+      .card-description {
+        color: #1f2937 !important;
+      }
+
+      /* Stack grid layouts nicely in A4 */
+      .grid-2 {
+        grid-template-columns: 1fr !important;
+        gap: 15px !important;
+      }
+
+      .calc-sim-container {
+        background: #ffffff !important;
+        border: 1px solid #d4af37 !important;
+        padding: 15px !important;
+        page-break-inside: avoid !important;
+      }
+
+      .calc-results-grid {
+        background: #f9fafb !important;
+        border: 1px solid #e5e7eb !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 10px !important;
+      }
+
+      .calc-res-item {
+        background: #ffffff !important;
+        border: 1px solid #f3f4f6 !important;
+        color: #000000 !important;
+      }
+
+      .calc-res-val {
+        color: #000000 !important;
+      }
+
+      .calc-res-val.highlight {
+        color: #d4af37 !important;
+        text-shadow: none !important;
+      }
+
+      .lowest-alert-bar {
+        background: #fffbeb !important;
+        border-color: #fef3c7 !important;
+        color: #b45309 !important;
+      }
+
+      .cross-office-visual {
+        background: #ffffff !important;
+        border: 1px solid #cccccc !important;
+        grid-template-columns: 1fr auto 1fr !important;
+        gap: 10px !important;
+      }
+
+      .office-bubble {
+        background: #ffffff !important;
+        border: 1px solid #cccccc !important;
+        box-shadow: none !important;
+        color: #000000 !important;
+        padding: 10px !important;
+      }
+
+      .office-bubble.active {
+        border-color: #d4af37 !important;
+      }
+
+      .office-lockbox.isolated {
+        border-color: #dc2626 !important;
+        color: #dc2626 !important;
+        background: #fef2f2 !important;
+      }
+
+      .table-container {
+        border-color: #cccccc !important;
+        background: #ffffff !important;
+      }
+
+      table.data-table th {
+        background: #f3f4f6 !important;
+        color: #000000 !important;
+        border-bottom: 2px solid #cccccc !important;
+      }
+
+      table.data-table td {
+        border-bottom: 1px solid #e5e7eb !important;
+        color: #1f2937 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="top-nav">
+    <div class="brand-section">
+      <div class="brand-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.25z"/>
+        </svg>
+      </div>
+      <div class="brand-title">
+        <h2>دليل كفيل التفاعلي</h2>
+        <span>Kafeel Interactive Presentation</span>
+      </div>
+    </div>
+    <div class="view-selector">
+      <button class="view-btn active" id="btn-report" onclick="switchView('report')">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        التقرير التفصيلي المبسط
+      </button>
+      <button class="view-btn" id="btn-slides" onclick="switchView('slides')">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+        العرض التقديمي التفاعلي
+      </button>
+    </div>
+  </header>
+
+  <!-- Container for Views -->
+  <main class="content-container">
+
+    <!-- ========================================== -->
+    <!-- VIEW 1: DETAILED COMPREHENSIVE REPORT      -->
+    <!-- ========================================== -->
+    <section id="report-view">
+      
+      <!-- Executive Summary Card -->
+      <div class="report-card">
+        <div class="card-meta-row">
+          <span class="badge badge-gold">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            نظرة عامة / Executive Overview
+          </span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">منظومة كفيل للمرابحة الإسلامية</span>
+        </div>
+        <h3 class="section-title">الملخص التنفيذي لدورة حياة الزبون والربط</h3>
+        <p class="card-description">
+          تعتمد منظومة **كفيل** التمويلية على تنظيم متقن لحركات الزبون من التسجيل وحتى التسليم النهائي وإبراء الذمة المالية. يهدف هذا التقرير التفصيلي المبسط إلى شرح المفاهيم المعقدة (مثل الربط التبادلي وقاعدة الراتب الأدنى ونظام الصلاحيات) بلغة بسيطة ومباشرة لتوضيح تدفق العمليات وحماية رأس مال المنظومة وضمان أفضل تجربة مستخدم.
+        </p>
+      </div>
+
+      <!-- Interactive Lifecycle Stages Card -->
+      <div class="report-card">
+        <div class="card-meta-row">
+          <span class="badge badge-blue">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+            دورة حياة المعاملة التفاعلية / Lifecycle Stages
+          </span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">انقر على كل مرحلة لاستكشاف التفاصيل</span>
+        </div>
+        <h3 class="section-title">المراحل الثمانية لدورة حياة الزبون</h3>
+        
+        <!-- Interactive Lifecycle Layout -->
+        <div class="interactive-lifecycle">
+          <div class="lifecycle-steps-row">
+            <div class="lifecycle-step-node active" onclick="selectLifecycleStep(1, this)">
+              <div class="step-number-bubble">1</div>
+              <span class="step-title-text">محتمل</span>
+            </div>
+            <div class="lifecycle-step-node" onclick="selectLifecycleStep(2, this)">
+              <div class="step-number-bubble">2</div>
+              <span class="step-title-text">تحت التسجيل</span>
+            </div>
+            <div class="lifecycle-step-node" onclick="selectLifecycleStep(3, this)">
+              <div class="step-number-bubble">3</div>
+              <span class="step-title-text">المستندات</span>
+            </div>
+            <div class="lifecycle-step-node" onclick="selectLifecycleStep(4, this)">
+              <div class="step-number-bubble">4</div>
+              <span class="step-title-text">المراجعة</span>
+            </div>
+            <div class="lifecycle-step-node" onclick="selectLifecycleStep(5, this)">
+              <div class="step-number-bubble">5</div>
+              <span class="step-title-text">المطابقة</span>
+            </div>
+            <div class="lifecycle-step-node" onclick="selectLifecycleStep(6, this)">
+              <div class="step-number-bubble">6</div>
+              <span class="step-title-text">الربط</span>
+            </div>
+            <div class="lifecycle-step-node" onclick="selectLifecycleStep(7, this)">
+              <div class="step-number-bubble">7</div>
+              <span class="step-title-text">نشط</span>
+            </div>
+            <div class="lifecycle-step-node" onclick="selectLifecycleStep(8, this)">
+              <div class="step-number-bubble">8</div>
+              <span class="step-title-text">مكتمل</span>
+            </div>
+          </div>
+
+          <!-- Output card for selected step detail -->
+          <div class="lifecycle-details-card" id="lifecycle-details-box">
+            <h4 style="color: var(--gold); font-size: 1.15rem;" id="detail-step-name">1. زبون محتمل (Potential Lead)</h4>
+            <p class="card-description" id="detail-step-desc">
+              يتم إدخال بيانات الزبون الأساسية لمتابعة اتصالات المبيعات عبر التقويم الملون (الأحمر للمتأخرة، الأخضر لليوم، والأزرق للمستقبلية).
+            </p>
+            <div class="grid-2" style="margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; font-size: 0.85rem;">
+              <div><strong>الموظف المسؤول:</strong> <span id="detail-step-owner" style="color:var(--gold-light)">موظف إدخال البيانات (Staff)</span></div>
+              <div><strong>الشاشة في المنظومة:</strong> <span id="detail-step-screen" style="color:var(--blue-accent)">PotentialCustomers.tsx</span></div>
+            </div>
+          </div>
+
+          <!-- Print-only detailed lifecycle flow (Visible only during PDF print) -->
+          <div class="print-lifecycle-section">
+            <div class="print-step-block">
+              <h4>المرحلة 1: زبون محتمل (Potential Lead)</h4>
+              <p class="card-description">يتم إدخال بيانات الزبون الأساسية لمتابعة اتصالات المبيعات عبر التقويم الملون لمراقبة مواعيد المكالمات وتجنب فوات الفرص التمويلية.</p>
+              <div style="font-size:0.8rem; margin-top:4px;"><strong>المسؤول:</strong> موظف إدخال البيانات (Staff) | <strong>الشاشة:</strong> PotentialCustomers.tsx</div>
+            </div>
+            <div class="print-step-block">
+              <h4>المرحلة 2: تعبئة البيانات والتحقق المالي المبدئي (PENDING)</h4>
+              <p class="card-description">عند اتخاذ قرار المتابعة، يتم تحويل بيانات الزبون تلقائياً إلى نموذج التسجيل الذكي ويبدأ باحتساب الأرقام المالية المبدئية في الحاسبة.</p>
+              <div style="font-size:0.8rem; margin-top:4px;"><strong>المسؤول:</strong> موظف المبيعات (Staff) | <strong>الشاشة:</strong> CustomerForm.tsx</div>
+            </div>
+            <div class="print-step-block">
+              <h4>المرحلة 3: تجميع المرفقات وقائمة التدقيق (Checklist)</h4>
+              <p class="card-description">رفع الأوراق الرسمية (الرقم الوطني، شهادة المرتب، الوضع العائلي) إلكترونياً وتجهيز قائمة التحقق قبل إرسال المعاملة للإدارة.</p>
+              <div style="font-size:0.8rem; margin-top:4px;"><strong>المسؤول:</strong> موظف المبيعات (Staff) | <strong>الشاشة:</strong> DocumentUploader.tsx</div>
+            </div>
+            <div class="print-step-block">
+              <h4>المرحلة 4: مراجعة واعتماد المستندات (WAITING_MATCH - Pending)</h4>
+              <p class="card-description">مراجعة الملفات المرفوعة للزبون والتأكد من صحتها الإدارية والقانونية وتدقيقها من المحاسب أو المدير لترقية حالة التدقيق.</p>
+              <div style="font-size:0.8rem; margin-top:4px;"><strong>المسؤول:</strong> مدير الفرع أو المحاسب | <strong>الشاشة:</strong> WaitingQueue.tsx</div>
+            </div>
+            <div class="print-step-block">
+              <h4>المرحلة 5: المطابقة والبحث عن ضامن (WAITING_MATCH - Verified)</h4>
+              <p class="card-description">البحث السحابي عن زبون معتمد يعمل في نفس جهة العمل ويتوافق مع سقف فارق المرتب المسموح به للربط التبادلي.</p>
+              <div style="font-size:0.8rem; margin-top:4px;"><strong>المسؤول:</strong> محرك المطابقة التلقائي / المراقب | <strong>الشاشة:</strong> WaitingQueue.tsx</div>
+            </div>
+            <div class="print-step-block">
+              <h4>المرحلة 6: تم التطابق وجاهز للتجهيز اللوجستي (MATCHED)</h4>
+              <p class="card-description">إتمام الربط وتأكيد الضمان قانونياً، وقفل الحاسبة على قاعدة الراتب الأدنى، والبدء في تجهيز وتسليم السيارة بالمعرض.</p>
+              <div style="font-size:0.8rem; margin-top:4px;"><strong>المسؤول:</strong> مراقب العمليات | <strong>الشاشة:</strong> MonitorDashboard.tsx</div>
+            </div>
+            <div class="print-step-block">
+              <h4>المرحلة 7: المعاملة نشطة وتحت الأقساط (ACTIVE)</h4>
+              <p class="card-description">تسليم السيارة للزبون رسمياً، والبدء باحتساب الأقساط الشهرية وتواريخ استحقاقها وعرض مديونية العميل وكشوفات الدفع.</p>
+              <div style="font-size:0.8rem; margin-top:4px;"><strong>المسؤول:</strong> محاسب الفرع | <strong>الشاشة:</strong> لوحة التحكم الرئيسية والتقارير</div>
+            </div>
+            <div class="print-step-block">
+              <h4>المرحلة 8: التسوية المحاسبية وإتمام إغلاق الملف (COMPLETED)</h4>
+              <p class="card-description">سداد كامل الأقساط وحفظ كمبيالات الضمان ورفع صورة الصك المصدق لإصدار شهادة إبراء الذمة وإذن خروج المركبة الرسمي.</p>
+              <div style="font-size:0.8rem; margin-top:4px;"><strong>المسؤول:</strong> محاسب الفرع | <strong>الشاشة:</strong> Settlements.tsx</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Roles, Security & Permissions Grid -->
+      <div class="report-card">
+        <div class="card-meta-row">
+          <span class="badge badge-gold">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+            مصفوفة الصلاحيات والأمان / Roles & Safety
+          </span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">تأمين وحماية البيانات التجارية</span>
+        </div>
+        <h3 class="section-title">صلاحيات المستخدمين وبوابات الأمان</h3>
+        
+        <div class="role-matrix-container">
+          <div class="role-tabs">
+            <button class="role-tab-btn active" onclick="selectRole('staff', this)">موظف المبيعات (Staff)</button>
+            <button class="role-tab-btn" onclick="selectRole('accountant', this)">المحاسب (Accountant)</button>
+            <button class="role-tab-btn" onclick="selectRole('manager', this)">مدير الفرع (Manager)</button>
+            <button class="role-tab-btn" onclick="selectRole('monitor', this)">مراقب العمليات (Monitor)</button>
+          </div>
+
+          <div class="role-matrix-display">
+            <div class="role-capabilities-list" id="role-caps-box">
+              <!-- Dynamically populated by JS -->
+            </div>
+            
+            <!-- Interactive Visual Preview -->
+            <div class="role-mockup-visual" id="role-mockup-box">
+              <!-- Dynamically populated/overlaid by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Print-only detailed roles listing (Visible only during PDF print) -->
+        <div class="print-roles-section">
+          <div class="print-role-block">
+            <h4>1. موظف المبيعات (Staff)</h4>
+            <ul>
+              <li>✓ تسجيل ومتابعة الزبائن المحتملين وتحديث مواعيد الاتصال.</li>
+              <li>✓ تعبئة نماذج الحاسبة المبدئية وحفظ المعاملة.</li>
+              <li>✓ رفع المستندات والملفات وتعديل قائمة التحقق (Checklist).</li>
+              <li>✗ حظر رؤية أرقام هواتف الزبائن كاملة لحماية أسرار المعرض (مغبشة جزئياً).</li>
+              <li>✗ حظر رؤية أسعار شراء السيارات بالكاش وصافي الأرباح (محجوبة بقفل ذهبي).</li>
+            </ul>
+          </div>
+          <div class="print-role-block">
+            <h4>2. محاسب الفرع (Accountant)</h4>
+            <ul>
+              <li>✓ مراجعة واعتماد أوراق ومستندات الزبائن في طابور الانتظار.</li>
+              <li>✓ تعبئة نماذج التسوية المحاسبية والكمبيالات وتسجيل الدفعة الأولى.</li>
+              <li>✓ رؤية أسعار شراء السيارات بالكاش والأرباح للتسوية المالية.</li>
+              <li>✓ طباعة شهادة إبراء الذمة الرسمية وإذن خروج المركبة A4.</li>
+              <li>✗ حظر إجراء الربط اليدوي التبادلي للزبائن عبر الفروع المختلفة.</li>
+            </ul>
+          </div>
+          <div class="print-role-block">
+            <h4>3. مدير الفرع (Manager)</h4>
+            <ul>
+              <li>✓ اعتماد أو رفض مستندات ومعاملات الزبائن وتدوين سبب الرفض.</li>
+              <li>✓ رؤية أرقام هواتف جميع الزبائن كاملة دون أي تغبيش للتواصل الإداري.</li>
+              <li>✓ تعديل إعدادات الفرع، المصرف المعتمد، وسقف فارق راتب الضمان.</li>
+              <li>✓ استعراض تقرير الأرباح الصافية الحقيقية وسجل العمليات الإدارية.</li>
+              <li>✗ حظر الربط اليدوي التبادلي العابر للمكاتب (محصور بوكيل السيارات).</li>
+            </ul>
+          </div>
+          <div class="print-role-block">
+            <h4>4. مراقب العمليات (Operations Monitor)</h4>
+            <ul>
+              <li>✓ تصفح طابور الانتظار العام لكامل مكاتب وفروع ليبيا.</li>
+              <li>✓ إجراء الربط اليدوي التبادلي والتبادلي الدائري للضمان يدوياً.</li>
+              <li>✓ تحديث الحالة اللوجستية للسيارات (قيد الشحن، جاهزة، تم التسليم).</li>
+              <li>✗ حظر رؤية هواتف العملاء كاملة أو أسعار شراء الكاش للفرع.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Interactive Lowest Salary Rule Calculator -->
+      <div class="report-card">
+        <div class="card-meta-row">
+          <span class="badge badge-emerald">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4 6h-4v2h4v2h-4v2h4v2H9V7h6v2z"/></svg>
+            محاكي معادلة الأمان / Lowest Salary Rule Sim
+          </span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">قانون المرتب الأدنى التبادلي</span>
+        </div>
+        <h3 class="section-title">محاكي الحاسبة الذكية وقانون الأمان المالي</h3>
+        <p class="card-description">
+          تعتمد المنظومة برمجياً على خوارزمية **المرتب الأدنى** لحماية رأس المال من عجز السداد. بمجرد مطابقة الزبون بضامنه، تقوم الحاسبة بالاعتماد الفوري على المرتب الأقل لحساب أقصى قسط شهري وسقف البنك التمويلي.
+        </p>
+
+        <!-- Live Calculator UI -->
+        <div class="calc-sim-container">
+          <div class="calc-inputs-row">
+            <div class="calc-input-group">
+              <label for="bene-salary">مرتب المستفيد الشهري (دينار ليبي):</label>
+              <div class="calc-slider-box">
+                <input type="range" id="bene-salary" min="1000" max="8000" step="50" value="3500" oninput="runCalculatorSim()">
+                <span class="calc-slider-val" id="bene-val">3500 د.ل</span>
+              </div>
+            </div>
+            <div class="calc-input-group">
+              <label for="guar-salary">مرتب الضامن الشهري (دينار ليبي):</label>
+              <div class="calc-slider-box">
+                <input type="range" id="guar-salary" min="1000" max="8000" step="50" value="2400" oninput="runCalculatorSim()">
+                <span class="calc-slider-val" id="guar-val">2400 د.ل</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Output alert box -->
+          <div class="lowest-alert-bar triggered" id="calc-alert-bar">
+            <!-- Dynamically populated -->
+          </div>
+
+          <!-- Calculated Values grid -->
+          <div class="calc-results-grid">
+            <div class="calc-res-item">
+              <span class="calc-res-lbl">المرتب النشط للعملية</span>
+              <span class="calc-res-val highlight" id="res-active-salary">2400 د.ل</span>
+            </div>
+            <div class="calc-res-item">
+              <span class="calc-res-lbl">أقصى استقطاع قانوني (35%)</span>
+              <span class="calc-res-val" id="res-max-deduct">840 د.ل</span>
+            </div>
+            <div class="calc-res-item">
+              <span class="calc-res-lbl">السقف التمويلي المقدر للسيارة</span>
+              <span class="calc-res-val highlight" id="res-car-ceiling">40,320 د.ل</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cross-Office Matching & Communication Matrix -->
+      <div class="report-card">
+        <div class="card-meta-row">
+          <span class="badge badge-gold">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+            الربط عبر الفروع / Cross-Office Matchmaking
+          </span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">عزل الخصوصية وقنوات التنسيق</span>
+        </div>
+        <h3 class="section-title">الربط التبادلي العابر للمكاتب</h3>
+        <p class="card-description">
+          تمنع المنظومة موظفي الفروع المختلفة من رؤية مستندات ومعاملات الفروع الأخرى حماية للسرية التامة وعزل البيانات. ولكنها تسمح لمراقب العمليات بربط زبونين عبر الفروع، مع تحديد من يتواصل معهم كالتالي:
+        </p>
+
+        <!-- Dynamic Visualization of cross office -->
+        <div class="cross-office-visual">
+          <div class="office-bubble active">
+            <span class="office-label">مكتب البركة (الزبون أ)</span>
+            <div class="office-lockbox isolated">🔒 مستنداته معزولة تماماً</div>
+            <div style="font-size:0.75rem;">التواصل: يتصل به مدير مكتب البركة</div>
+          </div>
+          <div class="matching-pipe">
+            <span style="font-size:0.75rem; color:var(--gold);">رابط الضامن سحابياً</span>
+            <div class="pipe-line">
+              <div class="pipe-ball"></div>
+            </div>
+            <span style="font-size:0.65rem; color:var(--text-muted);">Supabase DB</span>
+          </div>
+          <div class="office-bubble active">
+            <span class="office-label">مكتب الحرية (الزبون ب)</span>
+            <div class="office-lockbox isolated">🔒 مستنداته معزولة تماماً</div>
+            <div style="font-size:0.75rem;">التواصل: يتصل به مدير مكتب الحرية</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 10px;">
+          <h4 style="color:var(--gold); font-size: 1rem; margin-bottom: 8px;">مصفوفة مسؤوليات التواصل الهاتفي:</h4>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>حالة الربط والمطابقة</th>
+                  <th>حظر رؤية البيانات</th>
+                  <th>من يقوم بالتواصل مع الزبون؟</th>
+                  <th>من ينسق توقيع العقود؟</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>ربط داخل نفس الفرع</strong></td>
+                  <td>لا يوجد حظر (نفس المكتب)</td>
+                  <td>موظف المبيعات بالفرع (Staff)</td>
+                  <td>إدارة الفرع هاتفياً ومباشرة</td>
+                </tr>
+                <tr>
+                  <td><strong>ربط عابر للمكاتب (بواسطة المراقب)</strong></td>
+                  <td><strong>نعم (محجوب بالكامل بين الفرعين)</strong></td>
+                  <td>مدير كل فرع يتصل بزبونه الخاص</td>
+                  <td>مراقب العمليات يقوم بالتنسيق المركزي وتوقيع العقود محلياً</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: CINEMATIC SLIDESHOW PRESENTATION   -->
+    <!-- ========================================== -->
+    <section id="slides-view">
+      
+      <!-- Slide Toast hint -->
+      <div class="slide-hint-toast">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        نصيحة: يمكنك التنقل بين الشرائح باستخدام الأسهم اليمين واليسار (➔ ⬅) بلوحة المفاتيح
+      </div>
+
+      <!-- Presentation Slides Deck -->
+      <div class="slide-deck">
+        
+        <!-- Slide 1: Welcome -->
+        <div class="slide-card active" id="slide-1">
+          <div class="slide-header">
+            <h3>منظومة كفيل للمرابحة التمويلية</h3>
+            <span class="slide-index">الشريحة 1 من 6</span>
+          </div>
+          <div class="slide-body welcome-body">
+            <div class="brand-logo" style="width: 80px; height: 80px; margin-bottom: 10px;">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.25z"/></svg>
+            </div>
+            <h1>دورة حياة الزبون وهيكلية الربط والتحقق</h1>
+            <p>
+              عرض تقديمي تفاعلي مبسط يوضح المراحل المالية اللوجستية التي يمر بها الزبون، مصفوفة الصلاحيات الصارمة للموظفين، وآليات المطابقة التلقائية واليدوية وقاعدة الراتب الأدنى لحماية أصول المنظومة.
+            </p>
+          </div>
+          <div class="slide-footer">
+            <span>منصة كفيل 2026</span>
+            <span>اضغط على التالي لبدء العرض ➔</span>
+          </div>
+        </div>
+
+        <!-- Slide 2: Lifecycle Timeline -->
+        <div class="slide-card" id="slide-2">
+          <div class="slide-header">
+            <h3>المراحل الـ 8 لدورة المعاملة</h3>
+            <span class="slide-index">الشريحة 2 من 6</span>
+          </div>
+          <div class="slide-body">
+            <p style="font-size: 0.92rem; color: var(--text-muted); text-align: center;">تمر المعاملة بآلة حالة برمجية متطورة تضمن سلامة خطوات التمويل:</p>
+            <div class="slide-bullets">
+              <div class="slide-bullet-item">
+                <svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+                <span class="bullet-text"><strong>1. زبون محتمل:</strong> متابعة مواعيد المكالمات واستقطاب المهتمين.</span>
+              </div>
+              <div class="slide-bullet-item">
+                <svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+                <span class="bullet-text"><strong>2. تسجيل مبدئي (PENDING):</strong> تسجيل البيانات وتشغيل الحاسبة التمويلية.</span>
+              </div>
+              <div class="slide-bullet-item">
+                <svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+                <span class="bullet-text"><strong>3. قائمة التدقيق والمرفقات:</strong> رفع الأوراق والمستندات الرسمية وإرسالها للمدير.</span>
+              </div>
+              <div class="slide-bullet-item">
+                <svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+                <span class="bullet-text"><strong>4. اعتماد المستندات (Verified):</strong> مراجعة واعتماد الملفات من مدير الفرع.</span>
+              </div>
+              <div class="slide-bullet-item">
+                <svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+                <span class="bullet-text"><strong>5. البحث والمطابقة (MATCHED):</strong> الربط بضامن تلقائياً أو يدوياً عبر الفروع.</span>
+              </div>
+              <div class="slide-bullet-item">
+                <svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+                <span class="bullet-text"><strong>6. التسليم والنشاط (ACTIVE):</strong> شحن وتجهيز المركبة اللوجستية وبدء سداد الأقساط.</span>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>دورة حياة المعاملة</span>
+            <span>كفيل — الأمان والاستقرار</span>
+          </div>
+        </div>
+
+        <!-- Slide 3: Roles and Permissions -->
+        <div class="slide-card" id="slide-3">
+          <div class="slide-header">
+            <h3>صلاحيات وأدوار الموظفين والأمان</h3>
+            <span class="slide-index">الشريحة 3 من 6</span>
+          </div>
+          <div class="slide-body">
+            <div class="slide-bullets">
+              <div class="slide-bullet-item">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm0-4h-2v-6h2v6z"/></svg>
+                <span class="bullet-text"><strong>موظف إدخال البيانات (Staff):</strong> تسجيل الزبائن ورفع الملفات. يُحجب عنه كلياً أسعار شراء الكاش والأرباح (بوابة القفل الذهبي) مع تغبيش أرقام هواتف العملاء لحماية البيانات.</span>
+              </div>
+              <div class="slide-bullet-item">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm0-4h-2v-6h2v6z"/></svg>
+                <span class="bullet-text"><strong>محاسب الفرع (Accountant):</strong> مراجعة الأوراق، تصفية الذمم، إصدار الفواتير المعتمدة وإذن خروج المركبة، وإدخال الكمبيالات المحاسبية.</span>
+              </div>
+              <div class="slide-bullet-item">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm0-4h-2v-6h2v6z"/></svg>
+                <span class="bullet-text"><strong>مدير الفرع (Manager):</strong> صاحب قرار الاعتماد والرفض للمستندات والعهود، ويرى الهواتف كاملة دون تغبيش ولديه الصلاحية الكاملة على إعدادات الفرع وسقف الربط.</span>
+              </div>
+              <div class="slide-bullet-item">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm0-4h-2v-6h2v6z"/></svg>
+                <span class="bullet-text"><strong>مراقب العمليات (Monitor):</strong> وكيل السيارات اللوجستي، مخول بربط الزبائن يدوياً وتجاوز عزلة المكاتب لمصلحة الموازنة وتحديث شحن وتسليم المركبات بالمعرض.</span>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>مصفوفة توزيع الصلاحيات</span>
+            <span>بوابة الأمان الرقمي</span>
+          </div>
+        </div>
+
+        <!-- Slide 4: Matchmaking and isolation -->
+        <div class="slide-card" id="slide-4">
+          <div class="slide-header">
+            <h3>آلية المطابقة وعزل البيانات</h3>
+            <span class="slide-index">الشريحة 4 من 6</span>
+          </div>
+          <div class="slide-body">
+            <div class="slide-bullets">
+              <div class="slide-bullet-item">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm0-4h-2v-6h2v6z"/></svg>
+                <span class="bullet-text"><strong>المطابقة التلقائية:</strong> تبحث دالة قواعد البيانات `attempt_auto_match` عن زبائن يعملون بـ **نفس جهة العمل** وفارق مرتباتهم لا يتعدى سقف فارق المرتب المحدد (مثلاً 50 د.ل).</span>
+              </div>
+              <div class="slide-bullet-item">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm0-4h-2v-6h2v6z"/></svg>
+                <span class="bullet-text"><strong>المطابقة اليدوية للمراقب:</strong> صلاحية تمكن المراقب العام من إجراء ربط متبادل (ثنائي أو دائري ثلاثي) وكسر عزل الفروع تيسيراً للزبائن.</span>
+              </div>
+              <div class="slide-bullet-item">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm0-4h-2v-6h2v6z"/></svg>
+                <span class="bullet-text"><strong>عزل الفروع التام:</strong> عند ربط زبونين من فروع مختلفة، تظل كشوفات وملفات كل زبون سرية ومحجوبة تماماً عن موظفي الفرع الآخر، لحماية خصوصية العملاء والتنافسية التجارية.</span>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>محرك الربط والمطابقة</span>
+            <span>السرية وعزل الفروع</span>
+          </div>
+        </div>
+
+        <!-- Slide 5: Lowest Salary Rule -->
+        <div class="slide-card" id="slide-5">
+          <div class="slide-header">
+            <h3>قاعدة الراتب الأدنى التمويلية</h3>
+            <span class="slide-index">الشريحة 5 من 6</span>
+          </div>
+          <div class="slide-body">
+            <p style="font-size: 0.95rem; color: var(--text-muted); text-align: center; margin-bottom: 10px;">
+              خوارزمية الأمان المالي لمنع عجز السداد والتعثر الائتماني:
+            </p>
+            <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); text-align: center; margin-bottom: 12px;">
+              <h4 style="color: var(--gold); font-size: 1.2rem; margin-bottom: 6px;">معادلة المرتب الأدنى</h4>
+              <p style="font-family: var(--font-code); font-size: 1.3rem; color: var(--gold-light);">Active Salary = Min(Beneficiary, Guarantor)</p>
+            </div>
+            <div class="slide-bullets">
+              <div class="slide-bullet-item">
+                <svg viewBox="0 0 24 24"><path d="M9 12.17L4.83 8l-1.42 1.41L9 15 21 3l-1.41-1.41z"/></svg>
+                <span class="bullet-text">إذا كان مرتب المستفيد 3,500 د.ل ومرتب الضامن 2,400 د.ل ➔ تعتمد الحاسبة **2,400 د.ل** تلقائياً.</span>
+              </div>
+              <div class="slide-bullet-item">
+                <svg viewBox="0 0 24 24"><path d="M9 12.17L4.83 8l-1.42 1.41L9 15 21 3l-1.41-1.41z"/></svg>
+                <span class="bullet-text">يقوم النظام باحتساب القسط الشهري الأقصى (35% من المرتب الأدنى) ➔ 840 د.ل كحد أقصى.</span>
+              </div>
+              <div class="slide-bullet-item">
+                <svg viewBox="0 0 24 24"><path d="M9 12.17L4.83 8l-1.42 1.41L9 15 21 3l-1.41-1.41z"/></svg>
+                <span class="bullet-text">يتم إطلاق شريط تحذيري برتقالي/ذهبي ينبه الموظف والزبون بالحدود الائتمانية الجديدة لحماية التمويل.</span>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>الرياضيات المالية والأمان</span>
+            <span>حماية رأس مال المنظومة</span>
+          </div>
+        </div>
+
+        <!-- Slide 6: Roadmap and future improvements -->
+        <div class="slide-card" id="slide-6">
+          <div class="slide-header">
+            <h3>الرؤية المستقبلية والتطوير</h3>
+            <span class="slide-index">الشريحة 6 من 6</span>
+          </div>
+          <div class="slide-body">
+            <div class="slide-bullets">
+              <div class="slide-bullet-item">
+                <svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+                <span class="bullet-text"><strong>إرسال التنبيهات الذكية (CRM WhatsApp):</strong> ربط مواعيد مكالمات الزبائن المحتملين بإشعارات تلقائية للواتساب لتجنب النسيان البشري وزيادة التحويل بنسبة 40%.</span>
+              </div>
+              <div class="slide-bullet-item">
+                <svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+                <span class="bullet-text"><strong>العقود القانونية التلقائية (PDF Generator):</strong> توليد عقود مرابحة إسلامية جاهزة للطباعة والتحميل A4 مع رمز QR كود معتمد بضغطة زر.</span>
+              </div>
+              <div class="slide-bullet-item">
+                <svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+                <span class="bullet-text"><strong>نظام الجدارة الائتمانية (Smart Scoring):</strong> تحليل الذكاء الاصطناعي للمخاطر المالية للمستفيد وضامنه قبل الاعتماد لتقليل نسبة التعثر المالي.</span>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>الرؤية والتحسينات المستقبلية</span>
+            <span>كفيل — منصة التمويل المستدام</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Slide navigation controls below card -->
+      <div class="slide-nav-controls">
+        <button class="slide-ctrl-btn" onclick="navigateSlide(-1)">➔</button>
+        <div class="slide-progress-dots">
+          <div class="slide-dot active" onclick="jumpToSlide(1)"></div>
+          <div class="slide-dot" onclick="jumpToSlide(2)"></div>
+          <div class="slide-dot" onclick="jumpToSlide(3)"></div>
+          <div class="slide-dot" onclick="jumpToSlide(4)"></div>
+          <div class="slide-dot" onclick="jumpToSlide(5)"></div>
+          <div class="slide-dot" onclick="jumpToSlide(6)"></div>
+        </div>
+        <button class="slide-ctrl-btn" onclick="navigateSlide(1)">⬅</button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Interactive JavaScript Logic -->
+  <script>
+    // ----------------------------------------------------
+    // Tab and View Switching Logic
+    // ----------------------------------------------------
+    function switchView(viewName) {
+      const reportView = document.getElementById('report-view');
+      const slidesView = document.getElementById('slides-view');
+      const btnReport = document.getElementById('btn-report');
+      const btnSlides = document.getElementById('btn-slides');
+
+      if (viewName === 'report') {
+        reportView.style.display = 'flex';
+        slidesView.style.display = 'none';
+        btnReport.classList.add('active');
+        btnSlides.classList.remove('active');
+      } else {
+        reportView.style.display = 'none';
+        slidesView.style.display = 'flex';
+        btnReport.classList.remove('active');
+        btnSlides.classList.add('active');
+        // Reset slide deck state
+        jumpToSlide(currentSlide);
+      }
+    }
+
+    // ----------------------------------------------------
+    // Slide Navigation Deck Logic
+    // ----------------------------------------------------
+    let currentSlide = 1;
+    const totalSlides = 6;
+
+    function navigateSlide(direction) {
+      // In Arabic layout: direction 1 means NEXT (which visually goes left), -1 means PREVIOUS (which visually goes right)
+      let next = currentSlide + direction;
+      if (next < 1) next = 1;
+      if (next > totalSlides) next = totalSlides;
+      jumpToSlide(next);
+    }
+
+    function jumpToSlide(slideNum) {
+      currentSlide = slideNum;
+      
+      // Update Slide Classes
+      for (let i = 1; i <= totalSlides; i++) {
+        const slide = document.getElementById(`slide-${i}`);
+        if (i === slideNum) {
+          slide.classList.add('active');
+        } else {
+          slide.classList.remove('active');
+        }
+      }
+
+      // Update Dot Indicators
+      const dots = document.querySelectorAll('.slide-dot');
+      dots.forEach((dot, index) => {
+        if (index + 1 === slideNum) {
+          dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
+        }
+      });
+    }
+
+    // Keyboard Event Listener for Slideshow (Left and Right Arrow Keys)
+    document.addEventListener('keydown', function(event) {
+      const slidesView = document.getElementById('slides-view');
+      if (slidesView.style.display === 'flex') {
+        if (event.key === 'ArrowLeft') {
+          // Go to Next Slide (Visually moves left in RTL Arabic)
+          navigateSlide(1);
+        } else if (event.key === 'ArrowRight') {
+          // Go to Previous Slide (Visually moves right in RTL Arabic)
+          navigateSlide(-1);
+        }
+      }
+    });
+
+    // ----------------------------------------------------
+    // Interactive Lifecycle Visual logic
+    // ----------------------------------------------------
+    const lifecycleStepsData = {
+      1: {
+        name: "1. زبون محتمل (Potential Lead)",
+        desc: "يتم إدخال بيانات الزبون الأساسية في قائمة المتابعة لمراقبة مواعيد الاتصالات وتذكير الموظف بها تلقائياً لمنع ضياع الفرص التمويلية. المراجعات مصنفة بالألوان لحساب مدى تأخر موعد الاتصال.",
+        owner: "موظف المبيعات / إدخال البيانات (Staff)",
+        screen: "PotentialCustomers.tsx"
+      },
+      2: {
+        name: "2. تعبئة البيانات والتحقق المالي المبدئي (PENDING)",
+        desc: "عندما يقرر العميل المتابعة، يتم تحويله ببنقرة زر عبر معالج 'Wizard' ينقل بياناته آلياً إلى نموذج التسجيل الذكي ويبدأ باحتساب الأرقام المالية المبدئية في شاشة الحاسبة.",
+        owner: "موظف المبيعات (Staff)",
+        screen: "CustomerForm.tsx & Calculator.tsx"
+      },
+      3: {
+        name: "3. تجميع المرفقات وقائمة التدقيق (Checklist)",
+        desc: "يقوم الموظف برفع المستندات الإلزامية إلكترونياً (الرقم الوطني، شهادة مرتب معتمدة، الوضع العائلي). يتم تفعيل الأوراق المرفقة آلياً أو التأشير عليها بالاستلام الورقي قبل إرسال المعاملة للإدارة.",
+        owner: "موظف المبيعات (Staff)",
+        screen: "DocumentUploader.tsx"
+      },
+      4: {
+        name: "4. انتظار مراجعة واعتماد المستندات (WAITING_MATCH - Pending)",
+        desc: "تقف المعاملة في طابور التدقيق الإداري. يدخل المدير أو المحاسب لمراجعة صحة المستندات المرفوعة ويتأكد من خلوها من التزوير، ومن ثم يضغط على زر 'اعتماد المستندات' لتصبح معتمدة.",
+        owner: "مدير الفرع أو محاسب الفرع",
+        screen: "WaitingQueue.tsx"
+      },
+      5: {
+        name: "5. المطابقة والبحث عن ضامن (WAITING_MATCH - Verified)",
+        desc: "أوراق الزبون معتمدة، والآن المعاملة تنتظر محرك المطابقة. يبحث النظام تلقائياً عن زبون آخر مؤهل يعمل بنفس جهة العمل ويتوافق مع سقف فارق المرتب المسموح به للفرع للربط المالي التبادلي.",
+        owner: "محرك المطابقة التلقائي / مراقب العمليات",
+        screen: "WaitingQueue.tsx"
+      },
+      6: {
+        name: "6. تم التطابق وجاهز للتجهيز اللوجستي (MATCHED)",
+        desc: "تم ربط الزبون بضامنه بنجاح (سواء تلقائياً أو يدوياً). في هذه اللحظة، يتم قفل الحاسبة لتعمل تلقائياً بقانون الراتب الأدنى، وتتحول المعاملة لمراحل تسليم السيارة وشحنها بالمعرض.",
+        owner: "مراقب العمليات اللوجستية (Operations Monitor)",
+        screen: "MonitorDashboard.tsx"
+      },
+      7: {
+        name: "7. المعاملة نشطة وتحت الأقساط (ACTIVE)",
+        desc: "يتم تسليم السيارة للزبون، وتنتقل المعاملة رسمياً للحالة النشطة. يبدأ احتساب الأقساط الشهرية وتواريخ استحقاقها وعرض مديونية العميل وكشوفات الدفع للمحاسب.",
+        owner: "محاسب الفرع والموظف المختص",
+        screen: "لوحة التحكم الرئيسية والتقارير المالية"
+      },
+      8: {
+        name: "8. التسوية المحاسبية وإتمام إغلاق الملف (COMPLETED)",
+        desc: "بعد سداد كامل الأقساط وعمولة المعرض وصرف عمولة المندوب، يتم تسجيل الدفعة النهائية وحفظ كمبيالات الضمان ورفع صورة الصك المصدق لإصدار شهادة إبراء الذمة وإذن خروج المركبة الرسمي.",
+        owner: "محاسب الفرع (Accountant)",
+        screen: "Settlements.tsx"
+      }
+    };
+
+    function selectLifecycleStep(stepNum, element) {
+      // Toggle Active class for step elements
+      const nodes = document.querySelectorAll('.lifecycle-step-node');
+      nodes.forEach(node => node.classList.remove('active'));
+      element.classList.add('active');
+
+      // Populate details
+      const stepData = lifecycleStepsData[stepNum];
+      document.getElementById('detail-step-name').innerText = stepData.name;
+      document.getElementById('detail-step-desc').innerText = stepData.desc;
+      document.getElementById('detail-step-owner').innerText = stepData.owner;
+      document.getElementById('detail-step-screen').innerText = stepData.screen;
+    }
+
+    // ----------------------------------------------------
+    // Interactive Role Matrix selector
+    // ----------------------------------------------------
+    const rolesData = {
+      staff: {
+        caps: [
+          { text: "تسجيل ومتابعة الزبائن المحتلمين وتحديث مواعيد الاتصال.", isAllowed: true },
+          { text: "تعبئة نماذج الحاسبة المبدئية وحفظ المعاملة.", isAllowed: true },
+          { text: "رفع المستندات والملفات وتعديل قائمة التحقق (Checklist).", isAllowed: true },
+          { text: "رؤية أرقام هواتف الزبائن كاملة لحماية أسرار المعرض.", isAllowed: false },
+          { text: "رؤية أسعار شراء السيارات بالكاش وصافي الأرباح (تظهر مغلقة).", isAllowed: false }
+        ],
+        mockup: `
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">عرض موظف المبيعات (Staff View)</div>
+          <div style="border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.2);">
+            <div>الزبون: جمال جمال</div>
+            <div>الهاتف: <span class="blurred-data">0912***456</span> 🔒 (مغبش)</div>
+            <div style="margin-top:8px;">أرباح المعرض وتفاصيل الشراء:</div>
+          </div>
+          <div class="gold-lock-overlay">
+            <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+            <strong style="color: var(--gold); font-size: 0.85rem;">الوصول غير مصرح (القفل الذهبي)</strong>
+            <span style="font-size:0.7rem; color:var(--text-muted);">هذه الشاشة محمية بقرار الإدارة العامة</span>
+          </div>
+        `
+      },
+      accountant: {
+        caps: [
+          { text: "مراجعة واعتماد أوراق ومستندات الزبائن في طابور الانتظار.", isAllowed: true },
+          { text: "تعبئة نماذج التسوية المحاسبية والكمبيالات وتسجيل الدفعة الأولى.", isAllowed: true },
+          { text: "رؤية أسعار شراء السيارات بالكاش والأرباح للتسوية المالية.", isAllowed: true },
+          { text: "طباعة شهادة إبراء الذمة الرسمية وإذن خروج المركبة A4.", isAllowed: true },
+          { text: "إجراء الربط اليدوي التبادلي للزبائن عبر الفروع المختلفة.", isAllowed: false }
+        ],
+        mockup: `
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">عرض المحاسب (Accountant View)</div>
+          <div style="border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.2); font-size: 0.8rem; display: flex; flex-direction: column; gap: 8px;">
+            <div style="color:var(--emerald);">✓ تم التحقق المحاسبي من المستندات</div>
+            <div>صافي أرباح التمويل: 3,450 دينار ليبي</div>
+            <button class="copy-btn" style="align-self: flex-start; padding: 4px 8px; font-size: 0.7rem;">🖨 طباعة إذن خروج المركبة</button>
+          </div>
+        `
+      },
+      manager: {
+        caps: [
+          { text: "اعتماد أو رفض مستندات ومعاملات الزبائن وتدوين سبب الرفض.", isAllowed: true },
+          { text: "رؤية أرقام هواتف جميع الزبائن كاملة دون أي تغبيش للتواصل الإداري.", isAllowed: true },
+          { text: "تعديل إعدادات الفرع، المصرف المعتمد، وسقف فارق راتب الضمان.", isAllowed: true },
+          { text: "استعراض تقرير الأرباح الصافية الحقيقية وسجل العمليات الإدارية.", isAllowed: true },
+          { text: "الربط اليدوي التبادلي العابر للمكاتب (محصور بوكيل السيارات).", isAllowed: false }
+        ],
+        mockup: `
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">عرض المدير (Manager View)</div>
+          <div style="border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.2); font-size: 0.8rem; display: flex; flex-direction: column; gap: 8px;">
+            <div>الزبون: جمال جمال</div>
+            <div style="color: var(--gold); font-weight:700;">الهاتف: 091-234-5678 (عرض كامل)</div>
+            <div>سقف فارق الراتب المسموح للفرع: 50 دينار</div>
+            <div style="display:flex; gap: 6px; margin-top: 4px;">
+              <span class="badge badge-emerald" style="padding: 2px 6px; font-size:0.65rem; cursor:pointer;">قبول الطلب</span>
+              <span class="badge badge-gold" style="padding: 2px 6px; font-size:0.65rem; cursor:pointer; background:rgba(239, 68, 68, 0.1); border-color:rgba(239, 68, 68, 0.3); color:var(--crimson);">رفض</span>
+            </div>
+          </div>
+        `
+      },
+      monitor: {
+        caps: [
+          { text: "تصفح طابور الانتظار العام لكامل مكاتب وفروع ليبيا.", isAllowed: true },
+          { text: "إجراء الربط اليدوي التبادلي والتبادلي الدائري للضمان يدوياً.", isAllowed: true },
+          { text: "تحديث الحالة اللوجستية للسيارات (قيد الشحن، جاهزة، تم التسليم).", isAllowed: true },
+          { text: "رؤية هواتف العملاء كاملة أو أسعار شراء الكاش للفرع.", isAllowed: false }
+        ],
+        mockup: `
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">عرض مراقب العمليات (Operations Monitor)</div>
+          <div style="border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.2); font-size: 0.8rem; display: flex; flex-direction: column; gap: 8px;">
+            <div style="color: var(--gold); font-weight:700;">🔗 لوحة ربط الضامنين المركزي</div>
+            <div>فرع البركة (جمال) 🔗 فرع الحرية (مصطفى)</div>
+            <span class="badge badge-gold" style="align-self: flex-start; padding: 2px 8px; font-size:0.65rem;">ربط يدوي متبادل ناجح</span>
+          </div>
+        `
+      }
+    };
+
+    function selectRole(roleKey, btnElement) {
+      // Toggle active class on tab buttons
+      const tabs = document.querySelectorAll('.role-tab-btn');
+      tabs.forEach(tab => tab.classList.remove('active'));
+      btnElement.classList.add('active');
+
+      const role = rolesData[roleKey];
+      
+      // Populate allowed / denied capabilities list
+      const capsBox = document.getElementById('role-caps-box');
+      capsBox.innerHTML = '';
+      role.caps.forEach(cap => {
+        const item = document.createElement('div');
+        item.className = 'role-cap-item' + (cap.isAllowed ? '' : ' denied');
+        
+        // Custom inline svg indicators
+        const checkIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="stroke: var(--emerald); flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        const closeIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="stroke: var(--crimson); flex-shrink: 0;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+        
+        item.innerHTML = `
+          ${cap.isAllowed ? checkIcon : closeIcon}
+          <span>${cap.text}</span>
+        `;
+        capsBox.appendChild(item);
+      });
+
+      // Populate interactive visual mockup
+      const mockupBox = document.getElementById('role-mockup-box');
+      mockupBox.innerHTML = role.mockup;
+    }
+
+    // ----------------------------------------------------
+    // Live Calculator Simulator logic
+    // ----------------------------------------------------
+    function runCalculatorSim() {
+      const beneSalary = parseFloat(document.getElementById('bene-salary').value);
+      const guarSalary = parseFloat(document.getElementById('guar-salary').value);
+
+      // Update labels
+      document.getElementById('bene-val').innerText = beneSalary + ' د.ل';
+      document.getElementById('guar-val').innerText = guarSalary + ' د.ل';
+
+      // Lowest salary rule logic
+      const activeSalary = Math.min(beneSalary, guarSalary);
+      const isTriggered = guarSalary < beneSalary;
+
+      // Maximum 35% deduction limit
+      const maxInstallment = activeSalary * 0.35;
+      
+      // Approximate Car Ceiling based on 48 installments
+      const carCeiling = maxInstallment * 48;
+
+      // Update display
+      document.getElementById('res-active-salary').innerText = activeSalary.toLocaleString() + ' د.ل';
+      document.getElementById('res-max-deduct').innerText = Math.round(maxInstallment).toLocaleString() + ' د.ل';
+      document.getElementById('res-car-ceiling').innerText = Math.round(carCeiling).toLocaleString() + ' د.ل';
+
+      // Update alert banner styling
+      const alertBar = document.getElementById('calc-alert-bar');
+      if (isTriggered) {
+        alertBar.className = 'lowest-alert-bar triggered';
+        alertBar.innerHTML = `
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+          <span><strong>تفعيل قانون الأمان:</strong> تم اعتماد راتب الضامن لأنه الأقل (${guarSalary.toLocaleString()} د.ل) لحمايتكم من مخاطر تعثر السداد.</span>
+        `;
+      } else {
+        alertBar.className = 'lowest-alert-bar normal';
+        alertBar.innerHTML = `
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          <span><strong>تطابق طبيعي:</strong> راتب المستفيد مساوٍ أو أقل من الضامن. تعمل الحاسبة بالمرتب النشط الطبيعي (${beneSalary.toLocaleString()} د.ل).</span>
+        `;
+      }
+    }
+
+
+
+    // Initialize all interactive states on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      // Select first lifecycle step
+      selectLifecycleStep(1, document.querySelector('.lifecycle-step-node'));
+      
+      // Select first role matrix
+      selectRole('staff', document.querySelector('.role-tab-btn'));
+      
+      // Run calculator simulation once
+      runCalculatorSim();
+    });
+  </script>
+</body>
+</html>

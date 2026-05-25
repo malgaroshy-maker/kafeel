@@ -202,4 +202,13 @@ We will systematically save screenshots of key interfaces during testing to `/ar
 - **Applied Migrations:** All local migrations (1 to 20) and remote schemas including table `customer_transfers` and `transaction_guarantors` RLS monitor authorization policies successfully synchronised and applied on cloud Supabase.
 - **E2E Status | حالة النظام الكلية:** ✅ Fully operational, verified, and E2E production ready. All core TypeScript modules compile without warnings or errors. Verified 100% correct manual circular matchmaking (Phase 33), downpayment rounding to 50 LYD, dynamic bank/branch entries, manager-approved cross-office customer transfers, and phone number privacy masking across all panels (v1.4.8 release).
 
+---
+
+### 🔗 Interactive Customer Lifecycle Presentation & Simplified Report | العرض التفاعلي لدورة حياة الزبون
+For a simplified, high-fidelity visual understanding of the customer lifecycle stages, user permissions, dynamic mathematical rules, and test plan executions, explore our newly added interactive document and presentation slide deck:
+- **Comprehensive Detailed Arabic Report:** [customer_lifecycle_analysis.md](file:///c:/Users/masal/OneDrive/Documents/opencode/kafeel/docs/customer_lifecycle_analysis.md)
+- **Interactive High-Fidelity HTML Presentation:** [customer_lifecycle_presentation.html](file:///c:/Users/masal/OneDrive/Documents/opencode/kafeel/docs/customer_lifecycle_presentation.html)
+  - *Features:* Interactive Timeline, Role matrix display, live calculator simulation of the Lowest Salary Rule (`min(Beneficiary, Guarantor)`), and cross-office isolation visuals.
+  - *Navigation:* Toggle between the simplified report and interactive slide deck. Slide keyboard navigation enabled (`ArrowLeft` / `ArrowRight` arrow keys).
+
 

@@ -123,7 +123,8 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, showSa
         workplace_id: beneficiaryData?.workplace_id || null,
         guarantors_needed: guarantorsNeeded,
         purchase_cost: !isStaff && n(form.purchaseCost) > 0 ? n(form.purchaseCost) : null,
-        market_sale_price: !isStaff && n(form.marketSalePrice) > 0 ? n(form.marketSalePrice) : 0
+        market_sale_price: !isStaff && n(form.marketSalePrice) > 0 ? n(form.marketSalePrice) : 0,
+        has_notary_pledge: form.hasNotaryPledge
       }
 
       let txId = ''
@@ -191,7 +192,7 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, showSa
       bankCeiling: n(form.bankCeiling),
       netSalary: activeSalary,
       marginRate: parseFloat(form.marginRate),
-      deductionRate: 0.50, // Always 50% limit as requested
+      deductionRate: form.hasNotaryPledge ? 0.50 : 0.35,
     })
   }, [form, beneficiaryData, guarantorData])
 
@@ -377,11 +378,11 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, showSa
             نسبة الخصم الفعلية: <strong>
               {results && n(form.netSalary) > 0
                 ? `${((results.monthlyInstallment / n(form.netSalary)) * 100).toFixed(1)}%`
-                : '50%'
+                : (form.hasNotaryPledge ? '50%' : '35%')
               }
             </strong>
             <span style={{ fontSize: '0.8rem', opacity: 0.8, marginRight: '0.5rem' }}>
-              (الحد الأقصى المسموح به: 50%)
+              (الحد الأقصى المسموح به: {form.hasNotaryPledge ? '50% مع التعهد' : '35% بدون التعهد'})
             </span>
           </div>
         </div>

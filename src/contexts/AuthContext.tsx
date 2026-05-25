@@ -127,6 +127,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
+  // Synchronize profile role updates on-the-fly to solve JWT caching drift
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`profile-role-sync-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'user_profiles',
+          filter: `id=eq.${user.id}`
+        },
+        async (payload: any) => {
+          const newRole = payload.new?.role;
+          if (newRole && newRole !== role) {
+            console.log('Role update detected on database. Refreshing session on-the-fly...');
+            await supabase.auth.refreshSession();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [user, role]);
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };

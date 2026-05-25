@@ -176,8 +176,4 @@ Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Mura
   - Verified full test coverage with zero Vitest failures and compiled error-free production bundler.
 - **Phase 32 (Dynamic Registry, Cross-Office Transfers, Phone Masking & Rounded Downpayments - v1.4.6)**: Complete ✅ — Fully built inline bank/branch dynamically additions, check duplicate National IDs with cross-office transfer requests modal, manager incoming/outgoing transfers approval grids in settings, phone number privacy masking utility for unauthorized users, 50 LYD rounded downpayments in the financial engine with customized accounting explanation notes, and 25 passing unit tests.
 - **Phase 33 (Monitor Manual Matchmaking & Database RLS Policy Resolution - v1.4.8)**: Complete ✅ — Resolved the remote RLS 403 Forbidden matchmaking bug completely by deploying a PostgreSQL migration `20_add_monitor_rls_policies.sql` to authorize the `monitor` role with write access on the database tables. Updated the monitor dashboard `loadData` to query and fetch exact customer metadata (`national_id`, `workplace_id`) and dynamic guarantor counters. Repaired `executeManualLink` to record confirmed details in `transaction_guarantors` and promote the transaction status to `'MATCHED'` in `transactions_raw` automatically. Verified using automated backend test scripts (`verify_manual_match.js`).
-
-
-
-
-
+- **Phase 34 (Dynamic Deduction Limits, Hardened Join Codes & JWT Role Refresh - v1.5.0)**: Complete ✅ — Added PostgreSQL table columns, security barrier view updates, and 35%/50% dynamic anti-tampering triggers. Configured real-time Postgres table listeners inside AuthContext to automatically refresh user JWT sessions on role promotions, and hardened join code generation to 8-character codes to prevent brute-force guessing attacks.

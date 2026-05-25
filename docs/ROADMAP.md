@@ -73,6 +73,10 @@
 - [x] LandingPage: Added "Join with Code" and "Login" buttons.
 - [x] Documentation: Updated `Plan.md` and `roadmap.md`.
 
+## Phase 8: Resilient Offline Fallbacks & SQL Migration Wizards ✅
+- [x] Integrated automated offline `localStorage` fallback systems inside `PotentialCustomers.tsx` and `FinancialRequest.tsx` to protect user inputs when showroom internet drops.
+- [x] Designed visual SQL code generator panels allowing direct copies of database updates during offline configurations.
+
 ## Phase 9: Unified Registration & Customer Management ✅
 - [x] Consolidate Beneficiary & Guarantor forms into a single unified workflow.
 - [x] Implement dynamic conditional rendering for 1 or 2 guarantors based on workplace type.
@@ -100,6 +104,10 @@
 - [x] Redesigned all primary actions/important buttons globally with the premium blue-grey-gold gradient.
 - [x] Watermark logo centered perfectly (`top: 50%`) with customized clear translucency (`0.4` in light mode, `0.6` in dark mode) for perfect branding.
 
+## Phase 13: SaaS Admin Hub, Custom Packages & Anti-Brute-Force Security Configurations ✅
+- [x] Overhauled the SaaS platform administrator panel, adding dynamic pricing packages and gateway modules.
+- [x] Integrated cybersecurity configurations for account deactivation, audit trails, and anti-brute-force user freezing.
+
 ## Phase 14: Role Optimization, Premium Remuneration & Reusable Padlocks ✅
 - [x] Strict Role Separation (`manager`, `accountant`, `staff`) with exclusive dashboard portals and layouts.
 - [x] Implement `purchase_cost` and Net Profit masking for `staff` (limited to manager/accountant only).
@@ -119,6 +127,10 @@
 - [x] Draft 8 robust legal clauses aligning with Libyan Cybercrime Law No. 5 of 2022, Central Bank of Libya interest-free Murabaha directives (Law No. 1 of 2013), force majeure liabilities, and approximate calculation disclaimers.
 - [x] Integrate interactive signup gate checkbox forcing user verification before submitting registration.
 - [x] Design beautiful theme-adaptive Glassmorphic modal displaying legal clauses dynamically for Light and Dark modes.
+
+## Phase 16: Public RLS Broadcast Banners & Layout Marquees ✅
+- [x] Restructured login layouts into 3 glassmorphic columns with public-bypass RLS read authorization on the `broadcasts` table to display announcements before login.
+- [x] Configured real-time portal sliding marquee news tickers directly below the golden header inside portal layouts for active notifications.
 
 ## Phase 17: Security Hardening & Threat Telemetry (الأمن والتحصين السيبراني) ✅
 - [x] Apply comprehensive security migration (`supabase/migrations/07_security_hardening.sql`) defining custom tracking tables (`system_runtime_errors`, `auth_failures`).
@@ -250,6 +262,14 @@
 - [x] **Dynamic Guarantor & Pipeline Counters**: Configured dynamic counting of actual verified guarantors in `loadData`, accurately mapping pipeline stages (`docs`, `waiting`, `matched`, `delivered`) and removing static zeros.
 - [x] **Fix Manual matchmaking execution**: Repaired `executeManualLink` in the monitor portal to write exact details into `transaction_guarantors` (`guarantor_name`, `guarantor_national_id`, `workplace_id`, `match_type: 'MANUAL'`, `match_status: 'CONFIRMED'`) and automatically promote transaction status in `transactions_raw` to `'MATCHED'`.
 - [x] **Backend QA Script Validation**: Created `test/verify_manual_match.js` backend script to programmatically assert correct database state transitions, confirming successful manual loops and lowest-salary calculation integration.
+
+## Phase 34: Dynamic Deduction Limits, Hardened Join Codes & JWT Role Refresh (v1.5.0) ✅
+- [x] **Database Migration (`21_dynamic_pledges_and_codes.sql`)**: Altered table `transactions_raw` to add boolean `has_notary_pledge` and re-created view `transactions` and trigger `transactions_view_trigger_func()`.
+- [x] **Dynamic Limit Trigger Check**: Updated the database validation trigger `check_transaction_financials` to dynamically enforce either 35% or 50% limit depending on `has_notary_pledge` state, including 50 LYD downpayment rounding.
+- [x] **Dynamic Calculator Upgrades**: Upgraded the frontend financial engine `financialEngine.ts` and Calculator UI to toggle capacity caps dynamically (35% default, 50% when notary pledge checked) and updated UI labels.
+- [x] **Harden Join Code Entropy**: Re-coded database function `generate_join_code` to generate 8-character long alphanumeric codes to completely prevent brute-force تخمين guessing attacks.
+- [x] **Solve JWT Caching Drift**: Configured a real-time Postgres table listener on `user_profiles` inside `AuthContext.tsx` to automatically invoke `supabase.auth.refreshSession()` on user role promotion, updating layout access dynamically.
+- [x] **Documentation Alignment**: Synchronized and standardized versions to `v1.5.0` across the entire codebase and test logs.
 
 
 
