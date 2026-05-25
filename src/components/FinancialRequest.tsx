@@ -25,6 +25,13 @@ export default function FinancialRequest({ beneficiaryId, onProceedToDocs }: Pro
   const [requestType, setRequestType] = useState<'LOAN' | 'FINANCIAL_VALUE' | 'BILLS'>('LOAN');
   const [amount, setAmount] = useState('');
   const [notes, setNotes] = useState('');
+  const [createdBy, setCreatedBy] = useState('');
+
+  useEffect(() => {
+    if (displayName || user?.user_metadata?.name) {
+      setCreatedBy(displayName || user?.user_metadata?.name || '');
+    }
+  }, [displayName, user]);
 
   // Dropdown list for selecting other customers
   const [officeCustomers, setOfficeCustomers] = useState<any[]>([]);
@@ -167,7 +174,7 @@ CREATE TABLE IF NOT EXISTS public.financial_requests (
       return;
     }
 
-    const creatorName = displayName || user?.user_metadata?.name || user?.email || 'موظف المكتب';
+    const creatorName = createdBy.trim() || displayName || user?.user_metadata?.name || user?.email || 'موظف المكتب';
 
     const newRequest = {
       office_id: officeId,
@@ -418,6 +425,19 @@ CREATE TABLE IF NOT EXISTS public.financial_requests (
                 </div>
               )}
 
+              {/* Applicant Name */}
+              <div className="input-group">
+                <label>اسم الموظف مقدم الطلب</label>
+                <input 
+                  type="text" 
+                  placeholder="مثال: أحمد محمد"
+                  value={createdBy}
+                  onChange={(e) => setCreatedBy(e.target.value)}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)', border: '1px solid var(--glass-border)' }}
+                  required
+                />
+              </div>
+
               {/* Request Type */}
               <div className="input-group">
                 <label>نوع الطلب المالي</label>
@@ -506,7 +526,7 @@ CREATE TABLE IF NOT EXISTS public.financial_requests (
                           </span>
                         </td>
                         <td style={{ padding: '0.75rem', color: 'var(--primary-light)', fontWeight: 'bold' }}>{req.amount.toLocaleString()} د.ل</td>
-                        <td style={{ padding: '0.75rem', fontSize: '0.85rem' }}>{req.created_by_name || (displayName ? displayName : 'موظف المكتب')}</td>
+                        <td style={{ padding: '0.75rem', fontSize: '0.85rem' }}>{req.created_by_name || 'موظف المكتب'}</td>
                         <td style={{ padding: '0.75rem', fontSize: '0.8rem', color: req.status === 'APPROVED' ? '#10b981' : 'var(--text-secondary)' }}>
                           {displayDate}
                         </td>

@@ -102,7 +102,7 @@ Kafeel is a B2B SaaS platform for car sales offices operating on an Islamic Mura
 ### M. Financial Requests Management ✅
 - **Logic**: Enables data entry staff to request custom office advances (`LOAN`), additional funding (`FINANCIAL_VALUE`), or process deferred guarantees/bills (`BILLS`) linked directly to active customer transactions.
 - **Database**: `financial_requests` table with role-based RLS controls.
-- **Features**: Searchable customer context selectors, automatic transaction value matching, detailed notes for managers, and real-time review tables with manager approve/reject actions.
+- **Features**: Searchable customer context selectors, automatic transaction value matching, detailed notes for managers, real-time review tables with manager approve/reject actions, and **customizable applicant employee tracking** (pre-populated with account name but fully editable to track the exact staff member who submitted the request).
 - **Resilience**: Simulated local storage fallback and real-time SQL execution assistant directly in the UI.
 
 ## 4. UI/UX Design Approach

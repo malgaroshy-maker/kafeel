@@ -64,8 +64,8 @@ We will systematically save screenshots of key interfaces during testing to `/ar
 * **AR:** فحص نسب المرابحة (16% للجهات الاستثنائية، 24% للجهات العادية). تطبيق الحد الأقصى للمصرف 120 ألف د.ل وسقف الاستقطاع 50%. التحقق من تفصيل الدفعة مقدمة (فارق قيمة السيارة + فجوة المرتب). النقر على "حفظ الربط بقاعدة البيانات".
 
 ### Phase D: Financial Requests & Approvals | المرحلة د: طلب القيم المالية والاعتمادات
-* **EN:** Submit a loan request linked to the active transaction. Switch accounts to the Office Manager (`ahmed@kafeel.ly`) to review, accept, or reject the request dynamically.
-* **AR:** تقديم طلب قيمة مالية مرتبط بالمعاملة النشطة. تبديل الحساب إلى مدير المكتب لمراجعة وقبول أو رفض الطلب عبر لوحة الاعتمادات.
+* **EN:** Submit a financial request with customizable applicant's employee name (pre-populated but editable). Verify that the applicant's name is dynamically tracked and displayed in the requests table, replacing simple account metadata. Switch accounts to the Office Manager (`ahmed@kafeel.ly`) to review, accept, or reject the request dynamically.
+* **AR:** تقديم طلب قيمة مالية مع اسم الموظف مقدم الطلب القابل للتعديل (معبأ تلقائياً وقابل للتعديل يدوياً). التحقق من تتبع اسم الموظف وعرضه ديناميكياً في جدول الطلبات بدلاً من معرف الحساب البسيط. تبديل الحساب إلى مدير المكتب لمراجعة وقبول أو رفض الطلب عبر لوحة الاعتمادات.
 
 ### Phase E: Document Verification & Uploads | المرحلة هـ: رفع واعتماد المستندات
 * **EN:** Upload files contextually for the transaction. Switch to the Manager account to review checklists and approve them.
@@ -138,7 +138,8 @@ We will systematically save screenshots of key interfaces during testing to `/ar
 
 ### ✅ Phase 6: Financial Requests | المرحلة 6: طلبات القيم المالية والاعتمادات
 - **Status | الحالة:** ✅ COMPLETED | مكتمل
-- Submitted financial requests via Staff interface.
+- Submitted financial requests via Staff interface with custom applicant employee name input field.
+- Verified dynamic display of applicant's name under "مقدم الطلب" column in manager's approval panel.
 - Switch to Manager account to approve/reject financial values.
 
 ### ✅ Phase 7: Document Verification & Queue Matching | المرحلة 7: المستندات وقائمة الانتظار والمراقب

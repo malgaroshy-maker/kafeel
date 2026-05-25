@@ -279,6 +279,12 @@
 - [x] **Premium UX clear-on-focus**: Applied `onFocus={(e) => e.target.select()}` auto-selection across primary inputs in `Calculator.tsx` and `CustomerForm.tsx`.
 - [x] **Documentation & QA Synchronization**: Updated `test_plan.md`, `test-results.md` and `ROADMAP.md` and certified the release `v1.5.1`.
 
+## Phase 36: Applicant Identity Tracking Upgrade (v1.5.2) ✅
+- [x] **Dynamic Applicant Name Entry**: Replaced the account-based identifier with a customizable "Applicant" (مقدم الطلب) input field in `FinancialRequest.tsx`, pre-populated with the user's name but editable.
+- [x] **Database Column Integration**: Added `created_by_name` text tracking to the `financial_requests` table to persist the human employee name of the submitter alongside their account ID (`created_by`).
+- [x] **Requests Board Display Upgrade**: Updated the requests table to render the employee name (`created_by_name`) under the "Applicant" (مقدم الطلب) column, ensuring clear visibility for the Office Manager during approvals.
+- [x] **Documentation & Schema Synchronization**: Updated `test_plan.md`, `test-results.md`, `PLAN.md`, `PRD.md`, `Design.md`, and `ROADMAP.md` to reflect the changes.
+
 
 
 
