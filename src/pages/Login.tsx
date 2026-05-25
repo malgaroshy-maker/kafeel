@@ -100,7 +100,7 @@ export default function Login() {
       <div className="global-watermark"></div>
 
       {/* Admin Broadcasts Column (Right in RTL) */}
-      {broadcasts.length > 0 && (
+      {adminBroadcasts.length > 0 && (
         <div className="glass" style={{ flex: '1 1 280px', maxWidth: '360px', padding: '1.5rem', borderRight: '4px solid var(--error)', background: 'linear-gradient(to bottom left, rgba(239, 68, 68, 0.05), transparent)', alignSelf: 'stretch' }}>
           <h3 style={{ color: 'var(--error)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}>
             <ShieldCheck size={20} /> إشعار مصممي النظام
@@ -200,7 +200,7 @@ export default function Login() {
       </div>
 
       {/* Dealer Broadcasts Column (Left in RTL) */}
-      {broadcasts.length > 0 && (
+      {dealerBroadcasts.length > 0 && (
         <div className="glass" style={{ flex: '1 1 280px', maxWidth: '360px', padding: '1.5rem', borderRight: '4px solid var(--accent)', background: 'linear-gradient(to bottom left, rgba(191, 149, 63, 0.05), transparent)', alignSelf: 'stretch' }}>
           <h3 style={{ color: 'var(--accent)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}>
             <Store size={20} /> إعلانات وكيل السيارات
