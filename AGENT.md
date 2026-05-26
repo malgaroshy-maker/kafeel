@@ -21,6 +21,11 @@
 2. If you changed the DB, update `supabase/schema.sql` to match
 3. If you added a component, update `docs/PLAN.md` architecture section
 4. If you completed a roadmap item, mark it `[x]` in `docs/ROADMAP.md`
+5. **Compile Bilingual Mega-Doc:** If you modified ANY markdown (`.md`) file, you **MUST** run the python compilation script to rebuild the interactive documentation portal:
+   ```bash
+   python scripts/build_docs.py
+   ```
+   *Note: A Git pre-commit hook is installed to automatically enforce and stage this file on commits, but agents must run this command explicitly to verify styling and structural correctness before wrapping up.*
 
 ---
 

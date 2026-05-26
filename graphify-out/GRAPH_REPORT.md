@@ -1,16 +1,16 @@
-# Graph Report - kafeel  (2026-05-24)
+# Graph Report - kafeel  (2026-05-26)
 
 ## Corpus Check
-- 118 files · ~482,046 words
+- 128 files · ~531,957 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1164 nodes · 1382 edges · 89 communities (83 shown, 6 thin omitted)
+- 1255 nodes · 1492 edges · 96 communities (90 shown, 6 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 3 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `901e2d8c`
+- Built from commit: `c3e1d2b7`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -96,22 +96,27 @@
 - [[_COMMUNITY_Community 86|Community 86]]
 - [[_COMMUNITY_Community 87|Community 87]]
 - [[_COMMUNITY_Community 88|Community 88]]
+- [[_COMMUNITY_Community 89|Community 89]]
+- [[_COMMUNITY_Community 90|Community 90]]
+- [[_COMMUNITY_Community 91|Community 91]]
+- [[_COMMUNITY_Community 92|Community 92]]
+- [[_COMMUNITY_Community 93|Community 93]]
+- [[_COMMUNITY_Community 94|Community 94]]
+- [[_COMMUNITY_Community 95|Community 95]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `useAuth()` - 58 edges
-2. `supabase` - 36 edges
-3. `Kafeel (كفيل) - Project Roadmap` - 32 edges
-4. `نتائج اختبار وتدقيق منظومة كفيل | Kafeel Platform QA Test Results` - 21 edges
-5. `Kafeel (كفيل) - Project Roadmap` - 18 edges
-6. `الهوية البصرية ودليل تصميم واجهات منظومة كفيل السحابية 🌟` - 17 edges
-7. `compilerOptions` - 16 edges
-8. `☀️ سجل تعديلات جلسة "شمس" - منظومة كفيل السحابية للمرابحة الإسلامية للسيارات` - 16 edges
+1. `useAuth()` - 62 edges
+2. `Kafeel (كفيل) - Project Roadmap` - 41 edges
+3. `supabase` - 38 edges
+4. `نتائج اختبار وتدقيق منظومة كفيل | Kafeel Platform QA Test Results` - 25 edges
+5. `الهوية البصرية ودليل تصميم واجهات منظومة كفيل السحابية 🌟` - 19 edges
+6. `☀️ سجل تعديلات جلسة "شمس" - منظومة كفيل السحابية للمرابحة الإسلامية للسيارات` - 18 edges
+7. `Kafeel (كفيل) - Project Roadmap` - 18 edges
+8. `✅ Execution Progress Log | سجل تقدم التنفيذ` - 17 edges
 9. `compilerOptions` - 16 edges
-10. `3. Architecture & Core Modules` - 15 edges
+10. `compilerOptions` - 16 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `OfficeTeamManagement()` --calls--> `useAuth()`  [EXTRACTED]
-  C:/Users/Administrator/Desktop/منظومة كفيل/src/components/OfficeTeamManagement.tsx → src/contexts/AuthContext.tsx
 - `StaffDashboard()` --calls--> `useAuth()`  [EXTRACTED]
   C:/Users/Administrator/Desktop/منظومة كفيل/src/components/StaffDashboard.tsx → src/contexts/AuthContext.tsx
 - `AdminLayout()` --calls--> `useAuth()`  [EXTRACTED]
@@ -120,16 +125,18 @@
   src/components/BroadcastManager.tsx → src/contexts/AuthContext.tsx
 - `CustomerList()` --calls--> `useAuth()`  [EXTRACTED]
   src/components/CustomerList.tsx → src/contexts/AuthContext.tsx
+- `FinancialRequest()` --calls--> `useAuth()`  [EXTRACTED]
+  src/components/FinancialRequest.tsx → src/contexts/AuthContext.tsx
 
-## Communities (89 total, 6 thin omitted)
+## Communities (96 total, 6 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.18
 Nodes (10): ProtectedRoute(), ProtectedRouteProps, TermsOverlay(), AuthContext, AuthProvider(), AuthState, resolveUserProfile(), UserRole (+2 more)
 
 ### Community 1 - "Community 1"
-Cohesion: 0.13
-Nodes (19): CalcState, CAR_PRESETS, defaultState, FinancialCalculator(), Props, CustomerDraft, CustomerFields(), CustomerForm() (+11 more)
+Cohesion: 0.11
+Nodes (22): CalcState, CAR_PRESETS, defaultState, FinancialCalculator(), Props, CustomerDraft, CustomerFields(), CustomerForm() (+14 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.25
@@ -140,8 +147,8 @@ Cohesion: 0.04
 Nodes (45): 🏦 Banking Infrastructure, 🚚 Car Dealer Logistics & Vehicle Appraisals, code:bash (# Run all tests), code:block9 (kafeel/), 🤝 Contributing | المساهمة, 🗄️ Database Schema | قاعدة البيانات, 📄 Document Management, ✨ Features | الميزات (+37 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.05
-Nodes (36): Agent Instructions — Kafeel (كفيل), code:block1 (PENDING → WAITING_MATCH → MATCHED → ACTIVE → COMPLETED), code:block2 (PERSONAL_USE | CASH_OUT | EXTERNAL_SALE), code:block3 (src/), code:block4 (feat: <description>      # New feature), 📝 Commit Messages, 🗄️ Database Rules (Supabase PostgreSQL), 📚 Documentation Files (Read & Keep Updated) (+28 more)
+Cohesion: 0.06
+Nodes (37): Agent Instructions — Kafeel (كفيل), code:bash (python scripts/build_docs.py), code:block2 (PENDING → WAITING_MATCH → MATCHED → ACTIVE → COMPLETED), code:block3 (PERSONAL_USE | CASH_OUT | EXTERNAL_SALE), code:block4 (src/), code:block5 (feat: <description>      # New feature), 📝 Commit Messages, 🗄️ Database Rules (Supabase PostgreSQL) (+29 more)
 
 ### Community 5 - "Community 5"
 Cohesion: 0.06
@@ -160,8 +167,8 @@ Cohesion: 0.12
 Nodes (17): 1. Clone the repository, 2. Install dependencies, 3. Configure environment variables, 4. Set up the database, 5. Deploy Edge Functions, 6. Start the development server, 7. Run tests, code:bash (git clone https://github.com/your-username/kafeel.git) (+9 more)
 
 ### Community 9 - "Community 9"
-Cohesion: 0.09
-Nodes (22): 1. Core Variables (المدخلات والمتغيرات الأساسية), 2. Mathematical Equations & Algorithms (العمليات الحسابية) ✅, 3. Dynamic Banking Rules (شروط وضوابط المصارف الليبية) ✅, 4. Implementation Details (تفاصيل التنفيذ), A. Salary & Deduction Validations ✅, B. Guarantor Requirements (Workplace Dependent) ✅, C. System Overrides (استثناءات النظام) ✅, Kafeel Platform - Financial Calculator Logic & Banking Rules (+14 more)
+Cohesion: 0.08
+Nodes (23): 1. Core Variables (المدخلات والمتغيرات الأساسية), 2. Mathematical Equations & Algorithms (العمليات الحسابية) ✅, 3. Dynamic Banking Rules (شروط وضوابط المصارف الليبية) ✅, 4. Implementation Details (تفاصيل التنفيذ), A. Salary & Deduction Validations ✅, B. Guarantor Requirements (Workplace Dependent) ✅, C. System Overrides (استثناءات النظام) ✅, D. Guarantor Match & Lowest Salary Rule (قاعدة الراتب الأدنى) ✅ (+15 more)
 
 ### Community 10 - "Community 10"
 Cohesion: 0.06
@@ -176,12 +183,12 @@ Cohesion: 0.09
 Nodes (22): 1. نظرة عامة على المنتج (Product Overview) 🎯, 2. المستخدمون والصلاحيات (User Roles & Permissions) 👥, 3. الميزات الأساسية ومنطق العمل (Core Features & Business Logic) 🚀, 4. الهيكلية التقنية وقاعدة البيانات (Technical Architecture) 🗄️, 4. الهيكلية التقنية وقاعدة البيانات (Technical Architecture & Schema) 🗄️, 5. تجربة المستخدم والواجهات (UX/UI Requirements) 🎨, 5. متطلبات تجربة المستخدم والتصميم (UI/UX Requirements) 🎨, 6. التحقق النهائي وجودة العمليات (E2E QA & System Integrity) 🛡️ (+14 more)
 
 ### Community 13 - "Community 13"
-Cohesion: 0.04
-Nodes (46): 📐 10. الهيكلة المتماثلة لحقول الضامن والمستفيد (Guarantor Field Panel Layout), 📊 11. لوحة الزبائن المحتملين وإجراءات التحويل (Potential Customers & Conversion Wizard), 💰 12. نظام طلبات القيمة المالية والضمانات المعلقة (Financial Requests & Management Board), 🏦 13. الإضافة الفورية الديناميكية للمصارف والفروع (Inline Registry UX), 🔒 14. حجب الهواتف وتغبيش البيانات جزئياً للخصوصية (Customer Privacy Phone Masking), 🔀 15. لوحة نقل وتنسيق الزبائن وتنبيه التكرار (Cross-Office Customer Transfer UI), 📝 16. تقريب الدفعة وملاحظة التقريب الحسابي (Downpayment Rounding & Accounting Note Card), 🎨 1. لوحة الألوان الرئيسية (Visual Color Palette) (+38 more)
+Cohesion: 0.12
+Nodes (17): 📐 10. الهيكلة المتماثلة لحقول الضامن والمستفيد (Guarantor Field Panel Layout), 📊 11. لوحة الزبائن المحتملين وإجراءات التحويل (Potential Customers & Conversion Wizard), 💰 12. نظام طلبات القيمة المالية والضمانات المعلقة (Financial Requests & Management Board), 🏦 13. الإضافة الفورية الديناميكية للمصارف والفروع (Inline Registry UX), 🔒 14. حجب الهواتف وتغبيش البيانات جزئياً للخصوصية (Customer Privacy Phone Masking), 🔀 15. لوحة نقل وتنسيق الزبائن وتنبيه التكرار (Cross-Office Customer Transfer UI), 📝 16. تقريب الدفعة وملاحظة التقريب الحسابي (Downpayment Rounding & Accounting Note Card), 📈 17. تتبع تحويل الزبائن المحتملين ولوحة إنتاجية الموظفين (Lead Conversion & Staff KPI Dashboard) (+9 more)
 
 ### Community 14 - "Community 14"
-Cohesion: 0.06
-Nodes (32): Critical Fixes (Post Phase 4), Kafeel (كفيل) - Project Roadmap, Phase 10: Banking Infrastructure & Regional Management ✅, Phase 11: Production Deployment & External Integrations ✅, Phase 12: Premium Design System & Global Styling ✅, Phase 14: Role Optimization, Premium Remuneration & Reusable Padlocks ✅, Phase 15: Arabic Legal Terms Agreement & Compliance (شروط الاستخدام والامتثال القانوني) ✅, Phase 17: Security Hardening & Threat Telemetry (الأمن والتحصين السيبراني) ✅ (+24 more)
+Cohesion: 0.05
+Nodes (41): Critical Fixes (Post Phase 4), Kafeel (كفيل) - Project Roadmap, Phase 10: Banking Infrastructure & Regional Management ✅, Phase 11: Production Deployment & External Integrations ✅, Phase 12: Premium Design System & Global Styling ✅, Phase 13: SaaS Admin Hub, Custom Packages & Anti-Brute-Force Security Configurations ✅, Phase 14: Role Optimization, Premium Remuneration & Reusable Padlocks ✅, Phase 15: Arabic Legal Terms Agreement & Compliance (شروط الاستخدام والامتثال القانوني) ✅ (+33 more)
 
 ### Community 15 - "Community 15"
 Cohesion: 0.08
@@ -192,8 +199,8 @@ Cohesion: 0.08
 Nodes (24): 1. نظرة عامة على المنتج (Product Overview) 🎯, 2. المستخدمون والصلاحيات (User Roles & Permissions) 👥, 3. الميزات الأساسية ومنطق العمل (Core Features & Business Logic) 🚀, 4. الهيكلية التقنية وقاعدة البيانات (Technical Architecture) 🗄️, 5. متطلبات تجربة المستخدم والتصميم (UI/UX Requirements) 🎨, أ. محرك المطابقة وخوارزمية الضمان (Matchmaking Engine) ✅, ب. الحاسبة المالية التفاعلية (Reactive Financial Calculator) ✅, ج. البنية التحتية للمصارف والفروع (Banking Infrastructure) ✅ (+16 more)
 
 ### Community 17 - "Community 17"
-Cohesion: 0.07
-Nodes (28): 📈 10. استقرار وتماسك كامل بيئة المنظومة, 🚀 11. الترقية الشاملة والذكية لبوابة وكيل السيارات (Monitor/Car Dealer Portal), 📢 12. هندسة البث الإعلاني الفائق والمزامنة الفورية (Robust Broadcast & Dynamic Sync), 📊 13. تخطيط الهيكل المعماري البرمجي المتقدم عبر أداة Graphify, 📁 14. ترقية مركز المستندات المتقدم، وسياق التنقل اللحظي، ومعالجة الأخطاء الذكية, 🎛️ 15. نظام تحديد قيمة الربط المالي للضامن (Configurable Salary Match Limit), 🎨 1. الهوية البصرية والعلامة المائية الفاخرة لـ "كفيل", 👑 2. هندسة المربع الذهبي العلوي الأقصى (Topmost Compact Gold Header) (+20 more)
+Cohesion: 0.06
+Nodes (30): 📈 10. استقرار وتماسك كامل بيئة المنظومة, 🚀 11. الترقية الشاملة والذكية لبوابة وكيل السيارات (Monitor/Car Dealer Portal), 📢 12. هندسة البث الإعلاني الفائق والمزامنة الفورية (Robust Broadcast & Dynamic Sync), 📊 13. تخطيط الهيكل المعماري البرمجي المتقدم عبر أداة Graphify, 📁 14. ترقية مركز المستندات المتقدم، وسياق التنقل اللحظي، ومعالجة الأخطاء الذكية, 🎛️ 15. نظام تحديد قيمة الربط المالي للضامن (Configurable Salary Match Limit), 👥 16. ترقية تتبع هوية مقدم الطلب المالي (Applicant Identity Tracking - v1.5.2), 📣 17. هندسة شاشة الدخول المحدثة وتحسين صياغة الواجهة الترحيبية (Unified Top Marquee & Hero Copy Optimization - v1.5.3) (+22 more)
 
 ### Community 18 - "Community 18"
 Cohesion: 0.05
@@ -220,16 +227,16 @@ Cohesion: 0.06
 Nodes (40): BM25, detect_domain(), _load_csv(), Lowercase, split, remove punctuation, filter short words, Build BM25 index from documents, Score all documents against query, Load CSV and return list of dicts, Core search function using BM25 (+32 more)
 
 ### Community 27 - "Community 27"
-Cohesion: 0.18
-Nodes (10): المرحلة 10: اختبار قائمة الانتظار للزبائن الجدد (جمال ومصطفى) | Phase 10: Waitlist Testing (Jamal & Mustafa), المرحلة 11: اختبار التحويل التلقائي للحاسبة بالمرتب الأدنى للضامن | Phase 11: Linked-Guarantor Lowest Salary Calculations, جرد لقطات الشاشة | Screenshot Inventory, حالة مزامنة قاعدة البيانات | Supabase DB Migration Sync Status, مشاكل مكتشفة | Issues Found, ملاحظات على AuthContext وإدارة الأدوار | AuthContext & Role Management Notes, ملخص الأخطاء وحالة الإصلاح | Bug Summary & Resolution Status, ملخص تنفيذي | Executive Summary (+2 more)
+Cohesion: 0.12
+Nodes (15): المرحلة 10: اختبار قائمة الانتظار للزبائن الجدد (جمال ومصطفى) | Phase 10: Waitlist Testing (Jamal & Mustafa), المرحلة 11: اختبار التحويل التلقائي للحاسبة بالمرتب الأدنى للضامن | Phase 11: Linked-Guarantor Lowest Salary Calculations, المرحلة 13: الأمن والتحصين السيبراني ومطابقة الجداول والمحاذاة الفنية | Phase 13: Cyber Safeguards & Database Schema Hardening (v1.5.1), المرحلة 14: تتبع هوية مقدم الطلب المالي (Financial Request Applicant Identity Tracking - v1.5.2), المرحلة 15: إعفاء جهات العمل للمطابقة والتوجيه التلقائي المتقدم (v1.7.0), المرحلة 16: فحص وتدقيق المنظومة الشامل متعدد المنظور | Phase 16: Multi-Perspective System Audit & Test Suite (v1.5.2), جرد لقطات الشاشة | Screenshot Inventory, حالة مزامنة قاعدة البيانات | Supabase DB Migration Sync Status (+7 more)
 
 ### Community 28 - "Community 28"
 Cohesion: 0.12
 Nodes (17): 1. Clone the repository, 2. Install dependencies, 3. Configure environment variables, 4. Set up the database, 5. Deploy Edge Functions, 6. Start the development server, 7. Run tests, code:bash (git clone https://github.com/your-username/kafeel.git) (+9 more)
 
 ### Community 29 - "Community 29"
-Cohesion: 0.18
-Nodes (10): 1. ملخص المشروع من التسجيل الصوتي (Summary), 2. مقارنة بين التسجيل والمشروع الحالي (Comparison), 3. الميزات المفقودة أو "المنسية" (Missing Features), أ. نموذج التسعير والقيود (Business Model Constraints), التوصيات المقترحة للإضافة:, ب. منطق "سعر شراء المكتب" (Internal Cost Tracking), ج. نظام التنبيهات الخارجية (External Notifications), د. الفترة التجريبية (Trial Period) (+2 more)
+Cohesion: 0.11
+Nodes (17): 1. ملخص المشروع من التسجيل الصوتي (Summary), 2. مقارنة بين التسجيل والمشروع الحالي (Comparison), 3. الميزات المفقودة أو "المنسية" (Missing Features), 3. الميزات المنجزة والمحققة بالكامل (Successfully Implemented Features), أ. نموذج التسعير والقيود (Business Model Constraints), أ. نموذج التسعير والقيود (SaaS User Limits & Packages), التوصيات المعتمدة والمطبقة:, التوصيات المقترحة للإضافة: (+9 more)
 
 ### Community 30 - "Community 30"
 Cohesion: 0.24
@@ -240,12 +247,12 @@ Cohesion: 0.18
 Nodes (10): code:block1 (Step 1: git checkout my-local-backup -- src/components/Broad), Estimated Changes, 📋 Execution Steps, ✅ Phase 1: Copy New Files (Safe — no conflict), ✅ Phase 2: Add Broadcast Columns to Login Screen, ✅ Phase 3: Add Broadcast Banner to OfficeLayout, 🔀 Revised Merge Plan (v2), Situation Summary (+2 more)
 
 ### Community 32 - "Community 32"
-Cohesion: 0.18
-Nodes (14): PremiumLockBanner(), PremiumLockBannerProps, PremiumLockOverlay(), PremiumLockOverlayProps, ARABIC_MONTHS, DebtorItem, MonthlyReport, ReportsDashboard() (+6 more)
+Cohesion: 0.15
+Nodes (16): ManagerDashboard(), ManagerDashboardProps, PremiumLockBanner(), PremiumLockBannerProps, PremiumLockOverlay(), PremiumLockOverlayProps, ARABIC_MONTHS, DebtorItem (+8 more)
 
 ### Community 35 - "Community 35"
 Cohesion: 0.07
-Nodes (26): 🔑 Active Test Credentials | بيانات الاختبار النشطة, 🛠️ Automated & Manual Verification | التحقق الآلي واليدوي, 🌐 Cloud Verification & Schema Sync Status | حالة المطابقة والربط السحابي, 📋 Comprehensive Test Workflows | مسارات الاختبار التفصيلية, ✅ Execution Progress Log | سجل تقدم التنفيذ, Kafeel (كفيل) - QA Audit & Verification Plan | خطة الفحص والتدقيق البرمجي الشاملة, ✅ Phase 0: Automated Math Suite | مرحلة الاختبار الآلي, ✅ Phase 1: Public Interface & Onboarding | المرحلة 1: الواجهة العامة (+18 more)
+Nodes (29): 🔑 Active Test Credentials | بيانات الاختبار النشطة, 🛠️ Automated & Manual Verification | التحقق الآلي واليدوي, 🌐 Cloud Verification & Schema Sync Status | حالة المطابقة والربط السحابي, 📋 Comprehensive Test Workflows | مسارات الاختبار التفصيلية, ✅ Execution Progress Log | سجل تقدم التنفيذ, 🔗 Interactive Customer Lifecycle Presentation & Simplified Report | العرض التفاعلي لدورة حياة الزبون, Kafeel (كفيل) - QA Audit & Verification Plan | خطة الفحص والتدقيق البرمجي الشاملة, ✅ Phase 0: Automated Math Suite | مرحلة الاختبار الآلي (+21 more)
 
 ### Community 36 - "Community 36"
 Cohesion: 0.09
@@ -256,12 +263,12 @@ Cohesion: 0.09
 Nodes (22): 1. الملخص التنفيذي وأثر القرارات التشغيلية (Executive Summary), 2. الميزات والأنظمة الجاهزة بالفعل في المنظومة (Already Implemented), 3. الميزات الجديدة المطلوب إضافتها بالكامل (Added Features - Genuinely Pending), 4. الميزات الحالية المطلوب تعديلها أو استبدالها (Modified Features - Genuinely Pending), 5. الميزات والقيود المطلوب حذفها أو إخفاؤها (Deleted/Masked Features - Genuinely Pending), 6. مصفوفة الأولويات وخريطة الطريق الفنية المحدثة (Implementation Priority Matrix), 7. خطة التحقق والتدقيق البرمجي (Technical Verification Plan), أ. البنية التحتية والمصاحبة العامة: (+14 more)
 
 ### Community 38 - "Community 38"
-Cohesion: 0.22
-Nodes (8): SettingsPanel(), SettingsPanelProps, WaitingQueue(), WaitingTransaction, useAuth(), MonitorLayout(), MonitorTab, LandingPage()
+Cohesion: 0.20
+Nodes (10): OfficeSettings(), OfficeTeamManagement(), ROLE_LABELS, UserProfile, SettingsPanel(), SettingsPanelProps, useAuth(), MonitorLayout() (+2 more)
 
 ### Community 39 - "Community 39"
-Cohesion: 0.15
-Nodes (11): Broadcast, BroadcastManager(), Props, State, SupportMessage, SupportReply, SupportWidget(), supabase (+3 more)
+Cohesion: 0.13
+Nodes (14): Broadcast, BroadcastManager(), Props, State, RecentCustomer, StaffDashboard(), StaffDashboardProps, SupportMessage (+6 more)
 
 ### Community 40 - "Community 40"
 Cohesion: 0.11
@@ -276,8 +283,8 @@ Cohesion: 0.43
 Nodes (5): ExternalSaleTimer, SettlementData, Settlements(), SettlementType, compressImage()
 
 ### Community 43 - "Community 43"
-Cohesion: 0.14
-Nodes (13): 1. 🗄️ Database Shield & Schema Hardening, 1. 🗄️ تحصين وحماية قاعدة البيانات والـ RLS, 2. 💻 Silent Crash Interceptor & Safe Shield (React Boundary), 2. 💻 معترض الانهيارات الآمن والدرع الزجاجي (React Security Boundary), 3. 👥 Central Security Command Room, 3. 👥 غرفة التحكم والمراقبة الأمنية المركزية, 4. 🧮 Tamper-Proof Financial Calculation Core, 4. 🧮 محرك الحسابات المالية غير القابل للتلاعب (+5 more)
+Cohesion: 0.11
+Nodes (17): 1. 🗄️ Database Shield & Schema Hardening, 1. 🗄️ تحصين وحماية قاعدة البيانات والـ RLS, 2. 💻 Silent Crash Interceptor & Safe Shield (React Boundary), 2. 💻 معترض الانهيارات الآمن والدرع الزجاجي (React Security Boundary), 3. 👥 Central Security Command Room, 3. 👥 غرفة التحكم والمراقبة الأمنية المركزية, 4. 🧮 Tamper-Proof Financial Calculation Core, 4. 🧮 محرك الحسابات المالية غير القابل للتلاعب (+9 more)
 
 ### Community 44 - "Community 44"
 Cohesion: 0.27
@@ -308,8 +315,8 @@ Cohesion: 0.32
 Nodes (7): acceptTermsForUser(), env, envFile, parts, prepareDatabase(), run(), supabase
 
 ### Community 51 - "Community 51"
-Cohesion: 0.38
-Nodes (3): OfficeTeamManagement(), ROLE_LABELS, UserProfile
+Cohesion: 0.08
+Nodes (24): 1. الإخطارات والمهام الذكية (Automated CRM Triggers):, 1. دورة حياة الزبون (Customer Lifecycle) بالتفصيل والتبسيط, 1. عزل البيانات وحماية الخصوصية (Strict Isolation):, 2. المحرر القانوني لتوليد العقود المعتمدة (Interactive PDF Contract Generator):, 2. تدفق الاتصالات والتنسيق الفعلي (Who Should Call?):, 2. صلاحيات وأدوار المستخدمين والأمان الرقمي, 3. خوارزمية تقييم المخاطر الائتمانية (Smart Scoring System):, 3. كيف تعمل آلية المطابقة (الربط التلقائي واليدوي)؟ (+16 more)
 
 ### Community 52 - "Community 52"
 Cohesion: 0.29
@@ -340,8 +347,8 @@ Cohesion: 0.33
 Nodes (6): dependencies, lucide-react, react, react-dom, react-router-dom, @supabase/supabase-js
 
 ### Community 59 - "Community 59"
-Cohesion: 0.60
-Nodes (3): RecentCustomer, StaffDashboard(), StaffDashboardProps
+Cohesion: 0.17
+Nodes (12): ✨ 2. عناصر التصميم الفاخرة (Premium UI Elements), code:css (border: 1px solid #bf953f; /* لون ذهبي معدني فاتح للمحيط */), code:css (border-color: #fef08a;), 📢 البث الإعلاني بشريط علوي متحرك في شاشة الدخول (Unified Top Marquee Broadcast - Login Page), 🌟 الحدود الذهبية الفاتحة لكافة عناصر المنظومة (Global Golden Borders), 💧 الشعار الهافت المائي (Faded Watermark), 👑 المربع الذهبي العلوي المتناسق (Compact Gold Header), 💫 تأثيرات الحركة التفاعلية الدقيقة (Micro-Animations) (+4 more)
 
 ### Community 61 - "Community 61"
 Cohesion: 0.40
@@ -423,25 +430,53 @@ Nodes (3): المرحلة 3: تسجيل الحسابات الفرعية وأقف
 Cohesion: 0.67
 Nodes (3): ملاحظات عامة على الكود | General Code Observations, نقاط تحتاج تحسين | Improvements Needed, نقاط قوة | Strengths
 
+### Community 89 - "Community 89"
+Cohesion: 0.20
+Nodes (10): ✨ 2. عناصر التصميم الفاخرة (Premium UI Elements), code:css (border: 1px solid #bf953f; /* لون ذهبي معدني فاتح للمحيط */), code:css (border-color: #fef08a;), 🌟 الحدود الذهبية الفاتحة لكافة عناصر المنظومة (Global Golden Borders), 💧 الشعار الهافت المائي (Faded Watermark), 👑 المربع الذهبي العلوي المتناسق (Compact Gold Header), 💫 تأثيرات الحركة التفاعلية الدقيقة (Micro-Animations), 👤 شريط الترحيب والتحكم الأيسر (Left Profile Welcome Block) (+2 more)
+
+### Community 90 - "Community 90"
+Cohesion: 0.22
+Nodes (8): 🎨 1. لوحة الألوان الرئيسية (Visual Color Palette), 🏛️ 3. هيكلة القوائم المنسدلة الذكية (Smart Hover Dropdowns), 🔒 4. الضوابط الأمنية وقواعد البيانات, 🔐 5. نظام التغبيش وقفل الميزات الفاخر (SaaS Premium Padlock & Glass Lock System), 👥 6. بطاقات الزبائن الفاخرة وعناصر التحكم التفاعلية (Premium Customer Cards & Interactive Actions), 🛡️ أ. مكوّن التغبيش الموضعي للمحتوى (`PremiumLockOverlay`), الهوية البصرية ودليل تصميم واجهات منظومة كفيل السحابية 🌟, 🏆 ب. مكوّن البانر العريض الفاخر للواجهات المحجوبة (`PremiumLockBanner`)
+
+### Community 91 - "Community 91"
+Cohesion: 0.32
+Nodes (7): calculateMurabahaLocal(), env, envFile, maskPhoneLocal(), parts, runAudit(), supabase
+
+### Community 92 - "Community 92"
+Cohesion: 0.29
+Nodes (6): 📈 1. معدل تحويل العملاء المحتملين (Leads Conversion Rate) `[مكتمل ومدمج بالكامل ✅]`, 🛡️ 2. مؤشر دقة المستندات والملفات المرفوعة (Document Verification Accuracy) `[مكتمل ومدمج بالكامل ✅]`, 💰 3. إحصائيات المعاملات والطلبات المالية الفردية (Financial Requests Analytics) `[مكتمل ومدمج بالكامل ✅]`, ⏱️ 4. قياس زمن دورة المعاملة المتكاملة (Transaction Cycle Time - SLA) `[قيد التخطيط والتطوير ⏳]`, 🔑 5. سجل الرقابة الأمني ومؤشر سلامة البيانات (Security & Telemetry Analytics) `[مكتمل ومدمج بالكامل ✅]`, 📋 مقترحات وتحديثات لوحة إحصائيات الموظفين — منظومة كفيل
+
+### Community 93 - "Community 93"
+Cohesion: 0.40
+Nodes (4): MatchDetails, Props, WaitingQueue(), WaitingTransaction
+
+### Community 94 - "Community 94"
+Cohesion: 0.40
+Nodes (5): clean_html(), main(), parse_markdown(), Simple HTML escaping for safety inside JSON/JS structures., Highly resilient pure-Python Markdown to HTML parser.     Handles Headers, Code
+
+### Community 95 - "Community 95"
+Cohesion: 0.67
+Nodes (3): 🔐 5. نظام التغبيش وقفل الميزات الفاخر (SaaS Premium Padlock & Glass Lock System), 🛡️ أ. مكوّن التغبيش الموضعي للمحتوى (`PremiumLockOverlay`), 🏆 ب. مكوّن البانر العريض الفاخر للواجهات المحجوبة (`PremiumLockBanner`)
+
 ## Knowledge Gaps
-- **703 isolated node(s):** `name`, `private`, `version`, `type`, `dev` (+698 more)
+- **760 isolated node(s):** `name`, `private`, `version`, `type`, `dev` (+755 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **6 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `useAuth()` connect `Community 38` to `Community 0`, `Community 1`, `Community 32`, `Community 39`, `Community 41`, `Community 42`, `Community 45`, `Community 51`, `Community 59`, `Community 30`?**
-  _High betweenness centrality (0.008) - this node is a cross-community bridge._
-- **Why does `نتائج اختبار وتدقيق منظومة كفيل | Kafeel Platform QA Test Results` connect `Community 27` to `Community 69`, `Community 70`, `Community 78`, `Community 79`, `Community 80`, `Community 81`, `Community 82`, `Community 83`, `Community 84`, `Community 85`, `Community 86`, `Community 87`?**
+- **Why does `useAuth()` connect `Community 38` to `Community 32`, `Community 1`, `Community 0`, `Community 39`, `Community 41`, `Community 42`, `Community 45`, `Community 93`, `Community 30`?**
+  _High betweenness centrality (0.007) - this node is a cross-community bridge._
+- **Why does `supabase` connect `Community 39` to `Community 32`, `Community 1`, `Community 0`, `Community 38`, `Community 41`, `Community 42`, `Community 45`, `Community 93`, `Community 30`?**
   _High betweenness centrality (0.005) - this node is a cross-community bridge._
-- **Why does `supabase` connect `Community 39` to `Community 32`, `Community 1`, `Community 0`, `Community 38`, `Community 41`, `Community 42`, `Community 45`, `Community 51`, `Community 59`, `Community 30`?**
+- **Why does `نتائج اختبار وتدقيق منظومة كفيل | Kafeel Platform QA Test Results` connect `Community 27` to `Community 69`, `Community 70`, `Community 78`, `Community 79`, `Community 80`, `Community 81`, `Community 82`, `Community 83`, `Community 84`, `Community 85`, `Community 86`, `Community 87`?**
   _High betweenness centrality (0.004) - this node is a cross-community bridge._
 - **What connects `name`, `private`, `version` to the rest of the system?**
-  _729 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _788 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 1` be split into smaller, more focused modules?**
-  _Cohesion score 0.12666666666666668 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.10837438423645321 - nodes in this community are weakly interconnected._
 - **Should `Community 3` be split into smaller, more focused modules?**
   _Cohesion score 0.043478260869565216 - nodes in this community are weakly interconnected._
 - **Should `Community 4` be split into smaller, more focused modules?**
-  _Cohesion score 0.05405405405405406 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05832147937411095 - nodes in this community are weakly interconnected._
