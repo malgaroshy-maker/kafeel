@@ -477,16 +477,24 @@ AS $$
 DECLARE
     v_workplace_id UUID;
     v_salary NUMERIC;
+    v_office_id UUID;
+    v_match_limit NUMERIC;
 BEGIN
     -- Get beneficiary's workplace and salary
-    SELECT c.workplace_id, c.salary
-    INTO v_workplace_id, v_salary
+    SELECT c.workplace_id, c.salary, c.office_id
+    INTO v_workplace_id, v_salary, v_office_id
     FROM customers c
     WHERE c.id = p_beneficiary_id;
 
-    IF v_workplace_id IS NULL OR v_salary IS NULL THEN
-        RAISE EXCEPTION 'Beneficiary workplace or salary not set';
+    IF v_salary IS NULL THEN
+        RAISE EXCEPTION 'Beneficiary salary not set';
     END IF;
+
+    -- Get match limit from office settings, default to 50
+    SELECT COALESCE(o.salary_match_limit, 50)
+    INTO v_match_limit
+    FROM offices o
+    WHERE o.id = v_office_id;
 
     RETURN QUERY
     SELECT
@@ -502,10 +510,8 @@ BEGIN
     JOIN offices o ON o.id = c.office_id
     LEFT JOIN workplaces w ON w.id = c.workplace_id
     WHERE c.id != p_beneficiary_id
-      -- Same workplace (skip if override)
-      AND (p_override_validation OR c.workplace_id = v_workplace_id)
-      -- Salary diff <= 50 LYD (skip if override)
-      AND (p_override_validation OR ABS(c.salary - v_salary) <= 50)
+      -- Salary diff <= v_match_limit LYD (skip if override)
+      AND (p_override_validation OR ABS(c.salary - v_salary) <= v_match_limit)
       -- Not already a guarantor on this transaction
       AND c.national_id NOT IN (
           SELECT tg.guarantor_national_id
@@ -522,7 +528,7 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION public.find_potential_guarantors IS 'Finds matching guarantors: same workplace + salary diff ≤ 50 LYD. Override available for monitors.';
+COMMENT ON FUNCTION public.find_potential_guarantors IS 'Finds matching guarantors based on salary difference (using office limit settings), with workplace match restriction removed.';
 
 -- ---- Attempt Auto Match ----
 CREATE OR REPLACE FUNCTION public.attempt_auto_match(p_transaction_id UUID)

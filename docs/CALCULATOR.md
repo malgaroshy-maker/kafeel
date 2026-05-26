@@ -68,6 +68,11 @@ $$\text{Profit}_{office} = P_{market} - C_{purchase}$$
 ### C. System Overrides (استثناءات النظام) ✅
 * **Operations Monitor (مراقب العمليات):** `override_validation` boolean parameter exposed in `find_potential_guarantors()` PostgreSQL function.
 
+### D. Guarantor Match & Lowest Salary Rule (قاعدة الراتب الأدنى) ✅
+* **Lowest Salary Rule Integration:** When a guarantor is linked to a beneficiary, the calculator dynamically enforces the **Lowest Salary Rule** by selecting the minimum salary value between the beneficiary's interactive input salary ($S_{beneficiary}$) and the database-stored guarantor's salary ($S_{guarantor}$):
+  $$S_{active} = \min(S_{beneficiary}, S_{guarantor})$$
+* **Exempt Workplace Mismatch:** Under the `v1.7.0` update, automatic matchmaking does *not* filter by the same workplace, allowing different employers to match, while the calculator dynamically locks this reactive minimum.
+
 ## 4. Implementation Details (تفاصيل التنفيذ)
 
 ### الملفات ذات الصلة:

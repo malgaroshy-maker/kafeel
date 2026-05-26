@@ -291,6 +291,27 @@
 - [x] **Sensitive Action Telemetry (`CustomerList.tsx`, `CustomerForm.tsx`)**: Injected logs targeting copying of sensitive fields (Phone, NID, Transaction ID), customer profile creations/edits, deletions, and queue submissions.
 - [x] **Staff Productivity Metrics (`StaffStats.tsx`)**: Calculated potential leads registered by each operator, tracking individual conversion performance and displaying these statistics via a branch lead conversion KPI card and performance tables.
 
+## Phase 38: Workplace Matchmaking Exemption & Dynamic Redirection (v1.7.0) ✅
+- [x] **Workplace Matchmaking Exemption (`24_remove_workplace_mismatch.sql`, `schema.sql`)**: Removed the same-workplace restriction (`c.workplace_id = v_workplace_id`) from `find_potential_guarantors()`, allowing automatic matchmaking across different employers based purely on salary compatibility and dynamic office limits.
+- [x] **Interactive Match Redirection Flow (`WaitingQueue.tsx`, `OfficeLayout.tsx`)**: Upgraded the auto-matching interface to display an **"اعتماد الحساب المالي الجديد 📊"** button immediately upon successful pairing. This transfers matched user IDs to the Calculator with the Lowest Salary Rule active.
+- [x] **Role-Based Redirect Funnel (`OfficeLayout.tsx`)**: Customized post-save redirection routes on `onSaveSuccess` inside the Calculator:
+  - **Staff**: Displays a success confirmation alert and routes them to the **Dashboard** (as they are locked out of settlements).
+  - **Manager/Accountant**: Pre-registers the transaction in the `localStorage` quick-settle cache and redirects them instantly to the **Settlements** page for delivery.
+- [x] **Manager Financial Request Creation (`FinancialRequest.tsx`)**: Relaxed role conditional visibility checks in `FinancialRequest.tsx` from `isStaff` to `(isStaff || isManager)`, allowing the Office Manager to submit loans/financial requests for customers while maintaining approval rights over all pending office requests.
+- [x] **Documentation & Schema Synchronization**: Updated versioning to `v1.7.0` across the documentation stack (`PLAN.md`, `PRD.md`, `CALCULATOR.md`, `customer_lifecycle_analysis.md`, `ROADMAP.md`).
+
+## Phase 39: Multi-Perspective System Audit & Test Suite (v1.5.2) ✅
+- [x] **Comprehensive Integration Script**: Created and fully executed `test/comprehensive_system_audit.js` covering seven distinct pillars of safety and calculations.
+- [x] **Mathematical Integrity**: Validated the downpayment calculations (16% and 24% margins, 35% default limits vs 50% notary pledge override, downpayment rounding to 50 LYD, and localized accounting notes).
+- [x] **Database Trigger Anti-Tampering Check**: Confirmed that PostgreSQL trigger `check_transaction_financials` rejects inserts with mismatched financials (tampering attempt throws database exception `P0001`).
+- [x] **Workspace Guarantor Limit Check**: Confirmed that dynamic workplace mappings govern required guarantor numbers (e.g. Ministry of Interior requiring exactly 1 guarantor).
+- [x] **Double Circular Matchmaking**: Simulated circular customer guarantor relationships and verified transition to `MATCHED` status.
+- [x] **Multi-Tenant RLS Boundaries**: Verified that staff of one office cannot query or tamper with transactions belonging to another.
+- [x] **SaaS Office Capacity limits**: Confirmed Deno Edge Function `join-with-code` successfully blocks self-registrations past the quota limit (returning `403 Forbidden`).
+- [x] **Clipboard privacy copying masking**: Verified that sensitive phone numbers are securely masked to `0912***678` for unauthorized roles upon copy actions.
+- [x] **Quality Assurance Alignment**: Updated versioning and release notes to `v1.5.2` across the entire markdown stack (`test_plan.md`, `test-results.md`, `README.md`, `ROADMAP.md`).
+
+
 
 
 

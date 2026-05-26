@@ -6,6 +6,7 @@ import { notificationService } from '../utils/notifications'
 
 interface WaitingTransaction {
   id: string
+  customer_id: string
   customer_name: string
   customer_national_id: string
   office_name: string
@@ -19,10 +20,20 @@ interface WaitingTransaction {
   rejection_reason?: string
 }
 
-export default function WaitingQueue() {
+interface MatchDetails {
+  message: string
+  beneficiaryId?: string
+  guarantorId?: string
+}
+
+interface Props {
+  onGoToCalculator?: (beneficiaryId: string, guarantorId: string) => void
+}
+
+export default function WaitingQueue({ onGoToCalculator }: Props) {
   const [queue, setQueue] = useState<WaitingTransaction[]>([])
   const [searching, setSearching] = useState<string | null>(null)
-  const [matchResults, setMatchResults] = useState<Record<string, string>>({})
+  const [matchResults, setMatchResults] = useState<Record<string, MatchDetails>>({})
   const [loading, setLoading] = useState(true)
   const [verifying, setVerifying] = useState<string | null>(null)
   const { isManager, isAccountant } = useAuth()
@@ -41,7 +52,7 @@ export default function WaitingQueue() {
       const { data, error } = await supabase
         .from('transactions')
         .select(`
-          id, car_price, created_at, status, verification_status, rejection_reason,
+          id, car_price, created_at, status, verification_status, rejection_reason, customer_id,
           customers!inner(name, national_id, salary, workplaces(name, required_guarantors)),
           offices!inner(name)
         `)
@@ -53,6 +64,7 @@ export default function WaitingQueue() {
       if (data) {
         const formatted: WaitingTransaction[] = data.map((item: any) => ({
           id: item.id,
+          customer_id: item.customer_id,
           customer_name: item.customers.name,
           customer_national_id: item.customers.national_id,
           office_name: item.offices.name,
@@ -189,7 +201,7 @@ export default function WaitingQueue() {
         // Fetch beneficiary (customer) details
         const { data: txData } = await supabase
           .from('transactions')
-          .select('customers(name, phone)')
+          .select('customer_id, customers(name, phone)')
           .eq('id', transactionId)
           .single()
 
@@ -204,15 +216,17 @@ export default function WaitingQueue() {
           .maybeSingle()
 
         let guarantorPhone = ''
+        let guarantorId = ''
         if (guarData) {
           const { data: phoneData } = await supabase
             .from('customers')
-            .select('phone')
+            .select('id, phone')
             .eq('national_id', guarData.guarantor_national_id)
             .maybeSingle()
           
           if (phoneData) {
             guarantorPhone = phoneData.phone || ''
+            guarantorId = phoneData.id
           }
         }
 
@@ -221,9 +235,15 @@ export default function WaitingQueue() {
         const customerPhone = (Array.isArray(cust) ? cust[0]?.phone : (cust as any)?.phone) || ''
         const guarantorName = guarData?.guarantor_name || 'ضامن مطابق'
 
+        const beneficiaryId = txData?.customer_id || queue.find(q => q.id === transactionId)?.customer_id
+
         setMatchResults(prev => ({
           ...prev,
-          [transactionId]: `✅ تم العثور على تطابق تلقائي بنجاح! الضامن: ${guarantorName}`
+          [transactionId]: {
+            message: `✅ تم العثور على تطابق تلقائي بنجاح! الضامن: ${guarantorName}`,
+            beneficiaryId,
+            guarantorId
+          }
         }))
 
         // Call the notification service
@@ -242,14 +262,18 @@ export default function WaitingQueue() {
       } else {
         setMatchResults(prev => ({
           ...prev,
-          [transactionId]: 'ℹ️ لم يتم العثور على ضامن مطابق تلقائياً. تبقى المعاملة في قائمة الانتظار للمراجعة اليدوية.'
+          [transactionId]: {
+            message: 'ℹ️ لم يتم العثور على ضامن مطابق تلقائياً. تبقى المعاملة في قائمة الانتظار للمراجعة اليدوية.'
+          }
         }))
       }
     } catch (err) {
       console.error('Error attempting auto match:', err)
       setMatchResults(prev => ({
         ...prev,
-        [transactionId]: '❌ حدث خطأ أثناء البحث عن تطابق. يرجى المحاولة لاحقاً.'
+        [transactionId]: {
+          message: '❌ حدث خطأ أثناء البحث عن تطابق. يرجى المحاولة لاحقاً.'
+        }
       }))
     }
     setSearching(null)
@@ -411,13 +435,45 @@ export default function WaitingQueue() {
             </div>
 
             {matchResults[item.id] && (
-              <div className={`queue-match-result ${matchResults[item.id].includes('تم العثور') ? 'success' : 'info'}`}>
-                {matchResults[item.id].includes('تم العثور') ? (
-                  <CheckCircle size={16} />
-                ) : (
-                  <AlertCircle size={16} />
+              <div 
+                className={`queue-match-result ${matchResults[item.id].message.includes('تم العثور') ? 'success' : 'info'}`}
+                style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'flex-start', padding: '1rem' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  {matchResults[item.id].message.includes('تم العثور') ? (
+                    <CheckCircle size={16} style={{ flexShrink: 0 }} />
+                  ) : (
+                    <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                  )}
+                  <span>{matchResults[item.id].message}</span>
+                </div>
+                
+                {matchResults[item.id].beneficiaryId && matchResults[item.id].guarantorId && onGoToCalculator && (
+                  <button
+                    type="button"
+                    onClick={() => onGoToCalculator!(matchResults[item.id].beneficiaryId!, matchResults[item.id].guarantorId!)}
+                    style={{
+                      background: 'linear-gradient(135deg, #bf953f 0%, #aa771c 100%)',
+                      color: '#0f172a',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '0.45rem 1rem',
+                      fontWeight: 'bold',
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      marginTop: '0.25rem',
+                      boxShadow: '0 4px 10px rgba(170, 119, 28, 0.25)',
+                      transition: 'all 0.2s ease',
+                      outline: 'none'
+                    }}
+                    className="action-btn-hover"
+                  >
+                    <span>اعتماد الحساب المالي الجديد 📊</span>
+                  </button>
                 )}
-                <span>{matchResults[item.id]}</span>
               </div>
             )}
           </div>

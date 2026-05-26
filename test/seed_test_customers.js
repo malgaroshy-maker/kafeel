@@ -94,10 +94,11 @@ async function main() {
       car_price: 95000,
       car_model: 'Hyundai Tucson 2024',
       margin_rate: 0.16,
-      total_installments: 60,
+      total_installments: 96,
       guarantors_needed: 1,
       status: 'WAITING_MATCH',
-      verification_status: 'pending'
+      verification_status: 'pending',
+      down_payment: 16150
     });
 
   if (txJamalErr) {
@@ -132,7 +133,7 @@ async function main() {
   }
   console.log(`Mustafa inserted successfully with ID: ${mustafa.id}`);
 
-  // Create WAITING_MATCH transaction for Mustafa (verification_status = verified)
+  // Create WAITING_MATCH transaction for Jamal (verification_status = verified)
   console.log('Creating transaction for Mustafa (status: WAITING_MATCH, verification: verified)...');
   const { error: txMustafaErr } = await supabase
     .from('transactions_raw')
@@ -143,11 +144,11 @@ async function main() {
       car_price: 110000,
       car_model: 'Toyota Rav4 2023',
       margin_rate: 0.16,
-      total_installments: 60,
+      total_installments: 96,
       guarantors_needed: 1,
       status: 'WAITING_MATCH',
       verification_status: 'verified',
-      down_payment: 7600
+      down_payment: 23450
     });
 
   if (txMustafaErr) {

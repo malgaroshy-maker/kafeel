@@ -60,7 +60,7 @@ PERSONAL_USE | CASH_OUT | EXTERNAL_SALE
 
 ## 🔗 Matchmaking Engine
 
-- Auto-match criteria: **same workplace** + **salary diff ≤ office salary_match_limit (configured by manager, default 50 LYD, max 50 LYD)**
+- Auto-match criteria: **Exempt workplace mismatch** (same workplace is no longer required for matchmaking, allowing different employers to pair based purely on salary compatibility and dynamic office limits).
 - Matching is **deferred** — saving a customer does NOT trigger matching
 - User clicks "Send to Queue" → creates `WAITING_MATCH` transaction
 - `attempt_auto_match()` RPC is called from Waiting Queue UI only

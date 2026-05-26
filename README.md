@@ -41,7 +41,8 @@
 - No submit button — instant results on input change
 
 ### 🔗 Intelligent Matchmaking Engine
-- Auto-matches beneficiaries with guarantors (same workplace + salary diff ≤ office salary_match_limit [default 50 LYD, configurable 0-50])
+- Auto-matches beneficiaries with guarantors (workplace constraint is exempted to allow cross-employer matching, salary diff ≤ office salary_match_limit [default 50 LYD, configurable 0-50])
+- Dynamic redirection wizard guiding users to Calculator with Lowest Salary Rule active, routing dynamically based on role on save success
 - Waiting queue with deferred matching
 - Manual override for operations monitors
 - Real-time notifications via Supabase Realtime
@@ -349,6 +350,8 @@ The test suite covers:
 - [x] **Phase 35**: Cyber Safeguard Telemetry & Database Schema Hardening (v1.5.1) — Replaced public-read `offices` SELECT policy with a secure tenant-isolated policy, patched `CustomerList.tsx` clipboard copying handler to respect phone masking configurations, aligned database schemas by adding `market_sale_price` and settlement columns natively, and integrated `onFocus` clear-on-focus UX in forms.
 - [x] **Phase 36**: Applicant Identity Tracking Upgrade (v1.5.2) — Added editable employee name tracking (`created_by_name`) for financial requests and updated the manager approval portal.
 - [x] **Phase 37**: Lead Conversion Tracking & Security Audit Logging (v1.6.0) — Implemented lead-to-active conversion wizard with offline support, created centralized database-backed security telemetry audit logs (`audit_logs`), and updated the staff performance stats dashboard with conversion metrics.
+- [x] **Phase 38**: Workplace Matchmaking Exemption & Dynamic Redirection (v1.7.0) — Removed same-workplace matchmaking restriction to allow cross-employer auto-pairing. Integrated dynamic redirection wizards guiding users from matchmaking to the Calculator running Lowest Salary Rule, with role-based redirection funnels (Staff to Dashboard; Manager/Accountant to Settlements) on save success. Enabled managers to submit customer financial requests directly.
+- [x] **Phase 39**: Multi-Perspective System Audit & Test Suite (v1.5.2) — Created and executed a comprehensive automated integration script `test/comprehensive_system_audit.js` covering mathematical consistency, database trigger anti-tamper constraints, workplace-dependent guarantor limits, circular matchmaking, multi-tenant RLS boundaries, SaaS office quotas, and clipboard privacy masking.
 
 ---
 

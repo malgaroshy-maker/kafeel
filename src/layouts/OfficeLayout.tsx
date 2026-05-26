@@ -615,9 +615,32 @@ const OfficeLayout: React.FC = () => {
               beneficiaryId={selectedBeneficiary}
               guarantorId={selectedGuarantor}
               showSaveButton={cameFromRegistration}
-              onSaveSuccess={(txId) => {
+              onSaveSuccess={async (txId) => {
                 setActiveTransactionId(txId);
                 setDocCustomerId(selectedBeneficiary);
+                
+                try {
+                  const { data: tx } = await supabase
+                    .from('transactions')
+                    .select('status')
+                    .eq('id', txId)
+                    .single()
+                  
+                  if (tx && (tx.status === 'MATCHED' || tx.status === 'ACTIVE' || tx.status === 'COMPLETED')) {
+                    if (isStaff) {
+                      alert('✅ تم حفظ واعتماد الحسابات المالية الجديدة للمعاملة المربوطة بنجاح! يرجى إخطار المحاسب أو مدير الفرع لإجراء التسوية اللوجستية وتجهيز المركبة.');
+                      setActiveTab('dashboard');
+                    } else {
+                      alert('✅ تم حفظ الحسابات المالية المحدثة بنجاح. سيتم توجيهك الآن إلى شاشة التسويات لإكمال إجراءات التسليم وإصدار إذن خروج المركبة.');
+                      localStorage.setItem('quick_settle_tx_id', txId);
+                      setActiveTab('settlements');
+                    }
+                    return;
+                  }
+                } catch (err) {
+                  console.error('Error determining post-save route:', err);
+                }
+
                 setActiveTab('financial-request');
               }}
             />
@@ -653,7 +676,16 @@ const OfficeLayout: React.FC = () => {
             />
           )}
           {activeTab === 'documents' && <DocumentUploader customerId={docCustomerId} transactionId={activeTransactionId} />}
-          {activeTab === 'queue' && <WaitingQueue />}
+          {activeTab === 'queue' && (
+            <WaitingQueue 
+              onGoToCalculator={(beneficiaryId, guarantorId) => {
+                setSelectedBeneficiary(beneficiaryId);
+                setSelectedGuarantor(guarantorId);
+                setCameFromRegistration(true);
+                setActiveTab('calculator');
+              }}
+            />
+          )}
           {activeTab === 'settlements' && <Settlements />}
           {activeTab === 'reports' && <ReportsDashboard onTabChange={setActiveTab} />}
           {activeTab === 'dashboard' && (

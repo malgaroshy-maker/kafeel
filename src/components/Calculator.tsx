@@ -184,7 +184,7 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, showSa
     // Determine the active salary to use (use lowest if guarantor is linked)
     let activeSalary = n(form.netSalary);
     if (beneficiaryData && guarantorData) {
-      activeSalary = Math.min(beneficiaryData.salary || 0, guarantorData.salary || 0);
+      activeSalary = Math.min(n(form.netSalary), guarantorData.salary || 0);
     }
 
     return calculateMurabaha({
@@ -276,7 +276,7 @@ export default function FinancialCalculator({ beneficiaryId, guarantorId, showSa
                 direction: 'rtl',
                 textAlign: 'right'
               }}>
-                ⚠️ تم ربط الضامن! يتم حساب الأقساط والقدرة بناءً على <strong>الراتب الأدنى</strong>: {Math.min(beneficiaryData.salary || 0, guarantorData.salary || 0).toLocaleString('ar-LY')} د.ل (المستفيد: {beneficiaryData.salary?.toLocaleString()} | الضامن: {guarantorData.salary?.toLocaleString()})
+                ⚠️ تم ربط الضامن! يتم حساب الأقساط والقدرة بناءً على <strong>الراتب الأدنى</strong>: {Math.min(n(form.netSalary), guarantorData.salary || 0).toLocaleString('ar-LY')} د.ل (المستفيد: {n(form.netSalary).toLocaleString()} د.ل | الضامن: {guarantorData.salary?.toLocaleString()} د.ل)
               </div>
             )}
           </div>

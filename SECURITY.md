@@ -1,14 +1,14 @@
 # 🛡️ Security Hardening & Threat Telemetry Documentation | وثيقة الأمن والتحصين السيبراني
-**Version / الإصدار:** `1.6.0`
+**Version / الإصدار:** `1.7.0`
 **Last Updated / آخر تحديث:** May 2026
 
 ---
 
 ## 🇺🇸 English Version
 
-This document outlines the security architecture, threat logging, and data masking mechanisms implemented in the Kafeel multi-tenant financial application as of version `1.6.0`. 
+This document outlines the security architecture, threat logging, and data masking mechanisms implemented in the Kafeel multi-tenant financial application as of version `1.7.0`. 
 
-The security suite guarantees absolute protection against data leaks, client-side financial parameter tampering, structural crash path leaks, and unauthorized ledger queries.
+The security suite guarantees absolute protection against data leaks, client-side financial parameter tampering, structural crash path leaks, unauthorized ledger queries, and duplicate profile generation across offices.
 
 ### 📋 Overview of Security Components & Files
 
@@ -46,13 +46,20 @@ The security suite guarantees absolute protection against data leaks, client-sid
   * **Clipboard Auditing:** Automatically logs clipboard copies of sensitive customer information (National IDs, Phone numbers, transaction IDs) along with operator details.
   * **Lifecycle Action Logs:** Documents customer creations, file updates, queue submissions, and hard-deletions on the `audit_logs` database table (tenant-isolated for Managers/Admins).
 
+#### 6. 🔀 Multi-Tenant Identity Separation & Dynamic Verification
+* **File Path:** [`src/components/CustomerForm.tsx`](file:///c:/Users/masal/OneDrive/Documents/opencode/kafeel/src/components/CustomerForm.tsx), [`supabase/migrations/19_add_customer_transfers.sql`](file:///c:/Users/masal/OneDrive/Documents/opencode/kafeel/supabase/migrations/19_add_customer_transfers.sql)
+* **Mechanisms Implemented:**
+  * **Duplicate NID Protection:** Strict uniqueness constraints on National ID are enforced. If registered in a different office, the system prevents double entry and launches a secure, manager-reviewed transfer request flow (`customer_transfers` table) to maintain database isolation.
+  * **Anonymous Broadcast Reading:** RLS bypass SELECT policy allows the login screen to fetch announcement bulletins before authentication, without leaking internal office tables or credentials.
+  * **Role-Gated Inline Registries:** Authorizes inline additions to the `banks` and `branches` tables from user inputs while protecting the master admin configurations.
+
 ---
 
 ## 🇱🇾 النسخة العربية (Arabic Version)
 
-توثق هذه الصفحة البنية التحتية للحماية والأمن السيبراني، ومراقبة محاولات الاختراق وحجب البيانات الحساسة المطبقة في منظومة **كفيل** المالية ابتداءً من الإصدار الآمن `1.6.0`.
+ توثق هذه الصفحة البنية التحتية للحماية والأمن السيبراني، ومراقبة محاولات الاختراق وحجب البيانات الحساسة المطبقة في منظومة **كفيل** المالية ابتداءً من الإصدار الآمن `1.7.0`.
 
-توفر هذه الحزمة الأمنية حصانة كاملة ضد تسريب معلومات الشراء الفعلي، ومكافحة التلاعب بنسب المرابحة، وحجب تفاصيل الأخطاء الفنية عن المستخدمين لمنع الهندسة العكسية.
+توفر هذه الحزمة الأمنية حصانة كاملة ضد تسريب معلومات الشراء الفعلي، ومكافحة التلاعب بنسب المرابحة، وحجب تفاصيل الأخطاء الفنية عن المستخدمين لمنع الهندسة العكسية، وضمان عزل الهويات الوطنية للعملاء بين الفروع.
 
 ### 📋 نظرة عامة على الملفات والأنظمة الأمنية المضافة
 
@@ -89,3 +96,10 @@ The security suite guarantees absolute protection against data leaks, client-sid
 * **آليات الحماية المطبقة:**
   * **سجل نسخ الحافظة التلقائي:** توثيق نسخ البيانات الحساسة فوراً (رقم الهاتف، الرقم الوطني، معرف المعاملة) وتسجيل هوية الفاعل.
   * **سجل حركة العملاء الحساسة:** رصد وتوثيق عمليات الحذف والإضافة وإرسال المعاملات لقائمة الانتظار في جدول `audit_logs` المعزول على مستوى المكتب.
+
+#### 6. 🔀 عزل الهوية المتبادل ومكافحة التكرار
+* **مسار الملف:** [`src/components/CustomerForm.tsx`](file:///c:/Users/masal/OneDrive/Documents/opencode/kafeel/src/components/CustomerForm.tsx), [`supabase/migrations/19_add_customer_transfers.sql`](file:///c:/Users/masal/OneDrive/Documents/opencode/kafeel/supabase/migrations/19_add_customer_transfers.sql)
+* **آليات الحماية المطبقة:**
+  * **حماية الأرقام الوطنية الفريدة:** منع التسجيل المتكرر لنفس الرقم الوطني في مكاتب مختلفة، وتفعيل نظام طلبات النقل (`customer_transfers`) الخاضع لمراجعة واعتماد مدراء المكاتب المعنية لحفظ السيادة على البيانات.
+  * **قراءة البث العام المأمنة:** تخصيص سياسة قراءة `SELECT` عامة للضيوف لجدول الإعلانات `broadcasts` دون المخاطرة بتسريب الجداول المالية الأخرى أو رموز انضمام المكاتب.
+  * **الإضافة الفورية الديناميكية للمصارف:** تقييد إدراج المصارف والفروع الإضافية بالـ RLS لضمان عدم اختراق القوائم الرئيسية.

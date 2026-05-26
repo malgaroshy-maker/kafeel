@@ -43,7 +43,7 @@ Run the test suite before submitting:
 npm test
 ```
 
-All 23 financial engine tests must pass.
+All 25 financial engine tests must pass.
 
 ## 📤 Pull Request Process
 

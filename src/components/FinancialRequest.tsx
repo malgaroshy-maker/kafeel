@@ -355,10 +355,10 @@ CREATE TABLE IF NOT EXISTS public.financial_requests (
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: isStaff ? '1fr 1.5fr' : '1fr', gap: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: (isStaff || isManager) ? '1fr 1.5fr' : '1fr', gap: '1.5rem' }}>
         
-        {/* Submitting form (only for Staff) */}
-        {isStaff && (
+        {/* Submitting form (for Staff and Manager) */}
+        {(isStaff || isManager) && (
           <div className="card" style={{ padding: '1.5rem', background: 'var(--surface)', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
             <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--primary-light)' }}>
               <FileText size={18} />
